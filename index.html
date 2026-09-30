@@ -87,6 +87,9 @@
   .hb .t { height:10px; border-radius:99px; background:var(--line); overflow:hidden } .hb .t i { display:block; height:100%; background:var(--pri2); border-radius:99px }
   .hb b { text-align:right }
   .hb > span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+  .thumb { height:30px; width:30px; object-fit:cover; border-radius:6px; vertical-align:middle; border:1px solid var(--line) }
+  .lnk { background:none; border:0; color:var(--pri); cursor:pointer; font:inherit; padding:0; text-decoration:underline }
+  td.adj { min-width:210px }
   .hide { display:none !important }
   @media (max-width:860px) {
     .shell { grid-template-columns:1fr } aside { position:static; height:auto; flex-direction:row; flex-wrap:wrap; align-items:center }
@@ -97,6 +100,7 @@
 <body>
 
 <datalist id="dlAgencias"></datalist>
+<input type="file" id="adjFile" accept="image/*,application/pdf" class="hide">
 <div id="setup" class="card hide" style="max-width:600px;margin:10vh auto">
   <h2>Falta configurar Supabase</h2>
   <p>Completa <code>SUPABASE_URL</code> y <code>SUPABASE_ANON_KEY</code> en <code>config.js</code> y recarga.</p>
@@ -426,6 +430,37 @@ $('#cGuardar').onclick = async () => {
   $('#rDesde').value = fecha; $('#rHasta').value = fecha; buscarRegistros();
 };
 
+// ---------- adjuntos de factura (bucket "Facturas") ----------
+const BUCKET = 'Facturas';
+const urlAdjunto = path => sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+const esImagen = path => /\.(png|jpe?g|gif|webp|bmp|heic)$/i.test(path);
+function adjuntoHtml(r) {
+  if (!r.factura_archivo) return '<button class="b sec" data-act="adjuntar">📎 Adjuntar</button>';
+  const u = esc(urlAdjunto(r.factura_archivo));
+  return `<a href="${u}" target="_blank" rel="noopener">${esImagen(r.factura_archivo) ? `<img class="thumb" src="${u}" alt="Factura">` : '📄'} Ver</a> · <button class="lnk" data-act="adjuntar">Cambiar</button> · <button class="lnk" data-act="quitar">Quitar</button>`;
+}
+let adjId = null;
+$('#adjFile').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f || !adjId) return;
+  const r = registros.find(x => x.id === adjId); if (!r) return;
+  if (!/^(image\/|application\/pdf)/.test(f.type)) return flash($('#rMsg'), 'Solo se aceptan imágenes o PDF.', 'err');
+  if (f.size > 10 * 1024 * 1024) return flash($('#rMsg'), 'El archivo supera los 10 MB.', 'err');
+  const ext = (f.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin';
+  const path = `${r.fecha.slice(0, 7)}/${r.id}-${Date.now()}.${ext}`;
+  flash($('#rMsg'), 'Subiendo adjunto…', 'ok');
+  const up = await sb.storage.from(BUCKET).upload(path, f, { contentType: f.type, upsert: false });
+  if (up.error) return flash($('#rMsg'), 'No se pudo subir: ' + up.error.message, 'err');
+  const { error } = await sb.from('envios').update({ factura_archivo: path }).eq('id', r.id);
+  if (error) { await sb.storage.from(BUCKET).remove([path]); return flash($('#rMsg'), error.message, 'err'); }
+  if (r.factura_archivo) await sb.storage.from(BUCKET).remove([r.factura_archivo]);
+  r.factura_archivo = path; refrescarAdjunto(r);
+  flash($('#rMsg'), 'Adjunto guardado', 'ok');
+};
+function refrescarAdjunto(r) {
+  const td = document.querySelector(`#rTabla tr[data-id="${r.id}"] td.adj`); if (td) td.innerHTML = adjuntoHtml(r);
+}
+
 // ---------- registros ----------
 async function buscarRegistros() {
   let q = sb.from('envios').select('*').order('fecha', { ascending: false }).order('transporte').order('nodo').limit(2000);
@@ -439,7 +474,7 @@ async function buscarRegistros() {
   registros = data;
   const ts = [...new Set(data.map(r => r.transporte).filter(Boolean))].sort(), sel = $('#rTrans').value;
   if (!sel) $('#rTrans').innerHTML = '<option value="">Todos</option>' + ts.map(t => `<option>${esc(t)}</option>`).join('');
-  $('#rTabla').innerHTML = '<tr><th>Fecha</th><th>Transporte</th><th>Nodo</th><th>Bultos</th><th>Pedidos</th><th>Cajas</th><th>Placa</th><th>Agencia</th><th>Detalle del gasto</th><th>Pago</th><th>Importe</th><th>Factura</th><th></th></tr>' +
+  $('#rTabla').innerHTML = '<tr><th>Fecha</th><th>Transporte</th><th>Nodo</th><th>Bultos</th><th>Pedidos</th><th>Cajas</th><th>Placa</th><th>Agencia</th><th>Detalle del gasto</th><th>Pago</th><th>Importe</th><th>Factura</th><th>Adjunto</th><th></th></tr>' +
     data.map(r => `<tr data-id="${r.id}">
       <td>${esc(r.fecha)}</td><td>${esc(r.transporte)}</td><td><b>${esc(r.nodo)}</b></td>
       <td class="n">${r.bultos ?? ''}</td><td class="n">${r.pedidos ?? ''}</td><td class="n">${r.cajas ?? ''}</td>
@@ -449,6 +484,7 @@ async function buscarRegistros() {
       <td><select data-f="modo_pago" data-v="${r.modo_pago}">${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
       <td class="n"><input data-f="importe" type="number" step="0.01" value="${r.importe ?? ''}"></td>
       <td><input data-f="factura" value="${esc(r.factura)}"></td>
+      <td class="adj">${adjuntoHtml(r)}</td>
       <td><button class="b sec" data-del="1">Eliminar</button></td></tr>`).join('');
   const tot = data.reduce((s, r) => s + (Number(r.importe) || 0), 0);
   $('#rTotal').textContent = `${data.length} registros · Importe total S/ ${tot.toFixed(2)}`;
@@ -465,10 +501,26 @@ $('#rTabla').addEventListener('change', async e => {
   $('#rTotal').textContent = `${registros.length} registros · Importe total S/ ${registros.reduce((s, r) => s + (Number(r.importe) || 0), 0).toFixed(2)}`;
 });
 $('#rTabla').addEventListener('click', async e => {
+  const act = e.target.closest('[data-act]');
+  if (act) {
+    const id = act.closest('tr').dataset.id, r = registros.find(x => x.id === id); if (!r) return;
+    if (act.dataset.act === 'adjuntar') { adjId = id; $('#adjFile').click(); return; }
+    if (act.dataset.act === 'quitar') {
+      if (!confirm('¿Quitar el adjunto de este registro?')) return;
+      const { error } = await sb.from('envios').update({ factura_archivo: null }).eq('id', id);
+      if (error) return flash($('#rMsg'), error.message, 'err');
+      await sb.storage.from(BUCKET).remove([r.factura_archivo]);
+      r.factura_archivo = null; refrescarAdjunto(r); flash($('#rMsg'), 'Adjunto quitado', 'ok');
+    }
+    return;
+  }
   if (!e.target.dataset.del) return;
   if (!confirm('¿Eliminar este registro?')) return;
-  const { error } = await sb.from('envios').delete().eq('id', e.target.closest('tr').dataset.id);
-  error ? flash($('#rMsg'), error.message, 'err') : buscarRegistros();
+  const id = e.target.closest('tr').dataset.id, r = registros.find(x => x.id === id);
+  const { error } = await sb.from('envios').delete().eq('id', id);
+  if (error) return flash($('#rMsg'), error.message, 'err');
+  if (r?.factura_archivo) await sb.storage.from(BUCKET).remove([r.factura_archivo]);
+  buscarRegistros();
 });
 
 $('#rExport').onclick = () => {
