@@ -10,12 +10,12 @@
     --bg:#f8fafc; --card:#fff; --ink:#0f172a; --mut:#64748b; --line:#e2e8f0; --head:#f1f5f9;
     --brand:#0B192C; --brand-h:#081322; --pri:#2563eb; --pri-h:#1d4ed8; --grn:#059669; --grn-h:#047857; --acc:#F67706;
     --ok:#047857; --okbg:#ecfdf5; --okln:#a7f3d0; --ind:#4338ca; --indbg:#eef2ff; --indln:#c7d2fe;
-    --warn:#b45309; --warnbg:#fff1e0; --bad:#be123c; --rad:12px; --shadow:0 1px 2px rgba(15,23,42,.05);
+    --warn:#b45309; --warnbg:#fff1e0; --bad:#be123c; --amb:#d97706; --red:#dc2626; --badbg:#fef2f2; --rad:12px; --shadow:0 1px 2px rgba(15,23,42,.05);
   }
   @media (prefers-color-scheme: dark) {
     :root { --bg:#0b1220; --card:#121a2c; --ink:#e6ecf7; --mut:#94a3b8; --line:#23304a; --head:#18223a; --brand:#060d1a; --brand-h:#040a14;
             --pri:#3b82f6; --pri-h:#60a5fa; --grn:#10b981; --grn-h:#34d399; --ok:#6ee7b7; --okbg:#0c2a20; --okln:#14532d; --ind:#c7d2fe; --indbg:#1e2150; --indln:#312e81;
-            --warn:#fdba74; --warnbg:#3a230b; --bad:#fda4af; --shadow:none; }
+            --warn:#fdba74; --warnbg:#3a230b; --bad:#fda4af; --amb:#fbbf24; --red:#f87171; --badbg:#3b1219; --shadow:none; }
   }
   * { box-sizing:border-box }
   body { margin:0; font:14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--ink) }
@@ -152,6 +152,26 @@
   .aviso { background:var(--warnbg); color:var(--warn); border-radius:9px; padding:7px 10px; margin:6px 0; font-size:12px }
   .okbox { background:var(--okbg); color:var(--ok); border-radius:9px; padding:7px 10px; margin:6px 0; font-size:12px }
   @media (max-width:760px) { .fd { grid-template-columns:1fr } .fd-img { max-height:34vh } }
+  .ctl { margin-bottom:14px }
+  .chk { flex-direction:row; align-items:center; gap:6px; padding-bottom:7px; font-weight:500 }
+  .seg { display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden }
+  .seg button { font:inherit; font-size:12px; padding:7px 12px; border:0; background:var(--card); color:var(--ink); cursor:pointer } .seg button.on { background:var(--pri); color:#fff; font-weight:600 }
+  .cgrid { display:grid; grid-template-columns:minmax(0,1.75fr) minmax(300px,1fr); gap:14px; margin-bottom:14px } .cgrid .card { margin:0 } .ccol { display:flex; flex-direction:column; gap:14px }
+  @media (max-width:1100px) { .cgrid { grid-template-columns:1fr } }
+  .rk { display:grid; grid-template-columns:22px minmax(120px,190px) 1fr 88px 54px 100px; gap:10px; align-items:center; padding:7px 0; border-top:1px solid var(--line); font-size:12px }
+  .rk.h { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:#94a3b8; font-weight:700; border-top:0 }
+  .rk .n { color:#94a3b8; font-size:11px; text-align:right } .rk .nm { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+  .rk .bar { height:12px; background:var(--head); border-radius:99px; position:relative; overflow:hidden } .rk .bar i { position:absolute; inset:0 auto 0 0; border-radius:99px }
+  .rk .v { text-align:right; font-weight:700; font-variant-numeric:tabular-nums } .rk .p { text-align:right; color:var(--mut); font-variant-numeric:tabular-nums }
+  .cz { display:inline-flex; align-items:center; justify-content:center; gap:3px; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; width:100% }
+  .cz.g { background:var(--okbg); color:var(--ok) } .cz.a { background:var(--warnbg); color:var(--warn) } .cz.r { background:var(--badbg); color:var(--bad) }
+  .cutl { font-size:10px; color:var(--mut); text-align:center; margin-top:6px; font-weight:600 }
+  .cl { display:flex; flex-direction:column; gap:6px; font-size:12px; margin-top:8px } .cl div { display:flex; align-items:center; gap:8px } .cl i { width:10px; height:10px; border-radius:3px; flex:none } .cl b { margin-left:auto }
+  .al { display:flex; gap:10px; padding:9px 10px; border-radius:9px; background:var(--warnbg); color:var(--warn); font-size:12px; margin-top:8px } .al.r { background:var(--badbg); color:var(--bad) }
+  .key { display:flex; gap:12px; flex-wrap:wrap; font-size:11px; color:var(--mut); margin-top:10px } .key span { display:inline-flex; align-items:center; gap:5px } .key i { width:10px; height:10px; border-radius:3px }
+  .csvg text { fill:var(--mut); font-size:10px }
+  .tip { position:fixed; pointer-events:none; background:#0f172a; color:#fff; font-size:11px; padding:6px 9px; border-radius:7px; z-index:99; display:none; max-width:240px }
+  #ctaKpis .kpi:first-child { background:linear-gradient(135deg,#0B192C,#14325c); color:#fff; border:0; border-bottom:4px solid var(--grn) } #ctaKpis .kpi:first-child span, #ctaKpis .kpi:first-child small { color:#b6c4dc }
   .hide { display:none !important }
   @media (max-width:900px) {
     .shell { grid-template-columns:1fr; height:auto; min-height:100vh } aside { flex-direction:row; flex-wrap:wrap; align-items:center; border-right:0 }
@@ -295,12 +315,35 @@
   <div class="kpis" id="kpCards"></div>
   <div class="charts">
     <div class="card"><h3>Costo por día</h3><div class="bars" id="kpBars"></div></div>
-    <div class="card"><h3>Costo por cuenta (top 6)</h3><div id="kpTop"></div></div>
   </div>
   <h3>Costo por día · detalle</h3>
   <div class="tw" style="margin-bottom:14px"><table id="kpDias"></table></div>
   <h3>Costo por cuenta</h3>
-  <div class="tw" style="margin-bottom:14px"><table id="kpCuenta"></table></div>
+  <div class="kpis" id="ctaKpis"></div>
+  <div class="card ctl"><div class="row">
+    <label>Ordenar por<select id="ctaOrd"><option value="costo">Costo (mayor a menor)</option><option value="cpp">Costo por pedido (mayor a menor)</option><option value="pedidos">Pedidos (mayor a menor)</option><option value="nombre">Nombre (A-Z)</option></select></label>
+    <label>Mostrar<select id="ctaTop"><option value="8">Top 8</option><option value="12">Top 12</option><option value="999" selected>Todas</option></select></label>
+    <label>Buscar cuenta<input id="ctaQ" placeholder="Nombre…"></label>
+    <label class="chk"><input type="checkbox" id="ctaSin" checked> Incluir "sin detalle HRN"</label>
+    <div class="seg" id="ctaVista"><button data-v="barras" class="on">Barras</button><button data-v="tabla">Tabla</button></div>
+  </div></div>
+  <div class="cgrid">
+    <div class="card">
+      <h3>Ranking de cuentas</h3>
+      <p class="hint">La barra es el costo. El color indica si el costo por pedido está por debajo (verde) o por encima (ámbar o rojo) del promedio general.</p>
+      <div id="ctaBarras"></div><div id="ctaTabla" class="tw hide"></div>
+      <div class="key"><span><i style="background:var(--grn)"></i>hasta el promedio</span><span><i style="background:var(--amb)"></i>hasta 1.5× el promedio</span><span><i style="background:var(--red)"></i>más de 1.5× el promedio</span></div>
+    </div>
+    <div class="ccol">
+      <div class="card"><h3>Participación en el costo</h3><p class="hint">Las 5 cuentas principales y el resto.</p>
+        <div style="display:flex;justify-content:center"><svg id="ctaDonut" class="csvg" viewBox="0 0 200 200" width="180" height="180"></svg></div><div class="cl" id="ctaLg"></div></div>
+      <div class="card"><h3>Alertas</h3><p class="hint">Cuentas con costo por pedido fuera de lo normal.</p><div id="ctaAl"></div></div>
+    </div>
+  </div>
+  <div class="card"><h3>Volumen frente a costo por pedido</h3>
+    <p class="hint">Cada punto es una cuenta: a la derecha, más pedidos; arriba, más caro por pedido; el tamaño es el costo total. Las cuentas con pocos pedidos y costo alto suelen ser envíos sueltos que conviene revisar.</p>
+    <svg id="ctaSc" class="csvg" viewBox="0 0 900 300" width="100%" style="max-height:340px"></svg></div>
+  <div class="tip" id="ctaTip"></div>
   <h3>Costo por nodo</h3>
   <div class="tw" style="margin-bottom:14px"><table id="kpNodo"></table></div>
   <h3>Costo por transporte</h3>
@@ -936,11 +979,75 @@ function pintarDias(dias) {
 function pintarGraficos(dias, R) {
   const max = Math.max(1, ...dias.map(d => d.costo));
   $('#kpBars').innerHTML = dias.length ? dias.map(d => `<div title="${esc(d.fecha)} · ${fmt(d.costo)}" style="height:${Math.max(3, d.costo / max * 100)}%"><span>${d.fecha.slice(8)}</span></div>`).join('') : '<span class="hint">Sin envíos en este rango.</span>';
-  const cu = [...R.cuentas].sort((a, b) => b[1].costo - a[1].costo), top = cu.slice(0, 6), resto = cu.slice(6).reduce((s, c) => s + c[1].costo, 0);
-  if (resto > 0) top.push([`OTRAS (${cu.length - 6})`, { costo: resto }]);
-  const cm = Math.max(1, ...top.map(c => c[1].costo));
-  $('#kpTop').innerHTML = top.length ? top.map(([n, v]) => `<div class="hb"><span title="${esc(n)}">${esc(n)}</span><span class="t"><i style="width:${v.costo / cm * 100}%"></i></span><b>${fmt(v.costo)}</b></div>`).join('') : '<span class="hint">Sin datos.</span>';
 }
+// ---------- costo por cuenta (vista ranking) ----------
+let ctaDatos = [], ctaPts = [];
+const ctaCOL = ['#2563eb', '#059669', '#7c3aed', '#d97706', '#0891b2', '#94a3b8'], ctaVAR = { g: 'var(--grn)', a: 'var(--amb)', r: 'var(--red)' };
+const ctaClase = (cpp, prom) => cpp <= prom ? 'g' : cpp <= prom * 1.5 ? 'a' : 'r';
+function cuentasKpi(R) {
+  ctaDatos = [...R.cuentas].map(([nombre, v]) => ({ nombre, costo: v.costo, pedidos: v.pedidos, bultos: v.bultos, cpp: v.pedidos ? v.costo / v.pedidos : 0, sin: nombre === SIN_HRN }));
+  pintarCuentas();
+}
+function pintarCuentas() {
+  const base = ctaDatos.filter(x => $('#ctaSin').checked || !x.sin), T = base.reduce((s, x) => s + x.costo, 0), P = base.reduce((s, x) => s + x.pedidos, 0), B = base.reduce((s, x) => s + x.bultos, 0);
+  const prom = P ? T / P : 0, porCosto = [...base].sort((a, b) => b.costo - a.costo);
+  if (!base.length || !T) { ['#ctaKpis', '#ctaBarras', '#ctaTabla', '#ctaLg', '#ctaAl'].forEach(i => $(i).innerHTML = ''); $('#ctaDonut').innerHTML = ''; $('#ctaSc').innerHTML = ''; $('#ctaBarras').innerHTML = '<p class="hint">Sin datos en este rango.</p>'; return; }
+  const top3 = porCosto.slice(0, 3).reduce((s, x) => s + x.costo, 0) / T; let acum = 0, n80 = 0; for (const x of porCosto) { acum += x.costo; n80++; if (acum / T >= 0.8) break; }
+  $('#ctaKpis').innerHTML = [
+    ['Costo total', fmt(T), `${base.filter(x => !x.sin).length} cuentas`], ['Costo por pedido (promedio)', fmt(prom), `${fmtN(P)} pedidos`],
+    ['Concentración', `${Math.round(top3 * 100)}%`, 'del costo está en las 3 primeras cuentas'], ['Regla 80/20', `${n80} ${n80 === 1 ? 'cuenta' : 'cuentas'}`, 'explican el 80% del costo']
+  ].map(([t, v, n]) => `<div class="kpi"><div><span>${t}</span><b>${v}</b><small>${n}</small></div></div>`).join('');
+
+  let d = base; const q = norm($('#ctaQ').value); if (q) d = d.filter(x => norm(x.nombre).includes(q));
+  const o = $('#ctaOrd').value; d = [...d].sort((a, b) => o === 'nombre' ? a.nombre.localeCompare(b.nombre) : b[o] - a[o]);
+  const lim = Number($('#ctaTop').value), vis = d.slice(0, lim), max = Math.max(...d.map(x => x.costo), 1);
+  $('#ctaBarras').innerHTML = '<div class="rk h"><span></span><span>Cuenta</span><span>Costo</span><span style="text-align:right">Monto</span><span style="text-align:right">% total</span><span style="text-align:center">Costo x pedido</span></div>' +
+    (vis.map((x, i) => { const c = ctaClase(x.cpp, prom);
+      return `<div class="rk"><span class="n">${i + 1}</span><span class="nm" title="${esc(x.nombre)}">${esc(x.nombre)}</span><span class="bar"><i style="width:${x.costo / max * 100}%;background:${ctaVAR[c]}"></i></span><span class="v">${fmt(x.costo)}</span><span class="p">${(x.costo / T * 100).toFixed(1)}%</span><span><span class="cz ${c}">${x.pedidos ? fmt(x.cpp) + (x.cpp > prom ? ' ▲' : ' ▼') : '-'}</span></span></div>`; }).join('') || '<p class="hint">Sin resultados.</p>') +
+    (d.length > vis.length ? `<div class="cutl">+ ${d.length - vis.length} cuentas más · ${fmt(d.slice(lim).reduce((s, x) => s + x.costo, 0))}</div>` : '');
+  $('#ctaTabla').innerHTML = '<table><tr><th>Cuenta</th><th class="num">Costo</th><th class="num">% total</th><th class="num">Pedidos</th><th class="num">Bultos</th><th class="num">Costo por pedido</th><th class="num">Costo por bulto</th></tr>' +
+    vis.map(x => `<tr><td><b>${esc(x.nombre)}</b></td><td class="num">${fmt(x.costo)}</td><td class="num">${(x.costo / T * 100).toFixed(1)}%</td><td class="num">${fmtN(x.pedidos)}</td><td class="num">${fmtN(x.bultos)}</td><td class="num">${x.pedidos ? fmt(x.cpp) : '-'}</td><td class="num">${x.bultos ? fmt(x.costo / x.bultos) : '-'}</td></tr>`).join('') +
+    `<tr style="font-weight:700;background:var(--head)"><td>TOTAL</td><td class="num">${fmt(T)}</td><td class="num">100%</td><td class="num">${fmtN(P)}</td><td class="num">${fmtN(B)}</td><td class="num">${fmt(prom)}</td><td class="num">${B ? fmt(T / B) : '-'}</td></tr></table>`;
+
+  // participación (donut)
+  const top5 = porCosto.slice(0, 5), resto = T - top5.reduce((s, x) => s + x.costo, 0), seg = top5.map(x => [x.nombre, x.costo]); if (porCosto.length > 5) seg.push([`Otras ${porCosto.length - 5} cuentas`, resto]);
+  let a0 = -Math.PI / 2; const R0 = 80, r0 = 50, cx = 100, cy = 100;
+  $('#ctaDonut').innerHTML = seg.map(([n, v], i) => { const a1 = a0 + Math.min(v / T, 0.99999) * 2 * Math.PI, big = a1 - a0 > Math.PI ? 1 : 0;
+    const p = `M${cx + R0 * Math.cos(a0)},${cy + R0 * Math.sin(a0)} A${R0},${R0} 0 ${big} 1 ${cx + R0 * Math.cos(a1)},${cy + R0 * Math.sin(a1)} L${cx + r0 * Math.cos(a1)},${cy + r0 * Math.sin(a1)} A${r0},${r0} 0 ${big} 0 ${cx + r0 * Math.cos(a0)},${cy + r0 * Math.sin(a0)} Z`; a0 = a1;
+    return `<path d="${p}" fill="${ctaCOL[i]}"><title>${esc(n)}: ${fmt(v)}</title></path>`; }).join('') + `<text x="100" y="97" text-anchor="middle" style="font-size:12px;font-weight:700;fill:var(--ink)">${fmt(T).replace('S/ ', 'S/')}</text><text x="100" y="112" text-anchor="middle">total</text>`;
+  $('#ctaLg').innerHTML = seg.map(([n, v], i) => `<div><i style="background:${ctaCOL[i]}"></i><span>${esc(n.length > 26 ? n.slice(0, 25) + '…' : n)}</span><b>${(v / T * 100).toFixed(1)}%</b></div>`).join('');
+
+  // alertas
+  const al = base.filter(x => !x.sin && x.pedidos && x.cpp > prom * 2).sort((a, b) => b.cpp - a.cpp).slice(0, 4), sinx = base.find(x => x.sin);
+  $('#ctaAl').innerHTML = (al.map(x => `<div class="al ${x.cpp > prom * 4 ? 'r' : ''}"><span>⚠</span><div><b>${esc(x.nombre)}</b><br>${fmt(x.cpp)} por pedido: ${(x.cpp / prom).toFixed(1)}× el promedio (${fmtN(x.pedidos)} ${x.pedidos === 1 ? 'pedido' : 'pedidos'}).</div></div>`).join('') +
+    (sinx ? `<div class="al"><span>ⓘ</span><div><b>${fmt(sinx.costo)} sin cuenta asignada</b><br>No hay HRN cargado para esos nodos y fechas: súbelo para repartirlo.</div></div>` : '')) || '<p class="hint">Nada fuera de lo normal.</p>';
+
+  // dispersión volumen vs costo por pedido
+  ctaPts = base.filter(x => !x.sin && x.pedidos);
+  if (!ctaPts.length) { $('#ctaSc').innerHTML = ''; return; }
+  const W = 900, H = 300, m = { l: 48, r: 16, t: 14, b: 34 }, mx = Math.max(...ctaPts.map(x => x.pedidos)) * 1.08, my = Math.max(...ctaPts.map(x => x.cpp), prom) * 1.12, mc = Math.max(...ctaPts.map(x => x.costo));
+  const X = v => m.l + v / mx * (W - m.l - m.r), Y = v => H - m.b - v / my * (H - m.t - m.b);
+  let g = ''; for (let i = 0; i <= 4; i++) { const v = my * i / 4; g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${m.l - 6}" y="${Y(v) + 3}" text-anchor="end">${v.toFixed(0)}</text>`; }
+  for (let i = 0; i <= 4; i++) { const v = mx * i / 4; g += `<text x="${X(v)}" y="${H - 14}" text-anchor="middle">${Math.round(v)}</text>`; }
+  g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(prom)}" y2="${Y(prom)}" stroke="var(--pri)" stroke-dasharray="5 4"/><text x="${W - m.r - 4}" y="${Y(prom) - 5}" text-anchor="end" style="fill:var(--pri)">promedio ${fmt(prom)}</text>`;
+  g += `<text x="${(W + m.l) / 2}" y="${H - 1}" text-anchor="middle">Pedidos</text><text transform="translate(11,${H / 2}) rotate(-90)" text-anchor="middle">Costo por pedido (S/)</text>`;
+  g += ctaPts.map((x, i) => { const c = ctaClase(x.cpp, prom), rad = 5 + Math.sqrt(x.costo / mc) * 18;
+    return `<circle cx="${X(x.pedidos)}" cy="${Y(x.cpp)}" r="${rad}" fill="${ctaVAR[c]}" fill-opacity=".55" stroke="${ctaVAR[c]}" data-i="${i}"/>`; }).join('');
+  $('#ctaSc').innerHTML = g;
+}
+document.addEventListener('mousemove', e => {
+  const tip = $('#ctaTip'), c = e.target.closest && e.target.closest('#ctaSc circle[data-i]');
+  if (!c) { tip.style.display = 'none'; return; }
+  const x = ctaPts[Number(c.dataset.i)]; if (!x) return;
+  tip.innerHTML = `<b>${esc(x.nombre)}</b><br>Costo ${fmt(x.costo)}<br>${fmtN(x.pedidos)} pedidos · ${fmt(x.cpp)} por pedido`;
+  tip.style.display = 'block'; tip.style.left = e.clientX + 12 + 'px'; tip.style.top = e.clientY + 12 + 'px';
+});
+['ctaOrd', 'ctaTop', 'ctaQ', 'ctaSin'].forEach(id => $('#' + id).addEventListener('input', pintarCuentas));
+$('#ctaVista').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#ctaVista button').forEach(x => x.classList.toggle('on', x === b));
+  $('#ctaBarras').classList.toggle('hide', b.dataset.v !== 'barras'); $('#ctaTabla').classList.toggle('hide', b.dataset.v !== 'tabla');
+};
 function rangoDeMes() {
   const mes = $('#kMes').value; if (!mes) return;
   const [y, m] = mes.split('-').map(Number);
@@ -983,7 +1090,7 @@ async function calcularKpis() {
     if (R.sinHrn) avisos.push(`${fmt(R.sinHrn)} no se pudo asignar a una cuenta porque no hay detalle HRN de esa fecha y nodo.`);
     $('#kpNota').textContent = avisos.join(' ');
     pintarDias(dias); pintarGraficos(dias, R);
-    tablaKpi($('#kpCuenta'), 'Cuenta', R.cuentas); tablaKpi($('#kpNodo'), 'Nodo', R.nodos); tablaKpi($('#kpTrans'), 'Transporte', R.transportes);
+    cuentasKpi(R); tablaKpi($('#kpNodo'), 'Nodo', R.nodos); tablaKpi($('#kpTrans'), 'Transporte', R.transportes);
     $('#kpMsg').className = 'msg';
   } catch (err) { flash($('#kpMsg'), 'No se pudo calcular: ' + err.message, 'err'); }
   $('#kCalc').disabled = false;
