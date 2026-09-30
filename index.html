@@ -67,6 +67,7 @@
   <nav>
     <button data-tab="cargar" class="on">Cargar despacho</button>
     <button data-tab="registros">Registros</button>
+    <button data-tab="dias">Costo por día</button>
     <button data-tab="kpis">KPIs</button>
     <button data-tab="hrn">Detalle HRN</button>
     <button data-tab="catalogo">Agencias</button>
@@ -110,6 +111,21 @@
     <p class="hint">Edita importe, factura y demás celdas directamente; se guardan al salir de la celda. <span id="rTotal"></span></p>
   </div>
   <div class="tw"><table id="rTabla"></table></div>
+</section>
+
+<section id="tab-dias" class="hide">
+  <div class="card">
+    <div class="row">
+      <label>Mes<input type="month" id="dMes"></label>
+      <label>Transporte<select id="dTrans"><option value="">Todos</option></select></label>
+      <button class="b" id="dCalc">Ver</button>
+      <button class="b sec" id="dExport">Exportar a Excel</button>
+    </div>
+    <div id="dMsg" class="msg"></div>
+    <p class="hint" id="dNota"></p>
+  </div>
+  <div class="kpis" id="dCards"></div>
+  <div class="tw"><table id="dTabla"></table></div>
 </section>
 
 <section id="tab-kpis" class="hide">
@@ -220,7 +236,7 @@ $('#logout').onclick = async () => { await sb.auth.signOut(); location.reload();
 async function mostrarApp(user) {
   $('#who').textContent = user.email;
   $('#app').classList.remove('hide');
-  $('#cFecha').value = today(); $('#hFecha').value = today(); $('#kHasta').value = today(); $('#kDesde').value = today().slice(0, 8) + '01';
+  $('#cFecha').value = today(); $('#hFecha').value = today(); $('#kHasta').value = today(); $('#dMes').value = today().slice(0, 7); $('#kDesde').value = today().slice(0, 8) + '01';
   const d = new Date(); $('#rDesde').value = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0,10); $('#rHasta').value = today();
   await cargarCatalogo();
   buscarRegistros(); buscarHrn();
@@ -228,7 +244,7 @@ async function mostrarApp(user) {
 
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
-  ['cargar','registros','kpis','hrn','catalogo'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
+  ['cargar','registros','dias','kpis','hrn','catalogo'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
 });
 
 // ---------- catálogo ----------
@@ -612,6 +628,73 @@ $('#kExport').onclick = () => {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), hoja);
   });
   XLSX.writeFile(wb, `kpis_${$('#kDesde').value || 'inicio'}_${$('#kHasta').value || 'hoy'}.xlsx`);
+};
+
+// ---------- costo por día ----------
+let diasResultado = [];
+
+function agruparDias(envios) {
+  const por = new Map();
+  envios.forEach(e => {
+    const d = por.get(e.fecha) || { fecha: e.fecha, registros: 0, pedidos: 0, bultos: 0, cajas: 0, contado: 0, credito: 0, costo: 0, pedConImporte: 0, sinImporte: 0 };
+    const imp = Number(e.importe) || 0;
+    d.registros++; d.pedidos += Number(e.pedidos) || 0; d.bultos += Number(e.bultos) || 0; d.cajas += Number(e.cajas) || 0;
+    if (imp > 0) {
+      d.costo += imp; d.pedConImporte += Number(e.pedidos) || 0;
+      if (e.modo_pago === 'CONTADO') d.contado += imp; else d.credito += imp;
+    } else d.sinImporte++;
+    por.set(e.fecha, d);
+  });
+  return [...por.values()].sort((a, b) => a.fecha.localeCompare(b.fecha));
+}
+
+async function calcularDias() {
+  const mes = $('#dMes').value; if (!mes) return;
+  const [y, m] = mes.split('-').map(Number);
+  const desde = mes + '-01', hasta = mes + '-' + String(new Date(y, m, 0).getDate()).padStart(2, '0');
+  const trans = $('#dTrans').value;
+  $('#dCalc').disabled = true;
+  try {
+    const envios = await traerTodo(() => {
+      let q = sb.from('envios').select('fecha,transporte,pedidos,bultos,cajas,importe,modo_pago').gte('fecha', desde).lte('fecha', hasta).order('id');
+      if (trans) q = q.eq('transporte', trans);
+      return q;
+    });
+    if (!trans) {
+      const ts = [...new Set(envios.map(e => e.transporte).filter(Boolean))].sort();
+      $('#dTrans').innerHTML = '<option value="">Todos</option>' + ts.map(t => `<option>${esc(t)}</option>`).join('');
+    }
+    const dias = agruparDias(envios); diasResultado = dias;
+    const T = dias.reduce((a, d) => { for (const k in d) if (k !== 'fecha') a[k] = (a[k] || 0) + d[k]; return a; }, {});
+    const max = Math.max(1, ...dias.map(d => d.costo));
+    $('#dCards').innerHTML = [
+      ['Costo del mes', fmt(T.costo), `${dias.length} días con envíos`],
+      ['Costo por pedido', T.pedConImporte ? fmt(T.costo / T.pedConImporte) : '-', `${fmtN(T.pedidos)} pedidos en el mes`],
+      ['Promedio por día', dias.length ? fmt((T.costo || 0) / dias.length) : '-', 'solo días con envíos'],
+      ['Contado / Crédito', `${fmt(T.contado)} / ${fmt(T.credito)}`, 'costo por modo de pago']
+    ].map(([t, v, n]) => `<div class="kpi"><span>${t}</span><b style="font-size:${v.length > 20 ? 16 : 22}px">${v}</b><small>${n}</small></div>`).join('');
+    $('#dNota').textContent = T.sinImporte ? `${T.sinImporte} registros del mes aún no tienen importe (no suman al costo).` : '';
+    const dia = f => new Date(f + 'T00:00:00').toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: '2-digit' });
+    $('#dTabla').innerHTML = '<tr><th>Día</th><th class="num">Registros</th><th class="num">Pedidos</th><th class="num">Bultos</th><th class="num">Cajas</th><th class="num">Contado</th><th class="num">Crédito</th><th class="num">Costo total</th><th class="num">Costo por pedido</th><th class="num">Sin importe</th></tr>' +
+      dias.map(d => `<tr><td><b>${esc(dia(d.fecha))}</b></td><td class="num">${d.registros}</td><td class="num">${fmtN(d.pedidos)}</td><td class="num">${fmtN(d.bultos)}</td><td class="num">${fmtN(d.cajas)}</td>
+        <td class="num">${fmt(d.contado)}</td><td class="num">${fmt(d.credito)}</td>
+        <td class="num" style="background:linear-gradient(90deg,#bfdbfe ${Math.round(d.costo / max * 100)}%,transparent 0)"><b>${fmt(d.costo)}</b></td>
+        <td class="num">${d.pedConImporte ? fmt(d.costo / d.pedConImporte) : '-'}</td><td class="num">${d.sinImporte || ''}</td></tr>`).join('') +
+      (dias.length ? `<tr style="background:#f1f5f9;font-weight:700"><td>TOTAL</td><td class="num">${T.registros}</td><td class="num">${fmtN(T.pedidos)}</td><td class="num">${fmtN(T.bultos)}</td><td class="num">${fmtN(T.cajas)}</td>
+        <td class="num">${fmt(T.contado)}</td><td class="num">${fmt(T.credito)}</td><td class="num">${fmt(T.costo)}</td><td class="num">${T.pedConImporte ? fmt(T.costo / T.pedConImporte) : '-'}</td><td class="num">${T.sinImporte || ''}</td></tr>` : '<tr><td colspan="10">Sin envíos en este mes.</td></tr>');
+    $('#dMsg').className = 'msg';
+  } catch (err) { flash($('#dMsg'), 'No se pudo calcular: ' + err.message, 'err'); }
+  $('#dCalc').disabled = false;
+}
+$('#dCalc').onclick = calcularDias;
+$('#dMes').onchange = () => { $('#dTrans').value = ''; calcularDias(); };
+document.querySelector('nav [data-tab="dias"]').addEventListener('click', calcularDias);
+$('#dExport').onclick = () => {
+  const r2 = n => Math.round(n * 100) / 100;
+  const aoa = [['Fecha','Registros','Pedidos','Bultos','Cajas','Costo contado','Costo crédito','Costo total','Costo por pedido','Registros sin importe']]
+    .concat(diasResultado.map(d => [d.fecha, d.registros, d.pedidos, d.bultos, d.cajas, r2(d.contado), r2(d.credito), r2(d.costo), d.pedConImporte ? r2(d.costo / d.pedConImporte) : null, d.sinImporte]));
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'POR DIA');
+  XLSX.writeFile(wb, `costo_por_dia_${$('#dMes').value}.xlsx`);
 };
 
 iniciar();
