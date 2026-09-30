@@ -18,3 +18,6 @@ create policy "facturas ver" on storage.objects for select to anon, authenticate
 create policy "facturas subir" on storage.objects for insert to anon, authenticated with check (bucket_id = 'Facturas');
 create policy "facturas cambiar" on storage.objects for update to anon, authenticated using (bucket_id = 'Facturas') with check (bucket_id = 'Facturas');
 create policy "facturas borrar" on storage.objects for delete to anon, authenticated using (bucket_id = 'Facturas');
+
+-- Refresca el caché de la API para que reconozca las columnas nuevas
+notify pgrst, 'reload schema';

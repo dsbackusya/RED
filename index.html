@@ -293,7 +293,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="ocr.js"></script>
+<script src="ocr.js?v=3"></script>
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -520,7 +520,7 @@ async function revisarFactura(file, r) {
   if (r.factura) $('#fFactura').value = r.factura;
   if (r.importe != null) $('#fImporte').value = r.importe;
   fUrl = URL.createObjectURL(file); $('#fImg').src = fUrl;
-  const est = $('#fEstado'); est.className = 'aviso'; est.textContent = 'Leyendo la factura… (la primera vez descarga el modelo de lectura, puede tardar unos segundos)';
+  const est = $('#fEstado'); est.className = 'aviso'; est.textContent = 'Leyendo la factura… (la primera vez descarga el modelo de lectura, unos 15 MB; luego es más rápido)';
   $('#fGuardar').disabled = true;
   $('#factDlg').showModal();
   try {
@@ -532,7 +532,7 @@ async function revisarFactura(file, r) {
     FCAMPOS.forEach(id => { if (!$('#' + id).value) $('#' + id).parentElement.classList.add('dud'); });
     $('#fTexto').textContent = R.texto || '';
     est.className = 'okbox';
-    est.textContent = R.viaQR ? 'Factura leída con su código QR (datos exactos). Revisa igualmente.' : 'Lectura terminada. Los campos en naranja no se pudieron leer: complétalos a mano.';
+    est.textContent = (R.viaQR ? 'Factura leída con su código QR (datos exactos). ' : `Lectura terminada con ${R.motor}. `) + 'Revisa cada dato; los campos en naranja no se pudieron leer y hay que completarlos a mano.';
     const nodo = norm(r.nodo), vistos = R.destinosVistos || [];
     if (vistos.length) $('#fCoincide').innerHTML = vistos.includes(nodo)
       ? `<div class="okbox">El destino de la factura coincide con este registro (${esc(r.nodo)}).</div>`
