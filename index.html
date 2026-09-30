@@ -90,6 +90,20 @@
   .thumb { height:30px; width:30px; object-fit:cover; border-radius:6px; vertical-align:middle; border:1px solid var(--line) }
   .lnk { background:none; border:0; color:var(--pri); cursor:pointer; font:inherit; padding:0; text-decoration:underline }
   td.adj { min-width:210px }
+  dialog { border:0; border-radius:16px; padding:0; width:min(980px,94vw); background:var(--card); color:var(--ink); box-shadow:0 20px 60px rgba(0,11,82,.35) }
+  dialog::backdrop { background:rgba(0,11,82,.55) }
+  .fd { display:grid; grid-template-columns:minmax(220px,1fr) 1.25fr; max-height:90vh }
+  .fd-img { background:#0b1220; overflow:auto }
+  .fd-img img { width:100%; height:auto; display:block }
+  .fd-form { padding:18px 20px; overflow:auto }
+  .fd-form h3 { margin:0 0 10px }
+  .fgrid { display:grid; grid-template-columns:1fr 1fr; gap:10px }
+  .fgrid input { width:100% }
+  .fgrid label.dud input { border-color:var(--acc); background:var(--warnbg) }
+  .fd-form pre { white-space:pre-wrap; font-size:11px; max-height:160px; overflow:auto; background:var(--head); padding:8px; border-radius:8px }
+  .aviso { background:var(--warnbg); color:var(--warn); border-radius:9px; padding:7px 10px; margin:6px 0; font-size:12px }
+  .okbox { background:var(--okbg); color:var(--ok); border-radius:9px; padding:7px 10px; margin:6px 0; font-size:12px }
+  @media (max-width:760px) { .fd { grid-template-columns:1fr } .fd-img { max-height:34vh } }
   .hide { display:none !important }
   @media (max-width:860px) {
     .shell { grid-template-columns:1fr } aside { position:static; height:auto; flex-direction:row; flex-wrap:wrap; align-items:center }
@@ -100,6 +114,33 @@
 <body>
 
 <datalist id="dlAgencias"></datalist>
+<dialog id="factDlg">
+  <div class="fd">
+    <div class="fd-img"><img id="fImg" alt="Factura"></div>
+    <div class="fd-form">
+      <h3>Datos de la factura</h3>
+      <div id="fEstado" class="aviso">Leyendo la factura…</div>
+      <div id="fCoincide"></div>
+      <div class="fgrid">
+        <label>N° de factura<input id="fFactura" autocomplete="off"></label>
+        <label>Importe total (S/)<input id="fImporte" type="number" step="0.01"></label>
+        <label>Fecha de emisión<input id="fFecha" type="date"></label>
+        <label>RUC de la agencia<input id="fRuc" maxlength="11" autocomplete="off"></label>
+        <label>N° de guía de remisión<input id="fGuia" autocomplete="off"></label>
+        <label>Destino en la factura<input id="fDestino" autocomplete="off"></label>
+        <label>Bultos<input id="fBultos" type="number"></label>
+        <label>Peso (kg)<input id="fPeso" type="number" step="0.01"></label>
+      </div>
+      <div id="fAvisos"></div>
+      <p class="hint">Lectura automática gratuita: revisa cada dato contra la foto antes de guardar.</p>
+      <details><summary class="hint">Texto leído</summary><pre id="fTexto"></pre></details>
+      <div class="row" style="justify-content:flex-end;margin-top:12px">
+        <button class="b sec" id="fCerrar">Solo adjunto</button>
+        <button class="b" id="fGuardar">Guardar datos</button>
+      </div>
+    </div>
+  </div>
+</dialog>
 <input type="file" id="adjFile" accept="image/*,application/pdf" class="hide">
 <div id="setup" class="card hide" style="max-width:600px;margin:10vh auto">
   <h2>Falta configurar Supabase</h2>
@@ -252,6 +293,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
+<script src="ocr.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -432,6 +474,7 @@ $('#cGuardar').onclick = async () => {
 
 // ---------- adjuntos de factura (bucket "Facturas") ----------
 const BUCKET = 'Facturas';
+const MAX_ADJUNTO = 20 * 1024;   // todo adjunto se guarda con 20 KB o menos
 const urlAdjunto = path => sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 const esImagen = path => /\.(png|jpe?g|gif|webp|bmp|heic)$/i.test(path);
 function adjuntoHtml(r) {
@@ -445,17 +488,75 @@ $('#adjFile').onchange = async e => {
   if (!f || !adjId) return;
   const r = registros.find(x => x.id === adjId); if (!r) return;
   if (!/^(image\/|application\/pdf)/.test(f.type)) return flash($('#rMsg'), 'Solo se aceptan imágenes o PDF.', 'err');
-  if (f.size > 10 * 1024 * 1024) return flash($('#rMsg'), 'El archivo supera los 10 MB.', 'err');
-  const ext = (f.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin';
+  const esImg = f.type.startsWith('image/');
+  if (f.size > 30 * 1024 * 1024) return flash($('#rMsg'), 'El archivo supera los 30 MB.', 'err');
+  if (!esImg && f.size > MAX_ADJUNTO) return flash($('#rMsg'), 'El PDF supera 20 KB. Sube una foto o captura de la factura: las imágenes se comprimen solas.', 'err');
+  let subir = f, tipo = f.type, ext = 'pdf';
+  if (esImg) {
+    flash($('#rMsg'), 'Comprimiendo imagen…', 'ok');
+    try { const c = await OCR.comprimir(f, MAX_ADJUNTO); subir = c.blob; tipo = c.tipo; ext = c.ext; }
+    catch (err) { return flash($('#rMsg'), 'No se pudo comprimir la imagen (¿formato no compatible?): ' + err.message, 'err'); }
+  }
   const path = `${r.fecha.slice(0, 7)}/${r.id}-${Date.now()}.${ext}`;
   flash($('#rMsg'), 'Subiendo adjunto…', 'ok');
-  const up = await sb.storage.from(BUCKET).upload(path, f, { contentType: f.type, upsert: false });
+  const up = await sb.storage.from(BUCKET).upload(path, subir, { contentType: tipo, upsert: false });
   if (up.error) return flash($('#rMsg'), 'No se pudo subir: ' + up.error.message, 'err');
   const { error } = await sb.from('envios').update({ factura_archivo: path }).eq('id', r.id);
   if (error) { await sb.storage.from(BUCKET).remove([path]); return flash($('#rMsg'), error.message, 'err'); }
   if (r.factura_archivo) await sb.storage.from(BUCKET).remove([r.factura_archivo]);
   r.factura_archivo = path; refrescarAdjunto(r);
-  flash($('#rMsg'), 'Adjunto guardado', 'ok');
+  flash($('#rMsg'), `Adjunto guardado (${(subir.size / 1024).toFixed(1)} KB)`, 'ok');
+  if (esImg) revisarFactura(f, r);
+};
+
+// ---------- lectura automática de la factura (OCR gratuito) + revisión ----------
+let fReg = null, fUrl = null;
+const FCAMPOS = ['fFactura', 'fImporte', 'fFecha', 'fRuc', 'fGuia', 'fDestino', 'fBultos', 'fPeso'];
+function cerrarFactura() { $('#factDlg').close(); if (fUrl) { URL.revokeObjectURL(fUrl); fUrl = null; } }
+async function revisarFactura(file, r) {
+  fReg = r;
+  FCAMPOS.forEach(id => { $('#' + id).value = ''; $('#' + id).parentElement.classList.remove('dud'); });
+  $('#fAvisos').innerHTML = ''; $('#fCoincide').innerHTML = ''; $('#fTexto').textContent = '';
+  if (r.factura) $('#fFactura').value = r.factura;
+  if (r.importe != null) $('#fImporte').value = r.importe;
+  fUrl = URL.createObjectURL(file); $('#fImg').src = fUrl;
+  const est = $('#fEstado'); est.className = 'aviso'; est.textContent = 'Leyendo la factura… (la primera vez descarga el modelo de lectura, puede tardar unos segundos)';
+  $('#fGuardar').disabled = true;
+  $('#factDlg').showModal();
+  try {
+    const R = await OCR.leer(file, { ref: r.fecha, nodos: [...catalogo.values()].map(c => norm(c.destino)),
+      progreso: (t, p) => { est.textContent = 'Leyendo la factura… ' + (p ? Math.round(p * 100) + '%' : t); } });
+    const pon = (id, v) => { if (v !== '' && v != null) $('#' + id).value = v; };
+    pon('fFactura', R.factura); pon('fImporte', R.importe); pon('fFecha', R.fecha); pon('fRuc', R.ruc);
+    pon('fGuia', R.guia); pon('fDestino', R.destino); pon('fBultos', R.bultos); pon('fPeso', R.peso);
+    FCAMPOS.forEach(id => { if (!$('#' + id).value) $('#' + id).parentElement.classList.add('dud'); });
+    $('#fTexto').textContent = R.texto || '';
+    est.className = 'okbox';
+    est.textContent = R.viaQR ? 'Factura leída con su código QR (datos exactos). Revisa igualmente.' : 'Lectura terminada. Los campos en naranja no se pudieron leer: complétalos a mano.';
+    const nodo = norm(r.nodo), vistos = R.destinosVistos || [];
+    if (vistos.length) $('#fCoincide').innerHTML = vistos.includes(nodo)
+      ? `<div class="okbox">El destino de la factura coincide con este registro (${esc(r.nodo)}).</div>`
+      : `<div class="aviso">Ojo: la factura menciona ${esc(vistos.slice(0, 3).join(', '))} y este registro es ${esc(r.nodo)}.</div>`;
+    const av = [...R.aviso];
+    if (r.importe != null && R.importe != null && Math.abs(Number(r.importe) - R.importe) > 0.01) av.push(`El registro ya tiene importe S/ ${Number(r.importe).toFixed(2)}; se reemplazará si guardas.`);
+    $('#fAvisos').innerHTML = av.map(a => `<div class="aviso">${esc(a)}</div>`).join('');
+  } catch (err) {
+    est.className = 'aviso'; est.textContent = 'No se pudo leer automáticamente (' + err.message + '). Completa los datos a mano o cierra con "Solo adjunto".';
+  }
+  $('#fGuardar').disabled = false;
+}
+$('#fCerrar').onclick = cerrarFactura;
+$('#factDlg').addEventListener('close', () => { if (fUrl) { URL.revokeObjectURL(fUrl); fUrl = null; } });
+$('#fGuardar').onclick = async () => {
+  if (!fReg) return;
+  const v = id => $('#' + id).value.trim(), nn = id => { const x = v(id); return x === '' ? null : num(x); };
+  const cambios = { factura: v('fFactura') || null, importe: nn('fImporte'), factura_fecha: v('fFecha') || null, factura_ruc: v('fRuc') || null,
+    factura_guia: v('fGuia') || null, factura_destino: v('fDestino') || null, factura_bultos: nn('fBultos'), factura_peso: nn('fPeso') };
+  $('#fGuardar').disabled = true;
+  const { error } = await sb.from('envios').update(cambios).eq('id', fReg.id);
+  $('#fGuardar').disabled = false;
+  if (error) { $('#fEstado').className = 'aviso'; $('#fEstado').textContent = 'No se pudo guardar: ' + error.message; return; }
+  cerrarFactura(); flash($('#rMsg'), 'Datos de la factura guardados', 'ok'); buscarRegistros();
 };
 function refrescarAdjunto(r) {
   const td = document.querySelector(`#rTabla tr[data-id="${r.id}"] td.adj`); if (td) td.innerHTML = adjuntoHtml(r);

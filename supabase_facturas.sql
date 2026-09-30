@@ -2,6 +2,12 @@
 -- Adjuntos de facturas: columna en envios + permisos sobre el bucket "Facturas".
 -- ATENCIÓN: sin login, acceso abierto. Al activar el login, cambiar "to anon, authenticated" por "to authenticated".
 alter table envios add column if not exists factura_archivo text;
+alter table envios add column if not exists factura_fecha date;
+alter table envios add column if not exists factura_ruc text;
+alter table envios add column if not exists factura_guia text;
+alter table envios add column if not exists factura_destino text;
+alter table envios add column if not exists factura_bultos int;
+alter table envios add column if not exists factura_peso numeric;
 
 drop policy if exists "facturas ver" on storage.objects;
 drop policy if exists "facturas subir" on storage.objects;
