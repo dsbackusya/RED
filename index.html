@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Red Troncal</title>
+<title>Red Troncal · Dinet Logística</title>
+<meta name="theme-color" content="#0B192C">
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   /* Diseño Red Troncal v2: barra lateral navy, tarjetas con ícono, tablas con etiquetas. Colores Dinet (navy / verde). */
   :root {
+    color-scheme:light;
     --bg:#f8fafc; --card:#fff; --ink:#0f172a; --mut:#64748b; --line:#e2e8f0; --head:#f1f5f9;
     --brand:#0B192C; --brand-h:#081322; --pri:#2563eb; --pri-h:#1d4ed8; --grn:#059669; --grn-h:#047857; --acc:#F67706;
     --ok:#047857; --okbg:#ecfdf5; --okln:#a7f3d0; --ind:#4338ca; --indbg:#eef2ff; --indln:#c7d2fe;
     --warn:#b45309; --warnbg:#fff1e0; --bad:#be123c; --amb:#d97706; --red:#dc2626; --badbg:#fef2f2; --rad:12px; --shadow:0 1px 2px rgba(15,23,42,.05);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#0b1220; --card:#121a2c; --ink:#e6ecf7; --mut:#94a3b8; --line:#23304a; --head:#18223a; --brand:#060d1a; --brand-h:#040a14;
-            --pri:#3b82f6; --pri-h:#60a5fa; --grn:#10b981; --grn-h:#34d399; --ok:#6ee7b7; --okbg:#0c2a20; --okln:#14532d; --ind:#c7d2fe; --indbg:#1e2150; --indln:#312e81;
-            --warn:#fdba74; --warnbg:#3a230b; --bad:#fda4af; --amb:#fbbf24; --red:#f87171; --badbg:#3b1219; --shadow:none; }
   }
   * { box-sizing:border-box }
   body { margin:0; font:14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--ink) }
@@ -29,7 +29,7 @@
   .brand small { color:#94a3b8; font-size:11px }
   .brand em { font-style:normal; font-size:9px; letter-spacing:.06em; text-transform:uppercase; background:rgba(16,185,129,.18); color:#6ee7b7; padding:1px 6px; border-radius:5px; margin-left:4px; font-weight:700; vertical-align:1px }
   nav { flex:1; overflow-y:auto; padding:14px 12px; display:flex; flex-direction:column; gap:2px }
-  .sec { padding:4px 10px 6px; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#94a3b8; font-weight:700 }
+  .navsec { padding:4px 10px 6px; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#94a3b8; font-weight:700 }
   nav button { display:flex; align-items:center; gap:10px; width:100%; background:none; border:0; color:#cbd5e1; font:inherit; font-size:13px; font-weight:500; padding:9px 12px; border-radius:9px; cursor:pointer; text-align:left }
   nav button:hover { background:#1e293b; color:#fff }
   nav button.on { background:var(--pri); color:#fff; font-weight:600; box-shadow:0 2px 8px rgba(37,99,235,.35) }
@@ -89,7 +89,6 @@
   .tb { display:inline-block; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; letter-spacing:.02em }
   .tb.blue { background:#dbeafe; color:#1e40af } .tb.emerald { background:#d1fae5; color:#065f46 } .tb.violet { background:#ede9fe; color:#5b21b6 }
   .tb.amber { background:#fef3c7; color:#92400e } .tb.rose { background:#ffe4e6; color:#9f1239 } .tb.cyan { background:#cffafe; color:#155e75 }
-  @media (prefers-color-scheme: dark) { .tb.blue { background:#1e3a8a; color:#bfdbfe } .tb.emerald { background:#064e3b; color:#a7f3d0 } .tb.violet { background:#4c1d95; color:#ddd6fe } .tb.amber { background:#78350f; color:#fde68a } .tb.rose { background:#881337; color:#fecdd3 } .tb.cyan { background:#164e63; color:#a5f3fc } }
   td select[data-v], select[data-v] { font-size:10px; font-weight:700; text-transform:uppercase; border-radius:6px; min-width:96px; border:1px solid transparent }
   select[data-v="CONTADO"], select[data-v="AL CONTADO"] { background:var(--okbg); color:var(--ok); border-color:var(--okln) }
   select[data-v="CREDITO"] { background:var(--indbg); color:var(--ind); border-color:var(--indln) }
@@ -120,7 +119,7 @@
   .tile.blue { background:#eff6ff; color:#2563eb } .tile.emerald { background:#ecfdf5; color:#059669 } .tile.violet { background:#f5f3ff; color:#7c3aed } .tile.amber { background:#fffbeb; color:#d97706 }
   #kpCards .kpi:first-child { background:linear-gradient(135deg,#0B192C,#14325c); color:#fff; border:0; border-bottom:4px solid var(--grn) }
   #kpCards .kpi:first-child span, #kpCards .kpi:first-child small { color:#b6c4dc }
-  #kpCards .kpi { display:block }
+  #kpCards .kpi { display:block } #kpCards .kpi small { white-space:normal }
   .charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:14px; margin-bottom:14px }
   .charts .card { margin:0 }
   .bars { display:flex; align-items:flex-end; gap:6px; height:170px; padding-bottom:22px }
@@ -172,11 +171,68 @@
   .csvg text { fill:var(--mut); font-size:10px }
   .tip { position:fixed; pointer-events:none; background:#0f172a; color:#fff; font-size:11px; padding:6px 9px; border-radius:7px; z-index:99; display:none; max-width:240px }
   #ctaKpis .kpi:first-child { background:linear-gradient(135deg,#0B192C,#14325c); color:#fff; border:0; border-bottom:4px solid var(--grn) } #ctaKpis .kpi:first-child span, #ctaKpis .kpi:first-child small { color:#b6c4dc }
+  .ktabs { display:flex; gap:4px; border-bottom:1px solid var(--line); margin:4px 0 14px; flex-wrap:wrap }
+  .ktabs button { font:inherit; font-size:13px; font-weight:600; padding:10px 16px; border:0; background:none; color:var(--mut); cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-1px }
+  .ktabs button:hover { color:var(--ink) } .ktabs button.on { color:var(--pri); border-bottom-color:var(--pri) } .ktabs small { font-weight:500; color:#94a3b8; margin-left:4px }
+  .cols { display:flex; align-items:flex-end; gap:5px; height:190px; padding:4px 0 24px }
+  .cols .c { flex:1; display:flex; flex-direction:column; justify-content:flex-end; position:relative; min-width:6px; max-width:54px; cursor:pointer }
+  .cols .c i { display:block; width:100% } .cols .c i:first-child { border-radius:5px 5px 0 0 }
+  .cols .c span { position:absolute; bottom:-19px; left:50%; transform:translateX(-50%); font-size:9px; color:var(--mut) }
+  .cols .c:hover, .cols .c.hi { filter:brightness(.85) }
+  .lg { display:flex; gap:14px; font-size:11px; color:var(--mut); margin-top:8px } .lg span { display:inline-flex; align-items:center; gap:5px } .lg i { width:10px; height:10px; border-radius:3px }
+  .split { height:8px; border-radius:99px; overflow:hidden; display:flex; margin-top:6px; background:var(--line) } .split i { display:block; height:100% }
+  #tab-kpis tr.hi td { background:color-mix(in srgb, var(--pri) 10%, transparent) }
+  .bar-tools { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:10px }
   .hide { display:none !important }
   @media (max-width:900px) {
     .shell { grid-template-columns:1fr; height:auto; min-height:100vh } aside { flex-direction:row; flex-wrap:wrap; align-items:center; border-right:0 }
-    .brand { height:auto; padding:8px 12px; border:0 } nav { flex-direction:row; flex-wrap:wrap; overflow:visible; padding:6px } .sec { display:none }
+    .brand { height:auto; padding:8px 12px; border:0 } nav { flex-direction:row; flex-wrap:wrap; overflow:visible; padding:6px } .navsec { display:none }
     .side-foot { border:0; margin-left:auto; background:none } .busca { display:none } main { overflow:visible; padding:14px } .topbar { padding:0 14px }
+  }
+
+  /* ===== Acabado profesional v3 ===== */
+  html { -webkit-text-size-adjust:100% } body { -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility }
+  .wrap { max-width:1560px; margin:0 auto }
+  ::-webkit-scrollbar { width:8px; height:8px } ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:99px; border:2px solid transparent; background-clip:content-box } ::-webkit-scrollbar-thumb:hover { background:#94a3b8; background-clip:content-box }
+  :focus-visible { outline:2px solid color-mix(in srgb, var(--pri) 55%, transparent); outline-offset:2px }
+  h1 { font-weight:700 } .card h3, h3 { font-weight:600 }
+  .kpi b, .v, .num, td.c, .rk .p { font-variant-numeric:tabular-nums }
+  button.b svg { width:14px; height:14px; flex:none }
+  button.b { transition:background .15s, border-color .15s, transform .05s } button.b:active:not(:disabled) { transform:translateY(1px) }
+  input[type=file] { padding:5px 8px; color:var(--mut); background:var(--card); border:1px dashed #cbd5e1 }
+  input[type=file]::file-selector-button { font:inherit; font-size:12px; font-weight:600; padding:6px 12px; margin-right:10px; border:0; border-radius:7px; background:var(--pri); color:#fff; cursor:pointer }
+  input[type=file]::file-selector-button:hover { background:var(--pri-h) }
+  .mlogo { display:none; background:#fff; border-radius:9px; padding:3px 6px; align-items:center } .mlogo img { height:26px; width:auto; display:block }
+  .insight { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:10px; font-size:12px; margin-bottom:14px; background:color-mix(in srgb, var(--pri) 7%, var(--card)); border:1px solid color-mix(in srgb, var(--pri) 18%, var(--line)) }
+  .insight svg { width:16px; height:16px; color:var(--pri); flex:none } .insight b { font-weight:700 }
+  details.dt { margin-top:14px; border-top:1px solid var(--line); padding-top:4px } details.dt summary { cursor:pointer; font-size:12px; font-weight:600; color:var(--pri); padding:8px 0; list-style:none; user-select:none }
+  details.dt summary::-webkit-details-marker { display:none } details.dt summary::before { content:"▸"; display:inline-block; margin-right:6px; transition:transform .15s } details.dt[open] summary::before { transform:rotate(90deg) }
+  .empty { display:flex; flex-direction:column; align-items:center; gap:4px; padding:38px 16px; color:var(--mut); text-align:center; font-size:12px } .empty b { color:var(--ink); font-size:14px }
+  .kpi.sk span, .kpi.sk b, .kpi.sk small { display:block; border-radius:6px; background:linear-gradient(90deg, var(--head), var(--line), var(--head)); background-size:200% 100%; animation:shm 1.2s linear infinite }
+  .kpi.sk span { height:10px; width:55% } .kpi.sk b { height:24px; width:70%; margin:10px 0 }  .kpi.sk small { height:10px; width:45% }
+  @keyframes shm { to { background-position:-200% 0 } }
+  #toasts { position:fixed; right:18px; bottom:18px; display:flex; flex-direction:column; gap:8px; z-index:200; pointer-events:none }
+  .toast { display:flex; align-items:center; gap:10px; min-width:220px; max-width:380px; padding:10px 14px; border-radius:10px; background:#0f172a; color:#fff; font-size:13px; box-shadow:0 10px 30px rgba(2,6,23,.28); animation:tin .22s ease-out; transition:opacity .25s, transform .25s }
+  .toast i { flex:none; width:20px; height:20px; border-radius:50%; display:grid; place-items:center; font-style:normal; font-size:12px; font-weight:700; background:#10b981 }
+  .toast.err i { background:#ef4444 } .toast.out { opacity:0; transform:translateY(6px) }
+  @keyframes tin { from { opacity:0; transform:translateY(8px) } }
+  @media (max-width:900px) {
+    .shell { display:block; height:auto; min-height:100vh }
+    aside { position:fixed; left:0; right:0; bottom:0; top:auto; height:62px; flex-direction:row; flex-wrap:nowrap; z-index:30; border:0; border-top:1px solid #1e293b; padding:0 }
+    .brand, .side-foot, .navsec { display:none }
+    nav { flex-direction:row; flex-wrap:nowrap; justify-content:space-around; padding:4px 6px; gap:2px; overflow:visible; width:100% }
+    nav button { flex:1; min-width:0; flex-direction:column; justify-content:center; align-items:center; gap:3px; padding:6px 2px; font-size:10px; text-align:center; position:relative; border-radius:10px }
+    nav button svg { width:20px; height:20px } nav button.on { box-shadow:none }
+    nav .cnt { position:absolute; top:1px; right:12%; margin:0; padding:0 5px; font-size:9px; background:var(--grn) }
+    .content { min-height:100vh } .topbar { position:sticky; top:0; z-index:20; height:56px; padding:0 14px }
+    .mlogo { display:flex } .crumbs > span:not(.estado), .crumbs > i { display:none } .estado span { display:none } .estado { padding:4px }
+    main { overflow:visible; padding:14px 14px 86px } h1 { font-size:20px }
+    #toasts { right:12px; left:12px; bottom:74px } .toast { max-width:none }
+    .top .acts { width:100% } .top .acts .b { flex:1; justify-content:center }
+    .kpis { grid-template-columns:1fr 1fr; gap:10px } .kpi { padding:11px 12px } .kpi b { font-size:19px } .tile { display:none } .kpi small { white-space:normal }
+    #kpCards .kpi:first-child { grid-column:1/-1 } .card { padding:12px }
+    .ktabs { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none } .ktabs::-webkit-scrollbar { display:none } .ktabs button { white-space:nowrap; padding:10px 14px }
+    .cols { height:150px } .rk { grid-template-columns:18px minmax(80px,1fr) 78px 50px; gap:8px } .rk .bar, .rk.h span:nth-child(3), .rk .cz, .rk.h span:nth-child(6) { display:none }
   }
 </style>
 </head>
@@ -230,7 +286,7 @@
 <aside>
   <div class="brand"><span class="lg"><img src="logo.png" alt="Dinet"></span><div><b>Dinet<em>Logística</em></b><small>Red Troncal</small></div></div>
   <nav>
-    <div class="sec">Operaciones</div>
+    <div class="navsec">Operaciones</div>
     <button data-tab="cargar" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg> Cargar despacho</button>
     <button data-tab="registros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg> Registros <span class="cnt" id="navCount">0</span></button>
     <button data-tab="kpis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg> KPIs</button>
@@ -241,11 +297,13 @@
 </aside>
 <div class="content">
 <header class="topbar">
+  <span class="mlogo"><img src="logo.png" alt="Dinet"></span>
   <div class="crumbs"><span>Logística</span><i>›</i><span>Red Troncal</span><i>›</i><b id="crumb">Cargar despacho</b>
     <span class="estado" id="estado"><i></i><span>Conectando…</span></span></div>
   <div class="busca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input id="topSearch" placeholder="Buscar nodo en Registros… (Enter)"></div>
 </header>
 <main>
+<div class="wrap">
 
 <section id="tab-cargar">
   <div class="top"><h1>Cargar despacho</h1><div class="sub">Sube el resumen del día, revisa y guarda</div></div>
@@ -275,7 +333,7 @@
 <section id="tab-registros" class="hide">
   <div class="top">
     <div><h1>Registros de Despacho</h1><div class="sub">Edita importe, factura y demás celdas directamente en la tabla</div></div>
-    <div class="acts"><button class="b sec" id="rRefrescar">Refrescar</button><button class="b" id="rNuevo">+ Nuevo registro</button></div>
+    <div class="acts"><button class="b sec" id="rRefrescar">Refrescar</button><button class="b" id="rNuevo">Nuevo registro</button></div>
   </div>
   <div class="kpis" id="rCards"></div>
   <div class="card">
@@ -313,13 +371,19 @@
     <p class="hint" id="kpNota"></p>
   </div>
   <div class="kpis" id="kpCards"></div>
-  <div class="charts">
-    <div class="card"><h3>Costo por día</h3><div class="bars" id="kpBars"></div></div>
+  <div class="ktabs" id="kpTabs">
+    <button data-v="dia" class="on">Por día</button><button data-v="cuenta">Por cuenta <small id="nCta"></small></button><button data-v="nodo">Por nodo <small id="nNodo"></small></button><button data-v="trans">Por transporte <small id="nTrans"></small></button>
   </div>
-  <h3>Costo por día · detalle</h3>
-  <div class="tw" style="margin-bottom:14px"><table id="kpDias"></table></div>
-  <h3>Costo por cuenta</h3>
-  <div class="kpis" id="ctaKpis"></div>
+  <div id="kp-dia">
+    <div class="card">
+      <h3>Costo por día</h3><p class="hint">Cada columna es un día; el color separa contado y crédito. Pasa el cursor para resaltar su fila en la tabla.</p>
+      <div class="cols" id="kpBars"></div>
+      <div class="lg"><span><i style="background:var(--grn)"></i>Contado</span><span><i style="background:var(--ind)"></i>Crédito</span></div>
+      <details class="dt"><summary>Ver detalle por día <span id="nDias"></span></summary><div class="tw"><table id="kpDias"></table></div></details>
+    </div>
+  </div>
+  <div id="kp-cuenta" class="hide">
+  <div class="insight" id="ctaInsight"></div>
   <div class="card ctl"><div class="row">
     <label>Ordenar por<select id="ctaOrd"><option value="costo">Costo (mayor a menor)</option><option value="cpp">Costo por pedido (mayor a menor)</option><option value="pedidos">Pedidos (mayor a menor)</option><option value="nombre">Nombre (A-Z)</option></select></label>
     <label>Mostrar<select id="ctaTop"><option value="8">Top 8</option><option value="12">Top 12</option><option value="999" selected>Todas</option></select></label>
@@ -344,10 +408,19 @@
     <p class="hint">Cada punto es una cuenta: a la derecha, más pedidos; arriba, más caro por pedido; el tamaño es el costo total. Las cuentas con pocos pedidos y costo alto suelen ser envíos sueltos que conviene revisar.</p>
     <svg id="ctaSc" class="csvg" viewBox="0 0 900 300" width="100%" style="max-height:340px"></svg></div>
   <div class="tip" id="ctaTip"></div>
-  <h3>Costo por nodo</h3>
-  <div class="tw" style="margin-bottom:14px"><table id="kpNodo"></table></div>
-  <h3>Costo por transporte</h3>
-  <div class="tw"><table id="kpTrans"></table></div>
+  </div>
+  <div id="kp-nodo" class="hide">
+    <div class="card"><h3>Costo por nodo</h3><p class="hint">La barra es el costo; el color compara el costo por pedido con el promedio general.</p>
+      <div class="bar-tools"><div class="seg" id="nodoVista"><button data-v="b" class="on">Barras</button><button data-v="t">Tabla</button></div></div>
+      <div id="nodoBarras"></div><div id="nodoTabla" class="tw hide"><table id="kpNodo"></table></div></div>
+  </div>
+  <div id="kp-trans" class="hide">
+    <div class="cgrid">
+      <div class="card"><h3>Costo por transporte</h3><p class="hint">Con pocos transportes, la tabla es suficiente.</p><div class="tw"><table id="kpTrans"></table></div></div>
+      <div class="card"><h3>Participación</h3><p class="hint">Reparto del costo entre transportistas.</p>
+        <div style="display:flex;justify-content:center"><svg id="trDonut" class="csvg" viewBox="0 0 200 200" width="180" height="180"></svg></div><div class="cl" id="trLg"></div></div>
+    </div>
+  </div>
 </section>
 
 <section id="tab-hrn" class="hide">
@@ -393,10 +466,11 @@
   <div class="tw"><table id="kTabla"></table></div>
 </section>
 
-</main>
+</div></main>
 </div>
 </div></div>
 
+<div id="toasts" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
@@ -409,14 +483,22 @@ const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO'
 const PAGOS = ['CONTADO','CREDITO'];
 const num = v => { const n = Number(String(v ?? '').replace(/,/g,'')); return Number.isFinite(n) ? n : null; };
 const today = () => new Date().toISOString().slice(0,10);
+const fdmy = f => f ? String(f).slice(0, 10).split('-').reverse().join('/') : '';
+const fdt = f => f ? fdmy(f) + ' ' + String(f).slice(11, 16) : '';
 
 document.addEventListener('change', e => { if (e.target.dataset && 'v' in e.target.dataset) e.target.dataset.v = e.target.value; });
 function setPaso(n) {
   document.querySelectorAll('#cSteps .step').forEach((el, i) => { el.className = 'step' + (i + 1 < n ? ' done' : i + 1 === n ? ' on' : ''); el.querySelector('i').textContent = i + 1 < n ? '✓' : i + 1; });
 }
+function toast(text, type) {
+  const t = document.createElement('div'); t.className = 'toast ' + (type === 'err' ? 'err' : 'ok');
+  t.innerHTML = `<i>${type === 'err' ? '!' : '✓'}</i><span>${esc(text)}</span>`; $('#toasts').appendChild(t);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, type === 'err' ? 6500 : 3200);
+}
 function flash(el, text, type) {
-  el.textContent = text; el.className = 'msg ' + type;
-  if (type === 'ok') setTimeout(() => { el.className = 'msg'; }, 4000);
+  if (type === 'ok') { if (el) el.className = 'msg'; return toast(text, 'ok'); }
+  if (el) { el.textContent = text; el.className = 'msg ' + type; }
+  toast(text, 'err');
 }
 
 const cfg = window.APP_CONFIG || {};
@@ -448,7 +530,10 @@ async function mostrarApp(user) {
   const d = new Date(); $('#rDesde').value = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0,10); $('#rHasta').value = today();
   await cargarCatalogo();
   buscarRegistros(); buscarHrn();
+  let t0 = (location.hash || '').slice(1); if (!TITULOS[t0]) { try { t0 = localStorage.getItem('tab') || ''; } catch (e) { t0 = ''; } }
+  if (TITULOS[t0] && t0 !== 'cargar') irA(t0);
 }
+window.addEventListener('hashchange', () => { const t = location.hash.slice(1); if (TITULOS[t]) irA(t); });
 
 const TITULOS = { cargar: 'Cargar despacho', registros: 'Registros', kpis: 'KPIs', hrn: 'Detalle HRN', catalogo: 'Agencias' };
 const irA = tab => document.querySelector(`nav button[data-tab="${tab}"]`).click();
@@ -456,6 +541,7 @@ document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
   ['cargar','registros','kpis','hrn','catalogo'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
   $('#crumb').textContent = TITULOS[b.dataset.tab];
+  history.replaceState(null, '', '#' + b.dataset.tab); try { localStorage.setItem('tab', b.dataset.tab); } catch (e) {}
   $('main').scrollTop = 0;
 });
 function conexion(ok) { $('#estado').className = 'estado' + (ok ? '' : ' mal'); $('#estado span').textContent = ok ? 'Conectado a la base de datos' : 'Sin conexión'; }
@@ -691,7 +777,7 @@ function pintarResumenRegistros() {
   const d = registros, suma = k => d.reduce((s, r) => s + (Number(r[k]) || 0), 0), tot = suma('importe');
   const conImp = d.filter(r => Number(r.importe) > 0).length, nodos = [...new Set(d.map(r => r.nodo))];
   $('#rCards').innerHTML = [
-    ['Total registros', d.length, `Del ${$('#rDesde').value || '…'} al ${$('#rHasta').value || '…'}`, 'doc', 'blue'],
+    ['Total registros', d.length, `Del ${fdmy($('#rDesde').value) || '…'} al ${fdmy($('#rHasta').value) || '…'}`, 'doc', 'blue'],
     ['Total importe', fmt(tot), `${conImp} con importe · ${d.length - conImp} pendientes`, 'money', 'emerald'],
     ['Bultos / pedidos', `${fmtN(suma('bultos'))} <span class="sm">/ ${fmtN(suma('pedidos'))}</span>`, `${fmtN(suma('cajas'))} cajas`, 'box', 'violet'],
     ['Nodos activos', nodos.length, nodos.slice(0, 3).join(', ') + (nodos.length > 3 ? ` +${nodos.length - 3}` : '') || '—', 'pin', 'amber']
@@ -701,13 +787,13 @@ function pintarResumenRegistros() {
 }
 function filaRegistro(r) {
   return `<tr data-id="${r.id}">
-      <td class="mono sm">${esc(r.fecha)}</td><td>${tbadge(r.transporte)}</td><td><span class="nodo">${PIN}${esc(r.nodo)}</span></td>
+      <td class="mono sm">${fdmy(r.fecha)}</td><td>${tbadge(r.transporte)}</td><td><span class="nodo">${PIN}${esc(r.nodo)}</span></td>
       <td class="c">${r.bultos ?? ''}</td><td class="c">${r.pedidos ?? ''}</td><td class="c">${r.cajas ?? ''}</td>
       <td><input class="chip mono" data-f="placa" value="${esc(r.placa)}" placeholder="placa"></td>
       <td><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}" placeholder="Sin agencia asignada"></td>
       <td><input data-f="detalle_gasto" value="${esc(r.detalle_gasto)}"></td>
       <td class="c"><select data-f="modo_pago" data-v="${r.modo_pago}">${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
-      <td class="n"><input class="mono imp" data-f="importe" type="number" step="0.01" value="${r.importe ?? ''}" placeholder="0.00"></td>
+      <td class="n"><input class="mono imp" data-f="importe" type="number" step="0.01" value="${r.importe == null ? '' : Number(r.importe).toFixed(2)}" placeholder="0.00"></td>
       <td><input class="mono" data-f="factura" value="${esc(r.factura)}" placeholder="F001-0000"></td>
       <td class="adj">${adjuntoHtml(r)}</td>
       <td class="c"><button class="del" data-del="1">${TRASH} Eliminar</button></td></tr>`;
@@ -716,7 +802,7 @@ function pintarTablaRegistros() {
   const N = registros.length, paginas = Math.max(1, Math.ceil(N / pag.size));
   pag.n = Math.min(Math.max(1, pag.n), paginas);
   const ini = (pag.n - 1) * pag.size, vista = registros.slice(ini, ini + pag.size);
-  $('#rTabla').innerHTML = '<tr><th>Fecha</th><th>Transporte</th><th>Nodo</th><th class="c">Bultos</th><th class="c">Pedidos</th><th class="c">Cajas</th><th>Placa</th><th>Agencia</th><th>Detalle del gasto</th><th class="c">Pago</th><th class="num">Importe</th><th>Factura</th><th>Adjunto</th><th class="c">Acciones</th></tr>' + vista.map(filaRegistro).join('');
+  $('#rTabla').innerHTML = '<tr><th>Fecha</th><th>Transporte</th><th>Nodo</th><th class="c">Bultos</th><th class="c">Pedidos</th><th class="c">Cajas</th><th>Placa</th><th>Agencia</th><th>Detalle del gasto</th><th class="c">Pago</th><th class="num">Importe</th><th>Factura</th><th>Adjunto</th><th class="c">Acciones</th></tr>' + (vista.map(filaRegistro).join('') || '<tr><td colspan="14"><div class="empty"><b>Sin registros en este rango</b><span>Ajusta las fechas o sube un despacho en «Cargar despacho».</span></div></td></tr>');
   const nums = []; for (let i = 1; i <= paginas; i++) if (i === 1 || i === paginas || Math.abs(i - pag.n) <= 1) nums.push(i); else if (nums[nums.length - 1] !== '…') nums.push('…');
   $('#rPag').innerHTML = `<div class="l"><span>Filas por página:</span><select id="rSize">${[15, 25, 50, 100].map(v => `<option${v === pag.size ? ' selected' : ''}>${v}</option>`).join('')}</select><span>Mostrando <b>${N ? ini + 1 : 0}-${Math.min(N, ini + pag.size)}</b> de <b>${N}</b> registros</span></div>
     <div class="r"><button data-p="prev"${pag.n <= 1 ? ' disabled' : ''}>‹</button>${nums.map(n => n === '…' ? '<span>…</span>' : `<button data-p="${n}" class="${n === pag.n ? 'on' : ''}">${n}</button>`).join('')}<button data-p="next"${pag.n >= paginas ? ' disabled' : ''}>›</button></div>`;
@@ -885,7 +971,7 @@ async function buscarHrn() {
   $('#qInfo').textContent = `${count} filas` + (count > data.length ? ` (se muestran las primeras ${data.length}; afina los filtros)` : '');
   const vis = ['fecha_reporte','pedido_cliente','lpn','cuenta_procedencia','descripcion_cuenta','nodo','bultos','roll_contenedor','peso','volumen','fecha_recepcion'];
   $('#qTabla').innerHTML = '<tr>' + ['Fecha reporte','Pedido','LPN','Cuenta','Descripción cuenta','Nodo','Bultos','Roll','Peso','Volumen','Recepción'].map(h => `<th>${h}</th>`).join('') + '</tr>' +
-    data.map(r => '<tr>' + vis.map(c => `<td>${esc(r[c])}</td>`).join('') + '</tr>').join('');
+    data.map(r => '<tr>' + vis.map(c => `<td>${esc(c === 'fecha_reporte' ? fdmy(r[c]) : c === 'fecha_recepcion' ? fdt(r[c]) : r[c])}</td>`).join('') + '</tr>').join('');
 }
 $('#qBuscar').onclick = buscarHrn;
 $('#qExport').onclick = () => {
@@ -969,16 +1055,16 @@ function pintarDias(dias) {
   const max = Math.max(1, ...dias.map(d => d.costo));
   const dia = f => new Date(f + 'T00:00:00').toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: '2-digit' });
   $('#kpDias').innerHTML = '<tr><th>Día</th><th class="num">Registros</th><th class="num">Pedidos</th><th class="num">Bultos</th><th class="num">Cajas</th><th class="num">Contado</th><th class="num">Crédito</th><th class="num">Costo total</th><th class="num">Costo por pedido</th><th class="num">Sin importe</th></tr>' +
-    dias.map(d => `<tr><td><b>${esc(dia(d.fecha))}</b></td><td class="num">${d.registros}</td><td class="num">${fmtN(d.pedidos)}</td><td class="num">${fmtN(d.bultos)}</td><td class="num">${fmtN(d.cajas)}</td>
+    dias.map(d => `<tr data-d="${d.fecha}"><td><b>${esc(dia(d.fecha))}</b></td><td class="num">${d.registros}</td><td class="num">${fmtN(d.pedidos)}</td><td class="num">${fmtN(d.bultos)}</td><td class="num">${fmtN(d.cajas)}</td>
       <td class="num">${fmt(d.contado)}</td><td class="num">${fmt(d.credito)}</td>
-      <td class="num" style="background:linear-gradient(90deg,color-mix(in srgb,var(--pri2) 22%,transparent) ${Math.round(d.costo / max * 100)}%,transparent 0)"><b>${fmt(d.costo)}</b></td>
+      <td class="num"><b>${fmt(d.costo)}</b></td>
       <td class="num">${d.pedConImporte ? fmt(d.costo / d.pedConImporte) : '-'}</td><td class="num">${d.sinImporte || ''}</td></tr>`).join('') +
-    (dias.length ? `<tr style="background:var(--head);font-weight:700"><td>TOTAL</td><td class="num">${T.registros}</td><td class="num">${fmtN(T.pedidos)}</td><td class="num">${fmtN(T.bultos)}</td><td class="num">${fmtN(T.cajas)}</td>
-      <td class="num">${fmt(T.contado)}</td><td class="num">${fmt(T.credito)}</td><td class="num">${fmt(T.costo)}</td><td class="num">${T.pedConImporte ? fmt(T.costo / T.pedConImporte) : '-'}</td><td class="num">${T.sinImporte || ''}</td></tr>` : '<tr><td colspan="10">Sin envíos en este rango.</td></tr>');
+    (dias.length ? '' : '<tr><td colspan="10"><div class="empty"><b>Sin envíos en este rango</b></div></td></tr>');
+  $('#nDias').textContent = `(${dias.length})`;
 }
 function pintarGraficos(dias, R) {
   const max = Math.max(1, ...dias.map(d => d.costo));
-  $('#kpBars').innerHTML = dias.length ? dias.map(d => `<div title="${esc(d.fecha)} · ${fmt(d.costo)}" style="height:${Math.max(3, d.costo / max * 100)}%"><span>${d.fecha.slice(8)}</span></div>`).join('') : '<span class="hint">Sin envíos en este rango.</span>';
+  $('#kpBars').innerHTML = dias.length ? dias.map(d => `<div class="c" data-d="${d.fecha}" title="${esc(d.fecha)} · ${fmt(d.costo)} (contado ${fmt(d.contado)} · crédito ${fmt(d.credito)})" style="height:${Math.max(3, d.costo / max * 100)}%"><i style="background:var(--ind);flex:${d.credito || 0}"></i><i style="background:var(--grn);flex:${d.contado || 0}"></i><span>${d.fecha.slice(8)}</span></div>`).join('') : '<span class="hint">Sin envíos en este rango.</span>';
 }
 // ---------- costo por cuenta (vista ranking) ----------
 let ctaDatos = [], ctaPts = [];
@@ -991,13 +1077,9 @@ function cuentasKpi(R) {
 function pintarCuentas() {
   const base = ctaDatos.filter(x => $('#ctaSin').checked || !x.sin), T = base.reduce((s, x) => s + x.costo, 0), P = base.reduce((s, x) => s + x.pedidos, 0), B = base.reduce((s, x) => s + x.bultos, 0);
   const prom = P ? T / P : 0, porCosto = [...base].sort((a, b) => b.costo - a.costo);
-  if (!base.length || !T) { ['#ctaKpis', '#ctaBarras', '#ctaTabla', '#ctaLg', '#ctaAl'].forEach(i => $(i).innerHTML = ''); $('#ctaDonut').innerHTML = ''; $('#ctaSc').innerHTML = ''; $('#ctaBarras').innerHTML = '<p class="hint">Sin datos en este rango.</p>'; return; }
-  const top3 = porCosto.slice(0, 3).reduce((s, x) => s + x.costo, 0) / T; let acum = 0, n80 = 0; for (const x of porCosto) { acum += x.costo; n80++; if (acum / T >= 0.8) break; }
-  $('#ctaKpis').innerHTML = [
-    ['Costo total', fmt(T), `${base.filter(x => !x.sin).length} cuentas`], ['Costo por pedido (promedio)', fmt(prom), `${fmtN(P)} pedidos`],
-    ['Concentración', `${Math.round(top3 * 100)}%`, 'del costo está en las 3 primeras cuentas'], ['Regla 80/20', `${n80} ${n80 === 1 ? 'cuenta' : 'cuentas'}`, 'explican el 80% del costo']
-  ].map(([t, v, n]) => `<div class="kpi"><div><span>${t}</span><b>${v}</b><small>${n}</small></div></div>`).join('');
-
+  if (!base.length || !T) { ['#ctaInsight', '#ctaBarras', '#ctaTabla', '#ctaLg', '#ctaAl'].forEach(i => $(i).innerHTML = ''); $('#ctaDonut').innerHTML = ''; $('#ctaSc').innerHTML = ''; $('#ctaBarras').innerHTML = '<p class="hint">Sin datos en este rango.</p>'; return; }
+  { const named = porCosto.filter(x => !x.sin), Tn = named.reduce((x, y) => x + y.costo, 0); let ac = 0, n80 = 0; for (const x of named) { ac += x.costo; n80++; if (Tn && ac / Tn >= 0.8) break; }
+    $('#ctaInsight').innerHTML = Tn ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span><b>${Math.round(named.slice(0, 3).reduce((x, y) => x + y.costo, 0) / Tn * 100)}%</b> del costo está en las 3 primeras cuentas · <b>${n80} ${n80 === 1 ? 'cuenta explica' : 'cuentas explican'}</b> el 80%</span>` : ''; }
   let d = base; const q = norm($('#ctaQ').value); if (q) d = d.filter(x => norm(x.nombre).includes(q));
   const o = $('#ctaOrd').value; d = [...d].sort((a, b) => o === 'nombre' ? a.nombre.localeCompare(b.nombre) : b[o] - a[o]);
   const lim = Number($('#ctaTop').value), vis = d.slice(0, lim), max = Math.max(...d.map(x => x.costo), 1);
@@ -1048,6 +1130,36 @@ $('#ctaVista').onclick = e => {
   document.querySelectorAll('#ctaVista button').forEach(x => x.classList.toggle('on', x === b));
   $('#ctaBarras').classList.toggle('hide', b.dataset.v !== 'barras'); $('#ctaTabla').classList.toggle('hide', b.dataset.v !== 'tabla');
 };
+// ---------- pestañas de KPIs, nodo y transporte ----------
+$('#kpTabs').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#kpTabs button').forEach(x => x.classList.toggle('on', x === b));
+  ['dia', 'cuenta', 'nodo', 'trans'].forEach(v => $('#kp-' + v).classList.toggle('hide', v !== b.dataset.v));
+};
+document.addEventListener('mouseover', e => { const el = e.target.closest && e.target.closest('#tab-kpis [data-d]'); if (el) document.querySelectorAll(`#tab-kpis [data-d="${el.dataset.d}"]`).forEach(x => x.classList.add('hi')); });
+document.addEventListener('mouseout', e => { const el = e.target.closest && e.target.closest('#tab-kpis [data-d]'); if (el) document.querySelectorAll(`#tab-kpis [data-d="${el.dataset.d}"]`).forEach(x => x.classList.remove('hi')); });
+$('#nodoVista').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#nodoVista button').forEach(x => x.classList.toggle('on', x === b));
+  $('#nodoBarras').classList.toggle('hide', b.dataset.v !== 'b'); $('#nodoTabla').classList.toggle('hide', b.dataset.v !== 't');
+};
+function nodosKpi(R) {
+  const T = R.total, prom = R.pedidos ? T / R.pedidos : 0, d = [...R.nodos].map(([nombre, v]) => ({ nombre, costo: v.costo, pedidos: v.pedidos, cpp: v.pedidos ? v.costo / v.pedidos : 0 })).sort((a, b) => b.costo - a.costo), max = Math.max(...d.map(x => x.costo), 1);
+  $('#nodoBarras').innerHTML = d.length ? '<div class="rk h"><span></span><span>Nodo</span><span>Costo</span><span style="text-align:right">Monto</span><span style="text-align:right">% total</span><span style="text-align:center">Costo x pedido</span></div>' +
+    d.map((x, i) => { const c = ctaClase(x.cpp, prom);
+      return `<div class="rk"><span class="n">${i + 1}</span><span class="nm" title="${esc(x.nombre)}">${esc(x.nombre)}</span><span class="bar"><i style="width:${x.costo / max * 100}%;background:${ctaVAR[c]}"></i></span><span class="v">${fmt(x.costo)}</span><span class="p">${T ? (x.costo / T * 100).toFixed(1) : 0}%</span><span><span class="cz ${c}">${x.pedidos ? fmt(x.cpp) + (x.cpp > prom ? ' ▲' : ' ▼') : '-'}</span></span></div>`; }).join('') : '<p class="hint">Sin datos en este rango.</p>';
+  tablaKpi($('#kpNodo'), 'Nodo', R.nodos);
+}
+function transporteKpi(R) {
+  tablaKpi($('#kpTrans'), 'Transporte', R.transportes);
+  const d = [...R.transportes].map(([nombre, v]) => [nombre, v.costo]).sort((a, b) => b[1] - a[1]), T = d.reduce((s, x) => s + x[1], 0);
+  if (!T) { $('#trDonut').innerHTML = ''; $('#trLg').innerHTML = ''; return; }
+  let a0 = -Math.PI / 2; const R0 = 80, r0 = 50;
+  $('#trDonut').innerHTML = d.map(([n, v], i) => { const a1 = a0 + Math.min(v / T, 0.99999) * 2 * Math.PI, big = a1 - a0 > Math.PI ? 1 : 0;
+    const p = `M${100 + R0 * Math.cos(a0)},${100 + R0 * Math.sin(a0)} A${R0},${R0} 0 ${big} 1 ${100 + R0 * Math.cos(a1)},${100 + R0 * Math.sin(a1)} L${100 + r0 * Math.cos(a1)},${100 + r0 * Math.sin(a1)} A${r0},${r0} 0 ${big} 0 ${100 + r0 * Math.cos(a0)},${100 + r0 * Math.sin(a0)} Z`; a0 = a1;
+    return `<path d="${p}" fill="${ctaCOL[i % ctaCOL.length]}"><title>${esc(n)}: ${fmt(v)}</title></path>`; }).join('') + `<text x="100" y="104" text-anchor="middle" style="font-size:12px;font-weight:700;fill:var(--ink)">${fmt(T).replace('S/ ', 'S/')}</text>`;
+  $('#trLg').innerHTML = d.map(([n, v], i) => `<div><i style="background:${ctaCOL[i % ctaCOL.length]}"></i><span>${esc(n)}</span><b>${(v / T * 100).toFixed(1)}%</b></div>`).join('');
+}
 function rangoDeMes() {
   const mes = $('#kMes').value; if (!mes) return;
   const [y, m] = mes.split('-').map(Number);
@@ -1058,7 +1170,8 @@ $('#kDesde').onchange = $('#kHasta').onchange = () => { $('#kMes').value = ''; }
 
 async function calcularKpis() {
   const desde = $('#kDesde').value, hasta = $('#kHasta').value, trans = $('#kTrans').value;
-  $('#kCalc').disabled = true;
+  $('#kCalc').disabled = true; $('#kCalc').textContent = 'Calculando…';
+  $('#kpCards').innerHTML = Array(5).fill('<div class="kpi sk"><span></span><b></b><small></small></div>').join('');
   try {
     const envios = await traerTodo(() => {
       let q = sb.from('envios').select('fecha,nodo,transporte,pedidos,bultos,cajas,importe,modo_pago').order('id');
@@ -1077,23 +1190,26 @@ async function calcularKpis() {
     const R = calcularKpi(envios, hrn, $('#kBase').value);
     kpiResultado = R;
     const dias = agruparDias(envios); diasResultado = dias;
+    const conta = dias.reduce((x, d) => x + d.contado, 0), cred = dias.reduce((x, d) => x + d.credito, 0), sumaCD = conta + cred;
+    const nombradas = [...R.cuentas].filter(([k]) => k !== SIN_HRN).sort((a, b) => b[1].costo - a[1].costo);
     $('#kpCards').innerHTML = [
       ['Costo total', fmt(R.total), `${R.conImporte} registros con importe`],
       ['Costo por pedido', R.pedidos ? fmt(R.total / R.pedidos) : '-', `${fmtN(R.pedidos)} pedidos`],
       ['Costo por bulto', R.bultos ? fmt(R.total / R.bultos) : '-', `${fmtN(R.bultos)} bultos`],
-      ['Cuentas', fmtN([...R.cuentas.keys()].filter(k => k !== SIN_HRN).length), 'con costo asignado'],
-      ['Promedio por día', dias.length ? fmt(R.total / dias.length) : '-', `${dias.length} días con envíos`],
-      ['Contado / Crédito', `${fmt(dias.reduce((x, d) => x + d.contado, 0))} / ${fmt(dias.reduce((x, d) => x + d.credito, 0))}`, 'costo por modo de pago']
-    ].map(([t, v, n]) => `<div class="kpi"><span>${t}</span><b style="font-size:${v.length > 20 ? 16 : 22}px">${v}</b><small>${n}</small></div>`).join('');
+      ['Promedio por día', dias.length ? fmt(R.total / dias.length) : '-', `${dias.length} ${dias.length === 1 ? 'día' : 'días'} con envíos`],
+      ['Contado / Crédito', sumaCD ? `${Math.round(conta / sumaCD * 100)}% / ${Math.round(cred / sumaCD * 100)}%` : '-', `${fmt(conta)} · ${fmt(cred)}<div class="split"><i style="width:${sumaCD ? conta / sumaCD * 100 : 0}%;background:var(--grn)"></i><i style="flex:1;background:var(--ind)"></i></div>`],
+    ].map(([t, v, n]) => `<div class="kpi"><span>${t}</span><b>${v}</b><small>${n}</small></div>`).join('');
+    if (!R.conImporte) $('#kpCards').innerHTML = `<div class="card empty" style="grid-column:1/-1"><b>Aún no hay importes en este rango</b><span>Completa el importe de los registros para ver los costos.</span></div>`;
+    $('#nCta').textContent = nombradas.length; $('#nNodo').textContent = R.nodos.size; $('#nTrans').textContent = R.transportes.size;
     const avisos = [];
     if (R.pendientes) avisos.push(`${R.pendientes} registros sin importe no entran al cálculo (falta completarlos en Registros).`);
     if (R.sinHrn) avisos.push(`${fmt(R.sinHrn)} no se pudo asignar a una cuenta porque no hay detalle HRN de esa fecha y nodo.`);
     $('#kpNota').textContent = avisos.join(' ');
     pintarDias(dias); pintarGraficos(dias, R);
-    cuentasKpi(R); tablaKpi($('#kpNodo'), 'Nodo', R.nodos); tablaKpi($('#kpTrans'), 'Transporte', R.transportes);
+    cuentasKpi(R); nodosKpi(R); transporteKpi(R);
     $('#kpMsg').className = 'msg';
   } catch (err) { flash($('#kpMsg'), 'No se pudo calcular: ' + err.message, 'err'); }
-  $('#kCalc').disabled = false;
+  $('#kCalc').disabled = false; $('#kCalc').textContent = 'Calcular';
 }
 $('#kCalc').onclick = calcularKpis;
 document.querySelector('nav [data-tab="kpis"]').addEventListener('click', calcularKpis);
@@ -1112,6 +1228,11 @@ $('#kExport').onclick = () => {
   XLSX.writeFile(wb, `kpis_${$('#kDesde').value || 'inicio'}_${$('#kHasta').value || 'hoy'}.xlsx`);
 };
 
+{
+  const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
+  const IC = { buscar: svg('M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'), bajar: svg('M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'), refrescar: svg('M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'), mas: svg('M12 4v16m8-8H4') };
+  [['rBuscar', 'buscar'], ['qBuscar', 'buscar'], ['rExport', 'bajar'], ['kExport', 'bajar'], ['qExport', 'bajar'], ['rRefrescar', 'refrescar'], ['rNuevo', 'mas']].forEach(([id, k]) => $('#' + id).insertAdjacentHTML('afterbegin', IC[k]));
+}
 iniciar();
 </script>
 </body>
