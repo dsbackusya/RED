@@ -34,6 +34,12 @@
   .msg.err { display:block; background:#fee2e2; color:var(--bad) }
   .hint { color:var(--mut); font-size:12px }
   #login { max-width:340px; margin:12vh auto }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; margin-bottom:14px }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px }
+  .kpi span { color:var(--mut); font-size:12px }
+  .kpi b { display:block; font-size:22px; margin-top:2px }
+  .kpi small { color:var(--mut) }
+  td.num, th.num { text-align:right }
   .hide { display:none !important }
 </style>
 </head>
@@ -61,6 +67,7 @@
   <nav>
     <button data-tab="cargar" class="on">Cargar despacho</button>
     <button data-tab="registros">Registros</button>
+    <button data-tab="kpis">KPIs</button>
     <button data-tab="hrn">Detalle HRN</button>
     <button data-tab="catalogo">Agencias</button>
   </nav>
@@ -103,6 +110,28 @@
     <p class="hint">Edita importe, factura y demás celdas directamente; se guardan al salir de la celda. <span id="rTotal"></span></p>
   </div>
   <div class="tw"><table id="rTabla"></table></div>
+</section>
+
+<section id="tab-kpis" class="hide">
+  <div class="card">
+    <div class="row">
+      <label>Desde<input type="date" id="kDesde"></label>
+      <label>Hasta<input type="date" id="kHasta"></label>
+      <label>Transporte<select id="kTrans"><option value="">Todos</option></select></label>
+      <label>Repartir costo entre cuentas por<select id="kBase"><option value="bultos">Bultos</option><option value="pedidos">Pedidos</option><option value="peso">Peso</option><option value="volumen">Volumen</option></select></label>
+      <button class="b" id="kCalc">Calcular</button>
+      <button class="b sec" id="kExport">Exportar a Excel</button>
+    </div>
+    <div id="kpMsg" class="msg"></div>
+    <p class="hint" id="kpNota"></p>
+  </div>
+  <div class="kpis" id="kpCards"></div>
+  <h3>Costo por cuenta</h3>
+  <div class="tw" style="margin-bottom:14px"><table id="kpCuenta"></table></div>
+  <h3>Costo por nodo</h3>
+  <div class="tw" style="margin-bottom:14px"><table id="kpNodo"></table></div>
+  <h3>Costo por transporte</h3>
+  <div class="tw"><table id="kpTrans"></table></div>
 </section>
 
 <section id="tab-hrn" class="hide">
@@ -191,7 +220,7 @@ $('#logout').onclick = async () => { await sb.auth.signOut(); location.reload();
 async function mostrarApp(user) {
   $('#who').textContent = user.email;
   $('#app').classList.remove('hide');
-  $('#cFecha').value = today(); $('#hFecha').value = today();
+  $('#cFecha').value = today(); $('#hFecha').value = today(); $('#kHasta').value = today(); $('#kDesde').value = today().slice(0, 8) + '01';
   const d = new Date(); $('#rDesde').value = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0,10); $('#rHasta').value = today();
   await cargarCatalogo();
   buscarRegistros(); buscarHrn();
@@ -199,7 +228,7 @@ async function mostrarApp(user) {
 
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
-  ['cargar','registros','hrn','catalogo'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
+  ['cargar','registros','kpis','hrn','catalogo'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
 });
 
 // ---------- catálogo ----------
@@ -480,6 +509,109 @@ $('#qExport').onclick = () => {
   const aoa = [['Fecha reporte', ...HRN_COLS.map(c => c[1])]].concat(hrnConsulta.map(r => [r.fecha_reporte, ...HRN_COLS.map(c => r[c[0]])]));
   const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'HRN');
   XLSX.writeFile(wb, `hrn_${$('#qDesde').value || 'inicio'}_${$('#qHasta').value || 'hoy'}.xlsx`);
+};
+
+// ---------- KPIs ----------
+const fmt = n => 'S/ ' + (n || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtN = n => (n || 0).toLocaleString('es-PE');
+const SIN_HRN = '(SIN DETALLE HRN)';
+let kpiResultado = null;
+
+async function traerTodo(crear) {
+  let out = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await crear().range(from, from + 999);
+    if (error) throw error;
+    out = out.concat(data);
+    if (data.length < 1000) return out;
+  }
+}
+
+// Reparte el importe de cada nodo/día entre las cuentas del HRN en proporción a "base".
+function calcularKpi(envios, hrn, base) {
+  const grupos = new Map();
+  hrn.forEach(r => {
+    const k = r.fecha_reporte + '|' + norm(r.nodo);
+    const g = grupos.get(k) || new Map();
+    const c = g.get(r.descripcion_cuenta || '(SIN CUENTA)') || { bultos: 0, peso: 0, volumen: 0, peds: new Set() };
+    c.bultos += Number(r.bultos) || 0; c.peso += Number(r.peso) || 0; c.volumen += Number(r.volumen) || 0; c.peds.add(r.pedido_cliente);
+    g.set(r.descripcion_cuenta || '(SIN CUENTA)', c); grupos.set(k, g);
+  });
+  const nuevo = () => ({ costo: 0, pedidos: 0, bultos: 0 });
+  const R = { total: 0, pedidos: 0, bultos: 0, conImporte: 0, pendientes: 0, cuentas: new Map(), nodos: new Map(), transportes: new Map(), sinHrn: 0 };
+  const suma = (mapa, clave, costo, pedidos, bultos) => {
+    const a = mapa.get(clave) || nuevo(); a.costo += costo; a.pedidos += pedidos; a.bultos += bultos; mapa.set(clave, a);
+  };
+  envios.forEach(e => {
+    const imp = Number(e.importe) || 0;
+    if (imp <= 0) { R.pendientes++; return; }
+    const ped = Number(e.pedidos) || 0, bul = Number(e.bultos) || 0;
+    R.conImporte++; R.total += imp; R.pedidos += ped; R.bultos += bul;
+    suma(R.nodos, e.nodo, imp, ped, bul);
+    suma(R.transportes, e.transporte || '(SIN TRANSPORTE)', imp, ped, bul);
+    const g = grupos.get(e.fecha + '|' + norm(e.nodo));
+    if (!g) { R.sinHrn += imp; suma(R.cuentas, SIN_HRN, imp, ped, bul); return; }
+    const w = c => base === 'pedidos' ? c.peds.size : c[base];
+    let tot = [...g.values()].reduce((x, c) => x + w(c), 0);
+    const peso = tot > 0 ? w : (c => c.peds.size);
+    if (tot <= 0) tot = [...g.values()].reduce((x, c) => x + c.peds.size, 0);
+    g.forEach((c, cuenta) => suma(R.cuentas, cuenta, imp * peso(c) / tot, c.peds.size, c.bultos));
+  });
+  return R;
+}
+
+function tablaKpi(el, titulo, mapa) {
+  const filas = [...mapa].sort((a, b) => b[1].costo - a[1].costo);
+  el.innerHTML = `<tr><th>${titulo}</th><th class="num">Costo</th><th class="num">Pedidos</th><th class="num">Bultos</th><th class="num">Costo por pedido</th><th class="num">Costo por bulto</th></tr>` +
+    filas.map(([k, v]) => `<tr><td><b>${esc(k)}</b></td><td class="num">${fmt(v.costo)}</td><td class="num">${fmtN(v.pedidos)}</td><td class="num">${fmtN(v.bultos)}</td><td class="num">${v.pedidos ? fmt(v.costo / v.pedidos) : '-'}</td><td class="num">${v.bultos ? fmt(v.costo / v.bultos) : '-'}</td></tr>`).join('');
+}
+
+async function calcularKpis() {
+  const desde = $('#kDesde').value, hasta = $('#kHasta').value, trans = $('#kTrans').value;
+  $('#kCalc').disabled = true;
+  try {
+    const envios = await traerTodo(() => {
+      let q = sb.from('envios').select('fecha,nodo,transporte,pedidos,bultos,importe').order('id');
+      if (desde) q = q.gte('fecha', desde); if (hasta) q = q.lte('fecha', hasta); if (trans) q = q.eq('transporte', trans);
+      return q;
+    });
+    const hrn = await traerTodo(() => {
+      let q = sb.from('hrn_detalle').select('fecha_reporte,nodo,descripcion_cuenta,pedido_cliente,bultos,peso,volumen').order('id');
+      if (desde) q = q.gte('fecha_reporte', desde); if (hasta) q = q.lte('fecha_reporte', hasta);
+      return q;
+    });
+    if (!trans) {
+      const ts = [...new Set(envios.map(e => e.transporte).filter(Boolean))].sort();
+      $('#kTrans').innerHTML = '<option value="">Todos</option>' + ts.map(t => `<option>${esc(t)}</option>`).join('');
+    }
+    const R = calcularKpi(envios, hrn, $('#kBase').value);
+    kpiResultado = R;
+    $('#kpCards').innerHTML = [
+      ['Costo total', fmt(R.total), `${R.conImporte} registros con importe`],
+      ['Costo por pedido', R.pedidos ? fmt(R.total / R.pedidos) : '-', `${fmtN(R.pedidos)} pedidos`],
+      ['Costo por bulto', R.bultos ? fmt(R.total / R.bultos) : '-', `${fmtN(R.bultos)} bultos`],
+      ['Cuentas', fmtN([...R.cuentas.keys()].filter(k => k !== SIN_HRN).length), 'con costo asignado']
+    ].map(([t, v, n]) => `<div class="kpi"><span>${t}</span><b>${v}</b><small>${n}</small></div>`).join('');
+    const avisos = [];
+    if (R.pendientes) avisos.push(`${R.pendientes} registros sin importe no entran al cálculo (falta completarlos en Registros).`);
+    if (R.sinHrn) avisos.push(`${fmt(R.sinHrn)} no se pudo asignar a una cuenta porque no hay detalle HRN de esa fecha y nodo.`);
+    $('#kpNota').textContent = avisos.join(' ');
+    tablaKpi($('#kpCuenta'), 'Cuenta', R.cuentas); tablaKpi($('#kpNodo'), 'Nodo', R.nodos); tablaKpi($('#kpTrans'), 'Transporte', R.transportes);
+    $('#kpMsg').className = 'msg';
+  } catch (err) { flash($('#kpMsg'), 'No se pudo calcular: ' + err.message, 'err'); }
+  $('#kCalc').disabled = false;
+}
+$('#kCalc').onclick = calcularKpis;
+document.querySelector('nav [data-tab="kpis"]').addEventListener('click', calcularKpis);
+$('#kExport').onclick = () => {
+  if (!kpiResultado) return;
+  const wb = XLSX.utils.book_new();
+  [['POR CUENTA', kpiResultado.cuentas, 'Cuenta'], ['POR NODO', kpiResultado.nodos, 'Nodo'], ['POR TRANSPORTE', kpiResultado.transportes, 'Transporte']].forEach(([hoja, mapa, t]) => {
+    const aoa = [[t, 'Costo', 'Pedidos', 'Bultos', 'Costo por pedido', 'Costo por bulto']].concat([...mapa].sort((a, b) => b[1].costo - a[1].costo)
+      .map(([k, v]) => [k, Math.round(v.costo * 100) / 100, v.pedidos, v.bultos, v.pedidos ? Math.round(v.costo / v.pedidos * 100) / 100 : null, v.bultos ? Math.round(v.costo / v.bultos * 100) / 100 : null]));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), hoja);
+  });
+  XLSX.writeFile(wb, `kpis_${$('#kDesde').value || 'inicio'}_${$('#kHasta').value || 'hoy'}.xlsx`);
 };
 
 iniciar();
