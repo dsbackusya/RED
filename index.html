@@ -1,19 +1,357 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Red Troncal</title>
-  <style>
-    body { font-family: system-ui, sans-serif; margin: 0; min-height: 100vh; display: grid; place-items: center; background: #0f172a; color: #f8fafc; }
-    main { text-align: center; padding: 16px; }
-    p { color: #94a3b8; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Red Troncal</title>
+<style>
+  :root { --bg:#f4f6fa; --card:#fff; --ink:#0f172a; --mut:#64748b; --line:#e2e8f0; --pri:#1e3a8a; --ok:#15803d; --warn:#fef3c7; --bad:#b91c1c; }
+  * { box-sizing:border-box }
+  body { margin:0; font:14px/1.4 system-ui,Segoe UI,sans-serif; background:var(--bg); color:var(--ink) }
+  header { background:var(--pri); color:#fff; padding:10px 16px; display:flex; align-items:center; gap:16px; flex-wrap:wrap }
+  header h1 { font-size:17px; margin:0 }
+  nav { display:flex; gap:4px; flex:1 }
+  nav button { background:transparent; border:0; color:#cbd5e1; padding:8px 12px; border-radius:6px; cursor:pointer; font:inherit }
+  nav button.on { background:#fff; color:var(--pri); font-weight:600 }
+  main { padding:16px; max-width:1500px; margin:0 auto }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:14px }
+  .row { display:flex; gap:10px; align-items:end; flex-wrap:wrap }
+  label { display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--mut) }
+  input, select, button.b { font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:#fff }
+  button.b { cursor:pointer; background:var(--pri); color:#fff; border-color:var(--pri) }
+  button.b.sec { background:#fff; color:var(--pri) }
+  button.b:disabled { opacity:.5; cursor:default }
+  .tw { overflow:auto; max-height:70vh; border:1px solid var(--line); border-radius:8px }
+  table { border-collapse:collapse; width:100%; background:#fff }
+  th { position:sticky; top:0; background:#0b1e4a; color:#fff; text-align:left; padding:6px 8px; font-weight:600; white-space:nowrap }
+  td { border-top:1px solid var(--line); padding:3px 6px; white-space:nowrap }
+  td input, td select { width:100%; min-width:70px; padding:3px 5px; border-color:transparent; background:transparent }
+  td input:focus, td select:focus { border-color:var(--pri); background:#fff }
+  td.n input { text-align:right }
+  tr.miss td { background:var(--warn) }
+  .msg { padding:8px 12px; border-radius:6px; margin:8px 0; display:none }
+  .msg.ok { display:block; background:#dcfce7; color:var(--ok) }
+  .msg.err { display:block; background:#fee2e2; color:var(--bad) }
+  .hint { color:var(--mut); font-size:12px }
+  #login { max-width:340px; margin:12vh auto }
+  .hide { display:none !important }
+</style>
 </head>
 <body>
-  <main>
-    <h1>Red Troncal</h1>
-    <p>Proyecto en construcción.</p>
-  </main>
+
+<datalist id="dlAgencias"></datalist>
+<div id="setup" class="card hide" style="max-width:600px;margin:10vh auto">
+  <h2>Falta configurar Supabase</h2>
+  <p>Completa <code>SUPABASE_URL</code> y <code>SUPABASE_ANON_KEY</code> en <code>config.js</code> y recarga.</p>
+</div>
+
+<div id="login" class="card hide">
+  <h2 style="margin-top:0">Red Troncal</h2>
+  <div class="row" style="flex-direction:column;align-items:stretch">
+    <label>Correo<input id="lEmail" type="email" autocomplete="username"></label>
+    <label>Contraseña<input id="lPass" type="password" autocomplete="current-password"></label>
+    <button class="b" id="lBtn">Ingresar</button>
+    <div id="lMsg" class="msg"></div>
+  </div>
+</div>
+
+<div id="app" class="hide">
+<header>
+  <h1>Red Troncal</h1>
+  <nav>
+    <button data-tab="cargar" class="on">Cargar despacho</button>
+    <button data-tab="registros">Registros</button>
+    <button data-tab="catalogo">Agencias</button>
+  </nav>
+  <span id="who" class="hint" style="color:#cbd5e1"></span>
+  <button class="b sec" id="logout">Salir</button>
+</header>
+<main>
+
+<section id="tab-cargar">
+  <div class="card">
+    <div class="row">
+      <label>Fecha del despacho<input type="date" id="cFecha"></label>
+      <label>Archivo Excel del día<input type="file" id="cFile" accept=".xlsx,.xls,.csv"></label>
+      <button class="b sec" id="cPlantilla">Descargar plantilla</button>
+    </div>
+    <p class="hint">Se lee la primera tabla con encabezados NODO, PEDIDOS, BULTO, CAJAS y TRANSPORTE (la hoja RESUMEN sirve tal cual). Agencia, modo de pago y detalle del gasto se completan desde Agencias. Las filas amarillas no están en esa hoja.</p>
+    <div id="cMsg" class="msg"></div>
+  </div>
+  <div class="card hide" id="cPrev">
+    <div class="row" style="justify-content:space-between">
+      <b id="cResumen"></b>
+      <button class="b" id="cGuardar">Guardar en registros</button>
+    </div>
+    <div class="tw" style="margin-top:8px"><table id="cTabla"></table></div>
+  </div>
+</section>
+
+<section id="tab-registros" class="hide">
+  <div class="card">
+    <div class="row">
+      <label>Desde<input type="date" id="rDesde"></label>
+      <label>Hasta<input type="date" id="rHasta"></label>
+      <label>Transporte<select id="rTrans"><option value="">Todos</option></select></label>
+      <label>Modo de pago<select id="rPago"><option value="">Todos</option><option>CONTADO</option><option>CREDITO</option></select></label>
+      <label>Nodo<input id="rNodo" placeholder="buscar"></label>
+      <button class="b" id="rBuscar">Buscar</button>
+      <button class="b sec" id="rExport">Exportar a Excel</button>
+    </div>
+    <div id="rMsg" class="msg"></div>
+    <p class="hint">Edita importe, factura y demás celdas directamente; se guardan al salir de la celda. <span id="rTotal"></span></p>
+  </div>
+  <div class="tw"><table id="rTabla"></table></div>
+</section>
+
+<section id="tab-catalogo" class="hide">
+  <div class="card">
+    <div class="row">
+      <button class="b" id="kNuevo">Agregar destino</button>
+    </div>
+    <div id="kMsg" class="msg"></div>
+    <p class="hint">Es la fuente de agencia, transporte, zona, observación (modo de pago) y detalle del gasto para cada destino. Los cambios se guardan al salir de la celda.</p>
+  </div>
+  <div class="tw"><table id="kTabla"></table></div>
+</section>
+
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
+const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SETIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+const PAGOS = ['CONTADO','CREDITO'];
+const num = v => { const n = Number(String(v ?? '').replace(/,/g,'')); return Number.isFinite(n) ? n : null; };
+const today = () => new Date().toISOString().slice(0,10);
+
+function flash(el, text, type) {
+  el.textContent = text; el.className = 'msg ' + type;
+  if (type === 'ok') setTimeout(() => { el.className = 'msg'; }, 4000);
+}
+
+const cfg = window.APP_CONFIG || {};
+if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY) { $('#setup').classList.remove('hide'); throw new Error('config'); }
+const sb = supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+
+let catalogo = new Map();   // nodo normalizado -> fila
+let previa = [];            // filas de la carga en curso
+let registros = [];
+
+// ---------- sesión ----------
+async function iniciar() {
+  if (cfg.REQUIRE_LOGIN === false) { $('#logout').classList.add('hide'); return mostrarApp({ email: '' }); }
+  const { data } = await sb.auth.getSession();
+  if (data.session) mostrarApp(data.session.user); else $('#login').classList.remove('hide');
+}
+$('#lBtn').onclick = async () => {
+  const { data, error } = await sb.auth.signInWithPassword({ email: $('#lEmail').value.trim(), password: $('#lPass').value });
+  if (error) return flash($('#lMsg'), 'Correo o contraseña incorrectos', 'err');
+  $('#login').classList.add('hide'); mostrarApp(data.user);
+};
+$('#lPass').addEventListener('keydown', e => { if (e.key === 'Enter') $('#lBtn').click(); });
+$('#logout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+async function mostrarApp(user) {
+  $('#who').textContent = user.email;
+  $('#app').classList.remove('hide');
+  $('#cFecha').value = today();
+  const d = new Date(); $('#rDesde').value = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0,10); $('#rHasta').value = today();
+  await cargarCatalogo();
+  buscarRegistros();
+}
+
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
+  ['cargar','registros','catalogo'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
+});
+
+// ---------- catálogo ----------
+const OBS = ['AL CONTADO','CREDITO'];
+async function cargarCatalogo() {
+  const [{ data, error }, { data: lista }] = await Promise.all([
+    sb.from('agencias').select('*').order('destino'), sb.from('lista_agencias').select('agencia')]);
+  if (error) return flash($('#kMsg'), error.message, 'err');
+  catalogo = new Map(data.map(r => [norm(r.destino), r]));
+  const nombres = [...new Set([...(lista || []).map(x => x.agencia), ...data.map(r => r.agencia).filter(Boolean)])].sort();
+  $('#dlAgencias').innerHTML = nombres.map(n => `<option value="${esc(n)}">`).join('');
+  pintarCatalogo(data);
+}
+function pintarCatalogo(rows) {
+  $('#kTabla').innerHTML = '<tr><th>Destino</th><th>Agencia</th><th>Transporte</th><th>Zona</th><th>Observación</th><th>Concatenar</th><th></th></tr>' +
+    rows.map(r => `<tr data-n="${esc(r.destino)}">
+      <td><b>${esc(r.destino)}</b></td>
+      <td><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}"></td>
+      <td><input data-f="transporte" value="${esc(r.transporte)}"></td>
+      <td><input data-f="zona" value="${esc(r.zona)}"></td>
+      <td><select data-f="observacion">${OBS.map(p => `<option${p === r.observacion ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
+      <td><input data-f="concatenar" style="min-width:260px" value="${esc(r.concatenar)}"></td>
+      <td><button class="b sec" data-del="1">Eliminar</button></td></tr>`).join('');
+}
+$('#kTabla').addEventListener('change', async e => {
+  const tr = e.target.closest('tr'); if (!tr || !e.target.dataset.f) return;
+  const { error } = await sb.from('agencias').update({ [e.target.dataset.f]: e.target.value.trim() }).eq('destino', tr.dataset.n);
+  error ? flash($('#kMsg'), error.message, 'err') : (flash($('#kMsg'), 'Guardado', 'ok'), cargarCatalogo());
+});
+$('#kTabla').addEventListener('click', async e => {
+  if (!e.target.dataset.del) return;
+  const n = e.target.closest('tr').dataset.n;
+  if (!confirm('¿Eliminar ' + n + ' de Agencias?')) return;
+  const { error } = await sb.from('agencias').delete().eq('destino', n);
+  error ? flash($('#kMsg'), error.message, 'err') : cargarCatalogo();
+});
+$('#kNuevo').onclick = async () => {
+  const n = norm(prompt('Nombre del destino (ej. BAGUA):') || ''); if (!n) return;
+  const { error } = await sb.from('agencias').insert({ destino: n, observacion: 'AL CONTADO', concatenar: 'ENVIO DE PEDIDOS ' + n });
+  error ? flash($('#kMsg'), error.message, 'err') : cargarCatalogo();
+};
+
+// ---------- carga ----------
+$('#cPlantilla').onclick = () => {
+  const ws = XLSX.utils.aoa_to_sheet([['NODO','PEDIDOS','BULTO','CAJAS','TRANSPORTE'],['BARRANCA',2,2,2,'ELIAS'],['ABANCAY',12,12,5,'RELUFI']]);
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'DESPACHO');
+  XLSX.writeFile(wb, 'plantilla_despacho.xlsx');
+};
+
+function leerTabla(wb) {
+  const hojas = [...wb.SheetNames].sort((a, b) => (norm(b) === 'RESUMEN') - (norm(a) === 'RESUMEN'));
+  for (const nombre of hojas) {
+    const filas = XLSX.utils.sheet_to_json(wb.Sheets[nombre], { header: 1, defval: '', raw: true });
+    for (let i = 0; i < filas.length; i++) {
+      const h = filas[i].map(norm);
+      const iN = h.findIndex(x => x === 'NODO' || x === 'NODOS');
+      const iC = h.findIndex(x => x.includes('CAJA'));
+      if (iN < 0 || iC < 0) continue;
+      const iP = h.findIndex(x => x.includes('PEDIDO')), iB = h.findIndex(x => x.includes('BULTO')), iT = h.findIndex(x => x.startsWith('TRANSPORT'));
+      const out = [];
+      for (let j = i + 1; j < filas.length; j++) {
+        const nodo = norm(filas[j][iN]);
+        if (!nodo || nodo.startsWith('TOTAL')) break;
+        out.push({ nodo, pedidos: num(filas[j][iP]), bultos: num(filas[j][iB]), cajas: num(filas[j][iC]), transporte: norm(filas[j][iT]) });
+      }
+      if (out.length) return out;
+    }
+  }
+  return null;
+}
+
+$('#cFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
+    const filas = leerTabla(wb);
+    if (!filas) return flash($('#cMsg'), 'No encontré una tabla con encabezados NODO y CAJAS. Usa la plantilla.', 'err');
+    previa = filas.map(r => {
+      const c = catalogo.get(norm(r.nodo));
+      return { ...r, transporte: r.transporte || norm(c?.transporte), placa: '', agencia: c?.agencia || '',
+               modo_pago: c ? (norm(c.observacion).includes('CONTADO') ? 'CONTADO' : 'CREDITO') : 'CONTADO', en_catalogo: !!c,
+               detalle_gasto: c?.concatenar || 'ENVIO DE PEDIDOS ' + r.nodo };
+    });
+    $('#cMsg').className = 'msg';
+    pintarPrevia();
+  } catch (err) { flash($('#cMsg'), 'No se pudo leer el archivo: ' + err.message, 'err'); }
+};
+
+function pintarPrevia() {
+  const faltan = previa.filter(r => !r.en_catalogo).length;
+  $('#cResumen').textContent = `${previa.length} nodos · ${previa.reduce((s, r) => s + (r.pedidos || 0), 0)} pedidos · ${previa.reduce((s, r) => s + (r.bultos || 0), 0)} bultos · ${previa.reduce((s, r) => s + (r.cajas || 0), 0)} cajas` + (faltan ? ` · ${faltan} sin catálogo` : '');
+  $('#cTabla').innerHTML = '<tr><th>Nodo</th><th>Transporte</th><th>Pedidos</th><th>Bultos</th><th>Cajas</th><th>Placa</th><th>Agencia</th><th>Modo de pago</th><th>Detalle del gasto</th></tr>' +
+    previa.map((r, i) => `<tr class="${r.en_catalogo ? '' : 'miss'}" data-i="${i}">
+      <td><b>${esc(r.nodo)}</b></td>
+      <td><input data-f="transporte" value="${esc(r.transporte)}"></td>
+      <td class="n"><input data-f="pedidos" type="number" value="${r.pedidos ?? ''}"></td>
+      <td class="n"><input data-f="bultos" type="number" value="${r.bultos ?? ''}"></td>
+      <td class="n"><input data-f="cajas" type="number" value="${r.cajas ?? ''}"></td>
+      <td><input data-f="placa" value="${esc(r.placa)}"></td>
+      <td><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}"></td>
+      <td><select data-f="modo_pago">${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
+      <td><input data-f="detalle_gasto" value="${esc(r.detalle_gasto)}"></td></tr>`).join('');
+  $('#cPrev').classList.remove('hide');
+}
+$('#cTabla').addEventListener('change', e => {
+  const tr = e.target.closest('tr'); if (!tr || !e.target.dataset.f) return;
+  const f = e.target.dataset.f, v = e.target.value;
+  previa[tr.dataset.i][f] = ['pedidos','bultos','cajas'].includes(f) ? num(v) : (f === 'modo_pago' ? v : v.trim());
+});
+
+$('#cGuardar').onclick = async () => {
+  const fecha = $('#cFecha').value;
+  if (!fecha) return flash($('#cMsg'), 'Elige la fecha del despacho', 'err');
+  if (previa.some(r => !r.agencia) && !confirm('Hay nodos sin agencia. ¿Guardar igual?')) return;
+  $('#cGuardar').disabled = true;
+  const filas = previa.map(r => ({ fecha, origen: 'LIMA', transporte: r.transporte, nodo: r.nodo, bultos: r.bultos, pedidos: r.pedidos, cajas: r.cajas,
+    placa: r.placa || null, agencia: r.agencia || null, detalle_gasto: r.detalle_gasto, modo_pago: r.modo_pago }));
+  const { error } = await sb.from('envios').upsert(filas, { onConflict: 'fecha,nodo' });
+  $('#cGuardar').disabled = false;
+  if (error) return flash($('#cMsg'), error.message, 'err');
+  flash($('#cMsg'), `Guardados ${filas.length} nodos del ${fecha}. Completa importe y factura en Registros.`, 'ok');
+  previa = []; $('#cPrev').classList.add('hide'); $('#cFile').value = '';
+  $('#rDesde').value = fecha; $('#rHasta').value = fecha; buscarRegistros();
+};
+
+// ---------- registros ----------
+async function buscarRegistros() {
+  let q = sb.from('envios').select('*').order('fecha', { ascending: false }).order('transporte').order('nodo').limit(2000);
+  if ($('#rDesde').value) q = q.gte('fecha', $('#rDesde').value);
+  if ($('#rHasta').value) q = q.lte('fecha', $('#rHasta').value);
+  if ($('#rTrans').value) q = q.eq('transporte', $('#rTrans').value);
+  if ($('#rPago').value) q = q.eq('modo_pago', $('#rPago').value);
+  if ($('#rNodo').value.trim()) q = q.ilike('nodo', '%' + $('#rNodo').value.trim() + '%');
+  const { data, error } = await q;
+  if (error) return flash($('#rMsg'), error.message, 'err');
+  registros = data;
+  const ts = [...new Set(data.map(r => r.transporte).filter(Boolean))].sort(), sel = $('#rTrans').value;
+  if (!sel) $('#rTrans').innerHTML = '<option value="">Todos</option>' + ts.map(t => `<option>${esc(t)}</option>`).join('');
+  $('#rTabla').innerHTML = '<tr><th>Fecha</th><th>Transporte</th><th>Nodo</th><th>Bultos</th><th>Pedidos</th><th>Cajas</th><th>Placa</th><th>Agencia</th><th>Detalle del gasto</th><th>Pago</th><th>Importe</th><th>Factura</th><th></th></tr>' +
+    data.map(r => `<tr data-id="${r.id}">
+      <td>${esc(r.fecha)}</td><td>${esc(r.transporte)}</td><td><b>${esc(r.nodo)}</b></td>
+      <td class="n">${r.bultos ?? ''}</td><td class="n">${r.pedidos ?? ''}</td><td class="n">${r.cajas ?? ''}</td>
+      <td><input data-f="placa" value="${esc(r.placa)}"></td>
+      <td><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}"></td>
+      <td><input data-f="detalle_gasto" value="${esc(r.detalle_gasto)}"></td>
+      <td><select data-f="modo_pago">${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
+      <td class="n"><input data-f="importe" type="number" step="0.01" value="${r.importe ?? ''}"></td>
+      <td><input data-f="factura" value="${esc(r.factura)}"></td>
+      <td><button class="b sec" data-del="1">Eliminar</button></td></tr>`).join('');
+  const tot = data.reduce((s, r) => s + (Number(r.importe) || 0), 0);
+  $('#rTotal').textContent = `${data.length} registros · Importe total S/ ${tot.toFixed(2)}`;
+}
+$('#rBuscar').onclick = () => { $('#rTrans').dataset.k = ''; buscarRegistros(); };
+$('#rTabla').addEventListener('change', async e => {
+  const tr = e.target.closest('tr'); if (!tr || !e.target.dataset.f) return;
+  const f = e.target.dataset.f; let v = e.target.value.trim();
+  if (f === 'importe') v = v === '' ? null : num(v); else if (v === '') v = null;
+  const { error } = await sb.from('envios').update({ [f]: v }).eq('id', tr.dataset.id);
+  if (error) return flash($('#rMsg'), error.message, 'err');
+  const r = registros.find(x => x.id === tr.dataset.id); if (r) r[f] = v;
+  flash($('#rMsg'), 'Guardado', 'ok');
+  $('#rTotal').textContent = `${registros.length} registros · Importe total S/ ${registros.reduce((s, r) => s + (Number(r.importe) || 0), 0).toFixed(2)}`;
+});
+$('#rTabla').addEventListener('click', async e => {
+  if (!e.target.dataset.del) return;
+  if (!confirm('¿Eliminar este registro?')) return;
+  const { error } = await sb.from('envios').delete().eq('id', e.target.closest('tr').dataset.id);
+  error ? flash($('#rMsg'), error.message, 'err') : buscarRegistros();
+});
+
+$('#rExport').onclick = () => {
+  const serial = f => Math.round((Date.parse(f + 'T00:00:00Z') - Date.parse('1899-12-30T00:00:00Z')) / 86400000);
+  const aoa = [['MES','FECHA','ORIGEN','TRANSPORTE','NODOS','Cant. Bultos','Cant. Pedidos','Cant -CAJAS','PLACAS','AGENCIAS','DETALLE DEL GASTO','MODO DE PAGO','IMPORTE','OBSERVACIÓN','CONC']]
+    .concat(registros.map(r => [MESES[Number(r.fecha.slice(5, 7)) - 1], serial(r.fecha), r.origen, r.transporte, r.nodo, r.bultos, r.pedidos, r.cajas,
+      r.placa, r.agencia, r.detalle_gasto, r.modo_pago, r.importe, r.factura, serial(r.fecha) + r.nodo]));
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = aoa[0].map(() => ({ wch: 16 }));
+  aoa.slice(1).forEach((_, i) => { const c = ws['B' + (i + 2)]; if (c) c.z = 'dd-mmm'; });
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'ACTUAL');
+  XLSX.writeFile(wb, `red_troncal_${$('#rDesde').value || 'inicio'}_${$('#rHasta').value || 'hoy'}.xlsx`);
+};
+
+iniciar();
+</script>
 </body>
 </html>
