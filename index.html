@@ -61,6 +61,7 @@
   <nav>
     <button data-tab="cargar" class="on">Cargar despacho</button>
     <button data-tab="registros">Registros</button>
+    <button data-tab="hrn">Detalle HRN</button>
     <button data-tab="catalogo">Agencias</button>
   </nav>
   <span id="who" class="hint" style="color:#cbd5e1"></span>
@@ -102,6 +103,36 @@
     <p class="hint">Edita importe, factura y demás celdas directamente; se guardan al salir de la celda. <span id="rTotal"></span></p>
   </div>
   <div class="tw"><table id="rTabla"></table></div>
+</section>
+
+<section id="tab-hrn" class="hide">
+  <div class="card">
+    <div class="row">
+      <label>Fecha del reporte<input type="date" id="hFecha"></label>
+      <label>Archivo Excel (hoja ( HRN ))<input type="file" id="hFile" accept=".xlsx,.xls,.csv"></label>
+    </div>
+    <p class="hint">Se lee la hoja ( HRN ) con sus 39 columnas, una fila por bulto. Si ya hay datos de esa fecha, se reemplazan.</p>
+    <div id="hMsg" class="msg"></div>
+  </div>
+  <div class="card hide" id="hPrev">
+    <div class="row" style="justify-content:space-between">
+      <b id="hResumen"></b>
+      <button class="b" id="hGuardar">Guardar detalle</button>
+    </div>
+    <div class="tw" style="margin-top:8px;max-height:40vh"><table id="hResTabla"></table></div>
+  </div>
+  <div class="card">
+    <div class="row">
+      <label>Desde<input type="date" id="qDesde"></label>
+      <label>Hasta<input type="date" id="qHasta"></label>
+      <label>Nodo<input id="qNodo" placeholder="buscar"></label>
+      <label>Pedido / LPN<input id="qPed" placeholder="buscar"></label>
+      <button class="b" id="qBuscar">Buscar</button>
+      <button class="b sec" id="qExport">Exportar a Excel</button>
+    </div>
+    <p class="hint" id="qInfo"></p>
+  </div>
+  <div class="tw"><table id="qTabla"></table></div>
 </section>
 
 <section id="tab-catalogo" class="hide">
@@ -160,15 +191,15 @@ $('#logout').onclick = async () => { await sb.auth.signOut(); location.reload();
 async function mostrarApp(user) {
   $('#who').textContent = user.email;
   $('#app').classList.remove('hide');
-  $('#cFecha').value = today();
+  $('#cFecha').value = today(); $('#hFecha').value = today();
   const d = new Date(); $('#rDesde').value = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0,10); $('#rHasta').value = today();
   await cargarCatalogo();
-  buscarRegistros();
+  buscarRegistros(); buscarHrn();
 }
 
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
-  ['cargar','registros','catalogo'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
+  ['cargar','registros','hrn','catalogo'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
 });
 
 // ---------- catálogo ----------
@@ -349,6 +380,106 @@ $('#rExport').onclick = () => {
   aoa.slice(1).forEach((_, i) => { const c = ws['B' + (i + 2)]; if (c) c.z = 'dd-mmm'; });
   const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'ACTUAL');
   XLSX.writeFile(wb, `red_troncal_${$('#rDesde').value || 'inicio'}_${$('#rHasta').value || 'hoy'}.xlsx`);
+};
+
+// ---------- detalle HRN ----------
+const HRN_COLS = [['pedido_cliente','Pedido Cliente','t'],['nro_doc_referencia','Nro. Doc. Referencia','t'],['tipo_documento','Tipo Documento','t'],['lpn','LPN','t'],['fecha_recepcion','Fecha de Recepcion','d'],['ubicacion_recepcion','Ubicacion Recepción','t'],['cuenta_procedencia','Cuenta Procedencia','t'],['descripcion_cuenta','Descripcion Cuenta','t'],['nodo','NODO','t'],['bultos','BULTOS','n'],['observacion','OBSERVACION','t'],['fecha_ruta','Fecha Ruta','d'],['flag_carga_stage','Flag Carga Stage','n'],['fecha_carga_stage','Fecha Carga Stage','d'],['flag_terminar_carga','Flag Terminar Carga','n'],['fecha_terminar_carga','Fecha Terminar Carga','d'],['fecha_despacho','Fecha Despacho','d'],['flag_reprogramado','Flag Reprogramado','n'],['contador_reprogramado','Contador Reprogramado','n'],['motivo_pedido','Motivo Pedido','t'],['alto','Alto','n'],['ancho','Ancho','n'],['largo','Largo','n'],['volumen','Volumen','n'],['peso','Peso','n'],['roll_contenedor','Roll Contenedor','t'],['codigo_zona','Código Zona','t'],['zona','Zona','t'],['orden_clasificacion','Orden Clasificación','t'],['estado_contenedor','Estado Contenedor','t'],['placa_real','Placa Real','t'],['fecha_pedido','Fecha de Pedido','d'],['fecha_creacion','Fecha de Creación','d'],['ubicacion_movimiento','Ubicación Movimiento','t'],['fecha_movimiento','Fecha Movimiento','d'],['usuario_movimiento','Usuario Movimiento','t'],['proveedor','PROVEEDOR','t'],['nodo2','NODO2','t'],['cant_pedidos','CANT_PEDIDOS','t']];
+const hrnPorHeader = new Map(HRN_COLS.map(c => [norm(c[1]), c]));
+let hrnFilas = [], hrnConsulta = [];
+
+function serialAFecha(n) {
+  const d = new Date(Math.round((n - 25569) * 86400) * 1000);
+  return d.toISOString().slice(0, 19).replace('T', ' ');
+}
+function valorHrn(v, tipo) {
+  if (v === '' || v == null) return null;
+  if (tipo === 'n') return num(v);
+  if (tipo === 'd') return typeof v === 'number' ? serialAFecha(v) : (String(v).trim() || null);
+  return String(v).trim();
+}
+function leerHrn(wb) {
+  const hojas = [...wb.SheetNames].sort((a, b) => norm(b).includes('HRN') - norm(a).includes('HRN'));
+  for (const nombre of hojas) {
+    const filas = XLSX.utils.sheet_to_json(wb.Sheets[nombre], { header: 1, defval: '', raw: true });
+    const hi = filas.findIndex(f => f.some(c => norm(c) === 'PEDIDO CLIENTE'));
+    if (hi < 0) continue;
+    const mapa = filas[hi].map(h => hrnPorHeader.get(norm(h)) || null);
+    if (!mapa.some(c => c && c[0] === 'nodo')) continue;
+    const out = [];
+    for (const f of filas.slice(hi + 1)) {
+      if (!mapa.some((c, i) => c && f[i] !== '' && f[i] != null)) continue;
+      const r = {};
+      HRN_COLS.forEach(c => r[c[0]] = null);
+      mapa.forEach((c, i) => { if (c) r[c[0]] = valorHrn(f[i], c[2]); });
+      if (r.nodo) r.nodo = norm(r.nodo);
+      if (r.pedido_cliente || r.lpn) out.push(r);
+    }
+    if (out.length) return out;
+  }
+  return null;
+}
+
+$('#hFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
+    const filas = leerHrn(wb);
+    if (!filas) return flash($('#hMsg'), 'No encontré la hoja ( HRN ) con la columna "Pedido Cliente".', 'err');
+    hrnFilas = filas; $('#hMsg').className = 'msg'; pintarResumenHrn();
+  } catch (err) { flash($('#hMsg'), 'No se pudo leer el archivo: ' + err.message, 'err'); }
+};
+function pintarResumenHrn() {
+  const por = new Map();
+  hrnFilas.forEach(r => {
+    const g = por.get(r.nodo) || { peds: new Set(), bultos: 0, rolls: new Set() };
+    g.peds.add(r.pedido_cliente); g.bultos += r.bultos || 0; if (r.roll_contenedor) g.rolls.add(r.roll_contenedor);
+    por.set(r.nodo, g);
+  });
+  const allPeds = new Set(hrnFilas.map(r => r.pedido_cliente));
+  $('#hResumen').textContent = `${hrnFilas.length} filas · ${por.size} nodos · ${allPeds.size} pedidos únicos · ${hrnFilas.reduce((s, r) => s + (r.bultos || 0), 0)} bultos`;
+  $('#hResTabla').innerHTML = '<tr><th>Nodo</th><th>Pedidos únicos</th><th>Bultos</th><th>Rolls</th><th>En Agencias</th></tr>' +
+    [...por].sort().map(([n, g]) => `<tr class="${catalogo.has(norm(n)) ? '' : 'miss'}"><td><b>${esc(n)}</b></td><td class="n">${g.peds.size}</td><td class="n">${g.bultos}</td><td class="n">${g.rolls.size}</td><td>${catalogo.has(norm(n)) ? 'Sí' : 'No'}</td></tr>`).join('');
+  $('#hPrev').classList.remove('hide');
+}
+$('#hGuardar').onclick = async () => {
+  const fecha = $('#hFecha').value;
+  if (!fecha) return flash($('#hMsg'), 'Elige la fecha del reporte', 'err');
+  const { count } = await sb.from('hrn_detalle').select('id', { count: 'exact', head: true }).eq('fecha_reporte', fecha);
+  if (count && !confirm(`Ya hay ${count} filas del ${fecha}. ¿Reemplazarlas por las ${hrnFilas.length} nuevas?`)) return;
+  $('#hGuardar').disabled = true;
+  try {
+    if (count) { const { error } = await sb.from('hrn_detalle').delete().eq('fecha_reporte', fecha); if (error) throw error; }
+    for (let i = 0; i < hrnFilas.length; i += 400) {
+      const lote = hrnFilas.slice(i, i + 400).map(r => ({ ...r, fecha_reporte: fecha }));
+      const { error } = await sb.from('hrn_detalle').insert(lote); if (error) throw error;
+    }
+    flash($('#hMsg'), `Guardadas ${hrnFilas.length} filas del ${fecha}.`, 'ok');
+    hrnFilas = []; $('#hPrev').classList.add('hide'); $('#hFile').value = '';
+    $('#qDesde').value = fecha; $('#qHasta').value = fecha; buscarHrn();
+  } catch (err) { flash($('#hMsg'), 'Error al guardar: ' + err.message + '. Vuelve a intentar: se reemplazará lo parcial.', 'err'); }
+  $('#hGuardar').disabled = false;
+};
+
+async function buscarHrn() {
+  let q = sb.from('hrn_detalle').select('*', { count: 'exact' }).order('fecha_reporte', { ascending: false }).order('nodo').order('id').limit(1000);
+  if ($('#qDesde').value) q = q.gte('fecha_reporte', $('#qDesde').value);
+  if ($('#qHasta').value) q = q.lte('fecha_reporte', $('#qHasta').value);
+  if ($('#qNodo').value.trim()) q = q.ilike('nodo', '%' + $('#qNodo').value.trim() + '%');
+  const t = $('#qPed').value.trim().replace(/[,()]/g, '');
+  if (t) q = q.or(`pedido_cliente.ilike.%${t}%,lpn.ilike.%${t}%`);
+  const { data, error, count } = await q;
+  if (error) return flash($('#hMsg'), error.message, 'err');
+  hrnConsulta = data;
+  $('#qInfo').textContent = `${count} filas` + (count > data.length ? ` (se muestran las primeras ${data.length}; afina los filtros)` : '');
+  const vis = ['fecha_reporte','pedido_cliente','lpn','cuenta_procedencia','descripcion_cuenta','nodo','bultos','roll_contenedor','peso','volumen','fecha_recepcion'];
+  $('#qTabla').innerHTML = '<tr>' + ['Fecha reporte','Pedido','LPN','Cuenta','Descripción cuenta','Nodo','Bultos','Roll','Peso','Volumen','Recepción'].map(h => `<th>${h}</th>`).join('') + '</tr>' +
+    data.map(r => '<tr>' + vis.map(c => `<td>${esc(r[c])}</td>`).join('') + '</tr>').join('');
+}
+$('#qBuscar').onclick = buscarHrn;
+$('#qExport').onclick = () => {
+  const aoa = [['Fecha reporte', ...HRN_COLS.map(c => c[1])]].concat(hrnConsulta.map(r => [r.fecha_reporte, ...HRN_COLS.map(c => r[c[0]])]));
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'HRN');
+  XLSX.writeFile(wb, `hrn_${$('#qDesde').value || 'inicio'}_${$('#qHasta').value || 'hoy'}.xlsx`);
 };
 
 iniciar();
