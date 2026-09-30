@@ -1,4 +1,4 @@
-// Lectura gratuita de facturas (fotos): QR SUNAT + OCR (PaddleOCR, respaldo Tesseract) en el navegador. Todo se revisa a mano antes de guardar.
+// Lectura gratuita de facturas (fotos): QR SUNAT + OCR Tesseract (modelo liviano, ~3 MB) en el navegador. Todo se revisa a mano antes de guardar.
 window.OCR = (() => {
   const RUC_DINET = '20427919111';
   const ALIAS_NODOS = { NASCA: 'NAZCA', CANETE: 'CANETE' };
@@ -168,36 +168,29 @@ window.OCR = (() => {
 
   async function obtenerWorker(progreso) {
     if (!window.Tesseract) await cargarScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
-    if (!worker) worker = await window.Tesseract.createWorker('spa', 1, { logger: m => progreso && m.status && progreso(m.status, m.progress) });
+    if (!worker) worker = await window.Tesseract.createWorker('spa', 1, {
+      langPath: 'https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast@main', gzip: false,   // modelo "fast": ~1 MB en vez de ~8 MB
+      logger: m => progreso && m.status && progreso(m.status, m.progress) });
     return worker;
   }
 
-  // Lector principal: PaddleOCR (paddle.js). Respaldo: Tesseract si Paddle falla o no encuentra factura e importe.
   // file: imagen de la factura. ref: fecha del registro (YYYY-MM-DD). nodos: lista de nodos del catálogo.
   async function leer(file, { ref, nodos, progreso } = {}) {
     await libs();
     const img = await imagenDe(file);
     progreso && progreso('Buscando código QR…', 0);
     const qr = leerQR(img);
-    let texto = '', R = null, motor = '';
-    try {
-      if (!window.Paddle) await cargarScript('paddle.js?v=3');
-      const P = await window.Paddle.leer(img, { progreso });
-      texto = P.texto; motor = 'PaddleOCR'; R = parsear(texto, qr, ref, nodos);
-    } catch (e) { console.warn('PaddleOCR no disponible, se usa Tesseract:', e); }
-    if (!R || !(R.factura && R.importe != null)) {
-      const w = await obtenerWorker(progreso);
-      const pasadas = [{ lado: 2000, contraste: false, psm: '6' }, { lado: 2600, contraste: true, psm: '4' }];
-      for (const p of pasadas) {
-        await w.setParameters({ tessedit_pageseg_mode: p.psm });
-        const { data } = await w.recognize(canvasDe(img, p.lado, true, p.contraste));
-        texto = texto ? texto + '\n' + data.text : data.text;
-        motor = motor ? motor + ' + Tesseract' : 'Tesseract';
-        R = parsear(texto, qr, ref, nodos);
-        if (R.factura && R.importe != null) break;
-      }
+    const w = await obtenerWorker(progreso);
+    let texto = '', R = null;
+    const pasadas = [{ lado: 2000, contraste: false, psm: '6' }, { lado: 2600, contraste: true, psm: '4' }];
+    for (const p of pasadas) {
+      await w.setParameters({ tessedit_pageseg_mode: p.psm });
+      const { data } = await w.recognize(canvasDe(img, p.lado, true, p.contraste));
+      texto = texto ? texto + '\n' + data.text : data.text;
+      R = parsear(texto, qr, ref, nodos);
+      if (R.factura && R.importe != null) break;
     }
-    R.texto = texto; R.qr = qr; R.motor = motor;
+    R.texto = texto; R.qr = qr; R.motor = 'Tesseract';
     return R;
   }
 

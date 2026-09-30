@@ -293,7 +293,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="ocr.js?v=3"></script>
+<script src="ocr.js?v=4"></script>
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -520,7 +520,7 @@ async function revisarFactura(file, r) {
   if (r.factura) $('#fFactura').value = r.factura;
   if (r.importe != null) $('#fImporte').value = r.importe;
   fUrl = URL.createObjectURL(file); $('#fImg').src = fUrl;
-  const est = $('#fEstado'); est.className = 'aviso'; est.textContent = 'Leyendo la factura… (la primera vez descarga el modelo de lectura, unos 15 MB; luego es más rápido)';
+  const est = $('#fEstado'); est.className = 'aviso'; est.textContent = 'Leyendo la factura… (la primera vez descarga el modelo de lectura, unos 3 MB)';
   $('#fGuardar').disabled = true;
   $('#factDlg').showModal();
   try {
