@@ -5,42 +5,93 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Red Troncal</title>
 <style>
-  :root { --bg:#f4f6fa; --card:#fff; --ink:#0f172a; --mut:#64748b; --line:#e2e8f0; --pri:#1e3a8a; --ok:#15803d; --warn:#fef3c7; --bad:#b91c1c; }
+  /* Paleta Dinet (dinet.com.pe): azul #000B52, verde #00B201 / #009D00, naranja #F67706, lila #D7DCFF */
+  :root {
+    --bg:#f3f5f9; --card:#fff; --ink:#0f172a; --mut:#64748b; --line:#e5e9f0;
+    --brand:#000B52; --pri:#009D00; --pri2:#00B201; --acc:#F67706; --ok:#0a7a0a; --warn:#b45309; --bad:#d6304a;
+    --okbg:#E6F5E6; --warnbg:#FFEBD6; --infobg:#D7DCFF; --info:#000B52; --head:#eef1f7; --rad:14px;
+    --shadow:0 1px 2px rgba(15,23,42,.06), 0 6px 20px rgba(15,23,42,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0b1220; --card:#121a2c; --ink:#e6ecf7; --mut:#94a3b8; --line:#23304a; --brand:#00061f; --pri:#2EBA22; --pri2:#2EBA22;
+            --ok:#4ade80; --warn:#fb923c; --bad:#ff7a8d; --okbg:#10301a; --warnbg:#3a230b; --infobg:#1a2260; --info:#D7DCFF; --head:#18223a; --shadow:none; }
+  }
   * { box-sizing:border-box }
-  body { margin:0; font:14px/1.4 system-ui,Segoe UI,sans-serif; background:var(--bg); color:var(--ink) }
-  header { background:var(--pri); color:#fff; padding:10px 16px; display:flex; align-items:center; gap:16px; flex-wrap:wrap }
-  header h1 { font-size:17px; margin:0 }
-  nav { display:flex; gap:4px; flex:1 }
-  nav button { background:transparent; border:0; color:#cbd5e1; padding:8px 12px; border-radius:6px; cursor:pointer; font:inherit }
-  nav button.on { background:#fff; color:var(--pri); font-weight:600 }
-  main { padding:16px; max-width:1500px; margin:0 auto }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:14px }
+  body { margin:0; font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--ink) }
+  .shell { display:grid; grid-template-columns:232px 1fr; min-height:100vh }
+  aside { background:var(--brand); color:#cbd5e1; padding:16px 12px; position:sticky; top:0; height:100vh; display:flex; flex-direction:column; gap:4px }
+  .logo { background:#fff; border-radius:12px; padding:8px; margin:0 4px 6px; display:flex; align-items:center; gap:10px; color:var(--brand) }
+  .logo img { height:46px; width:auto; display:block }
+  .logo b { font-size:14px; line-height:1.2 }
+  nav { display:flex; flex-direction:column; gap:2px }
+  nav button { display:flex; align-items:center; gap:10px; width:100%; background:none; border:0; color:inherit; font:inherit; padding:10px 12px; border-radius:10px; cursor:pointer; text-align:left }
+  nav button:hover { background:rgba(255,255,255,.08) }
+  nav button.on { background:#fff; color:var(--brand); font-weight:600; box-shadow:inset 4px 0 0 var(--pri2) }
+  nav svg { width:18px; height:18px; flex:none }
+  .side-foot { margin-top:auto; padding:10px; font-size:12px; display:flex; flex-direction:column; gap:8px }
+  main { padding:22px 28px 40px; min-width:0 }
+  .top { margin-bottom:16px }
+  h1 { font-size:22px; margin:0 } .sub { color:var(--mut); margin-top:2px }
+  h3 { margin:18px 0 8px; font-size:15px }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:var(--rad); padding:14px 16px; margin-bottom:14px; box-shadow:var(--shadow) }
+  .card h3 { margin:0 0 10px }
   .row { display:flex; gap:10px; align-items:end; flex-wrap:wrap }
   label { display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--mut) }
-  input, select, button.b { font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:#fff }
-  button.b { cursor:pointer; background:var(--pri); color:#fff; border-color:var(--pri) }
-  button.b.sec { background:#fff; color:var(--pri) }
+  input, select, button.b { font:inherit; padding:7px 10px; border:1px solid var(--line); border-radius:9px; background:var(--card); color:var(--ink) }
+  button.b { cursor:pointer; background:var(--pri); color:#fff; border-color:var(--pri); font-weight:700 }
+  button.b:hover { background:var(--pri2); border-color:var(--pri2) }
+  button.b.sec { background:var(--card); color:var(--ink); border-color:var(--line); font-weight:500 }
+  button.b.sec:hover { background:var(--head) }
   button.b:disabled { opacity:.5; cursor:default }
-  .tw { overflow:auto; max-height:70vh; border:1px solid var(--line); border-radius:8px }
-  table { border-collapse:collapse; width:100%; background:#fff }
-  th { position:sticky; top:0; background:#0b1e4a; color:#fff; text-align:left; padding:6px 8px; font-weight:600; white-space:nowrap }
-  td { border-top:1px solid var(--line); padding:3px 6px; white-space:nowrap }
-  td input, td select { width:100%; min-width:70px; padding:3px 5px; border-color:transparent; background:transparent }
-  td input:focus, td select:focus { border-color:var(--pri); background:#fff }
-  td.n input { text-align:right }
-  tr.miss td { background:var(--warn) }
-  .msg { padding:8px 12px; border-radius:6px; margin:8px 0; display:none }
-  .msg.ok { display:block; background:#dcfce7; color:var(--ok) }
+  .tw { overflow:auto; max-height:70vh; border:1px solid var(--line); border-radius:12px; background:var(--card) }
+  table { border-collapse:collapse; width:100%; background:var(--card) }
+  th { position:sticky; top:0; background:var(--head); color:var(--mut); text-align:left; padding:9px 12px; font-size:11px; letter-spacing:.04em; text-transform:uppercase; white-space:nowrap }
+  td { border-top:1px solid var(--line); padding:5px 10px; white-space:nowrap }
+  tr:hover td { background:color-mix(in srgb, var(--pri2) 6%, transparent) }
+  td input, td select { width:100%; min-width:120px; padding:4px 6px; border-color:transparent; background:transparent; border-radius:7px }
+  td input:hover, td select:hover { border-color:var(--line) }
+  td input:focus, td select:focus { border-color:var(--pri); background:var(--card); outline:2px solid color-mix(in srgb, var(--pri2) 30%, transparent) }
+  td.n input { text-align:right; min-width:84px }
+  td select { min-width:118px }
+  td input[data-f="agencia"], td input[data-f="detalle_gasto"], td input[data-f="concatenar"] { min-width:250px }
+  td input[data-f="placa"] { min-width:90px }
+  td.num, th.num { text-align:right; font-variant-numeric:tabular-nums }
+  tr.miss td { background:var(--warnbg) }
+  select[data-v="CONTADO"], select[data-v="AL CONTADO"] { background:var(--okbg); color:var(--ok); font-weight:600; border-radius:99px }
+  select[data-v="CREDITO"] { background:var(--infobg); color:var(--info); font-weight:600; border-radius:99px }
+  .msg { padding:8px 12px; border-radius:9px; margin:8px 0; display:none }
+  .msg.ok { display:block; background:var(--okbg); color:var(--ok) }
   .msg.err { display:block; background:#fee2e2; color:var(--bad) }
-  .hint { color:var(--mut); font-size:12px }
+  .hint { color:var(--mut); font-size:12px; margin:8px 0 0 }
   #login { max-width:340px; margin:12vh auto }
-  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; margin-bottom:14px }
-  .kpi { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px }
+  #login .logo { justify-content:center; margin:0 0 14px; border:1px solid var(--line) }
+  .steps { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap }
+  .step { flex:1; min-width:170px; display:flex; gap:10px; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 14px }
+  .step i { width:26px; height:26px; border-radius:50%; display:grid; place-items:center; font-style:normal; font-weight:700; background:var(--line); color:var(--mut); font-size:13px; flex:none }
+  .step.on i { background:var(--brand); color:#fff } .step.done i { background:var(--pri); color:#fff }
+  .step b { display:block } .step small { color:var(--mut) }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:14px }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:var(--rad); padding:14px 16px; box-shadow:var(--shadow) }
   .kpi span { color:var(--mut); font-size:12px }
-  .kpi b { display:block; font-size:22px; margin-top:2px }
+  .kpi b { display:block; font-size:26px; margin:6px 0 2px; letter-spacing:-.5px }
   .kpi small { color:var(--mut) }
-  td.num, th.num { text-align:right }
+  .kpi:first-child { background:linear-gradient(135deg,#000B52,#0a1f8f); color:#fff; border:0; border-bottom:4px solid var(--pri2) }
+  .kpi:first-child span, .kpi:first-child small { color:#c9d1ff }
+  .charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:14px; margin-bottom:14px }
+  .charts .card { margin:0 }
+  .bars { display:flex; align-items:flex-end; gap:6px; height:170px; padding-bottom:22px }
+  .bars div { flex:1; background:var(--pri2); border-radius:6px 6px 0 0; position:relative; min-width:8px; max-width:48px }
+  .bars div:hover { background:var(--acc) }
+  .bars div span { position:absolute; bottom:-19px; left:50%; transform:translateX(-50%); font-size:10px; color:var(--mut); white-space:nowrap }
+  .hb { display:grid; grid-template-columns:minmax(90px,150px) 1fr 92px; gap:10px; align-items:center; margin:8px 0; font-size:13px }
+  .hb .t { height:10px; border-radius:99px; background:var(--line); overflow:hidden } .hb .t i { display:block; height:100%; background:var(--pri2); border-radius:99px }
+  .hb b { text-align:right }
+  .hb > span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
   .hide { display:none !important }
+  @media (max-width:860px) {
+    .shell { grid-template-columns:1fr } aside { position:static; height:auto; flex-direction:row; flex-wrap:wrap; align-items:center }
+    nav { flex-direction:row; flex-wrap:wrap } .side-foot { margin:0 0 0 auto } main { padding:14px }
+  }
 </style>
 </head>
 <body>
@@ -52,7 +103,7 @@
 </div>
 
 <div id="login" class="card hide">
-  <h2 style="margin-top:0">Red Troncal</h2>
+  <div class="logo"><img src="logo.png" alt="Dinet"><b>Red Troncal</b></div>
   <div class="row" style="flex-direction:column;align-items:stretch">
     <label>Correo<input id="lEmail" type="email" autocomplete="username"></label>
     <label>Contraseña<input id="lPass" type="password" autocomplete="current-password"></label>
@@ -61,22 +112,27 @@
   </div>
 </div>
 
-<div id="app" class="hide">
-<header>
-  <h1>Red Troncal</h1>
+<div id="app" class="hide"><div class="shell">
+<aside>
+  <div class="logo"><img src="logo.png" alt="Dinet"><b>Red<br>Troncal</b></div>
   <nav>
-    <button data-tab="cargar" class="on">Cargar despacho</button>
-    <button data-tab="registros">Registros</button>
-    <button data-tab="kpis">KPIs</button>
-    <button data-tab="hrn">Detalle HRN</button>
-    <button data-tab="catalogo">Agencias</button>
+    <button data-tab="cargar" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg> Cargar despacho</button>
+    <button data-tab="registros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg> Registros</button>
+    <button data-tab="kpis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg> KPIs</button>
+    <button data-tab="hrn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4zM3 12l9 4 9-4M3 17l9 4 9-4"/></svg> Detalle HRN</button>
+    <button data-tab="catalogo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg> Agencias</button>
   </nav>
-  <span id="who" class="hint" style="color:#cbd5e1"></span>
-  <button class="b sec" id="logout">Salir</button>
-</header>
+  <div class="side-foot"><span id="who"></span><button class="b sec" id="logout">Salir</button></div>
+</aside>
 <main>
 
 <section id="tab-cargar">
+  <div class="top"><h1>Cargar despacho</h1><div class="sub">Sube el resumen del día, revisa y guarda</div></div>
+  <div class="steps" id="cSteps">
+    <div class="step on"><i>1</i><div><b>Archivo</b><small>Elige fecha y Excel</small></div></div>
+    <div class="step"><i>2</i><div><b>Revisar</b><small>Completa placa y agencia</small></div></div>
+    <div class="step"><i>3</i><div><b>Guardar</b><small>Importes se completan después</small></div></div>
+  </div>
   <div class="card">
     <div class="row">
       <label>Fecha del despacho<input type="date" id="cFecha"></label>
@@ -96,6 +152,7 @@
 </section>
 
 <section id="tab-registros" class="hide">
+  <div class="top"><h1>Registros</h1><div class="sub">Edita importe, factura y demás celdas directamente en la tabla</div></div>
   <div class="card">
     <div class="row">
       <label>Desde<input type="date" id="rDesde"></label>
@@ -113,6 +170,7 @@
 </section>
 
 <section id="tab-kpis" class="hide">
+  <div class="top"><h1>KPIs de costo</h1><div class="sub">Costo total, por pedido, por día y por cuenta</div></div>
   <div class="card">
     <div class="row">
       <label>Mes<input type="month" id="kMes"></label>
@@ -127,7 +185,11 @@
     <p class="hint" id="kpNota"></p>
   </div>
   <div class="kpis" id="kpCards"></div>
-  <h3>Costo por día</h3>
+  <div class="charts">
+    <div class="card"><h3>Costo por día</h3><div class="bars" id="kpBars"></div></div>
+    <div class="card"><h3>Costo por cuenta (top 6)</h3><div id="kpTop"></div></div>
+  </div>
+  <h3>Costo por día · detalle</h3>
   <div class="tw" style="margin-bottom:14px"><table id="kpDias"></table></div>
   <h3>Costo por cuenta</h3>
   <div class="tw" style="margin-bottom:14px"><table id="kpCuenta"></table></div>
@@ -138,6 +200,7 @@
 </section>
 
 <section id="tab-hrn" class="hide">
+  <div class="top"><h1>Detalle HRN</h1><div class="sub">Una fila por bulto · 39 columnas</div></div>
   <div class="card">
     <div class="row">
       <label>Fecha del reporte<input type="date" id="hFecha"></label>
@@ -168,6 +231,7 @@
 </section>
 
 <section id="tab-catalogo" class="hide">
+  <div class="top"><h1>Agencias</h1><div class="sub">Catálogo de destinos: agencia, transporte, zona y modo de pago</div></div>
   <div class="card">
     <div class="row">
       <button class="b" id="kNuevo">Agregar destino</button>
@@ -179,7 +243,7 @@
 </section>
 
 </main>
-</div>
+</div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -193,6 +257,10 @@ const PAGOS = ['CONTADO','CREDITO'];
 const num = v => { const n = Number(String(v ?? '').replace(/,/g,'')); return Number.isFinite(n) ? n : null; };
 const today = () => new Date().toISOString().slice(0,10);
 
+document.addEventListener('change', e => { if (e.target.dataset && 'v' in e.target.dataset) e.target.dataset.v = e.target.value; });
+function setPaso(n) {
+  document.querySelectorAll('#cSteps .step').forEach((el, i) => { el.className = 'step' + (i + 1 < n ? ' done' : i + 1 === n ? ' on' : ''); el.querySelector('i').textContent = i + 1 < n ? '✓' : i + 1; });
+}
 function flash(el, text, type) {
   el.textContent = text; el.className = 'msg ' + type;
   if (type === 'ok') setTimeout(() => { el.className = 'msg'; }, 4000);
@@ -252,7 +320,7 @@ function pintarCatalogo(rows) {
       <td><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}"></td>
       <td><input data-f="transporte" value="${esc(r.transporte)}"></td>
       <td><input data-f="zona" value="${esc(r.zona)}"></td>
-      <td><select data-f="observacion">${OBS.map(p => `<option${p === r.observacion ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
+      <td><select data-f="observacion" data-v="${r.observacion}">${OBS.map(p => `<option${p === r.observacion ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
       <td><input data-f="concatenar" style="min-width:260px" value="${esc(r.concatenar)}"></td>
       <td><button class="b sec" data-del="1">Eliminar</button></td></tr>`).join('');
 }
@@ -309,6 +377,7 @@ $('#cFile').onchange = async e => {
     const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
     const filas = leerTabla(wb);
     if (!filas) return flash($('#cMsg'), 'No encontré una tabla con encabezados NODO y CAJAS. Usa la plantilla.', 'err');
+    setPaso(2);
     previa = filas.map(r => {
       const c = catalogo.get(norm(r.nodo));
       return { ...r, transporte: r.transporte || norm(c?.transporte), placa: '', agencia: c?.agencia || '',
@@ -332,7 +401,7 @@ function pintarPrevia() {
       <td class="n"><input data-f="cajas" type="number" value="${r.cajas ?? ''}"></td>
       <td><input data-f="placa" value="${esc(r.placa)}"></td>
       <td><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}"></td>
-      <td><select data-f="modo_pago">${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
+      <td><select data-f="modo_pago" data-v="${r.modo_pago}">${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
       <td><input data-f="detalle_gasto" value="${esc(r.detalle_gasto)}"></td></tr>`).join('');
   $('#cPrev').classList.remove('hide');
 }
@@ -353,7 +422,7 @@ $('#cGuardar').onclick = async () => {
   $('#cGuardar').disabled = false;
   if (error) return flash($('#cMsg'), error.message, 'err');
   flash($('#cMsg'), `Guardados ${filas.length} nodos del ${fecha}. Completa importe y factura en Registros.`, 'ok');
-  previa = []; $('#cPrev').classList.add('hide'); $('#cFile').value = '';
+  previa = []; $('#cPrev').classList.add('hide'); $('#cFile').value = ''; setPaso(1);
   $('#rDesde').value = fecha; $('#rHasta').value = fecha; buscarRegistros();
 };
 
@@ -377,7 +446,7 @@ async function buscarRegistros() {
       <td><input data-f="placa" value="${esc(r.placa)}"></td>
       <td><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}"></td>
       <td><input data-f="detalle_gasto" value="${esc(r.detalle_gasto)}"></td>
-      <td><select data-f="modo_pago">${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
+      <td><select data-f="modo_pago" data-v="${r.modo_pago}">${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
       <td class="n"><input data-f="importe" type="number" step="0.01" value="${r.importe ?? ''}"></td>
       <td><input data-f="factura" value="${esc(r.factura)}"></td>
       <td><button class="b sec" data-del="1">Eliminar</button></td></tr>`).join('');
@@ -591,10 +660,18 @@ function pintarDias(dias) {
   $('#kpDias').innerHTML = '<tr><th>Día</th><th class="num">Registros</th><th class="num">Pedidos</th><th class="num">Bultos</th><th class="num">Cajas</th><th class="num">Contado</th><th class="num">Crédito</th><th class="num">Costo total</th><th class="num">Costo por pedido</th><th class="num">Sin importe</th></tr>' +
     dias.map(d => `<tr><td><b>${esc(dia(d.fecha))}</b></td><td class="num">${d.registros}</td><td class="num">${fmtN(d.pedidos)}</td><td class="num">${fmtN(d.bultos)}</td><td class="num">${fmtN(d.cajas)}</td>
       <td class="num">${fmt(d.contado)}</td><td class="num">${fmt(d.credito)}</td>
-      <td class="num" style="background:linear-gradient(90deg,#bfdbfe ${Math.round(d.costo / max * 100)}%,transparent 0)"><b>${fmt(d.costo)}</b></td>
+      <td class="num" style="background:linear-gradient(90deg,color-mix(in srgb,var(--pri2) 22%,transparent) ${Math.round(d.costo / max * 100)}%,transparent 0)"><b>${fmt(d.costo)}</b></td>
       <td class="num">${d.pedConImporte ? fmt(d.costo / d.pedConImporte) : '-'}</td><td class="num">${d.sinImporte || ''}</td></tr>`).join('') +
-    (dias.length ? `<tr style="background:#f1f5f9;font-weight:700"><td>TOTAL</td><td class="num">${T.registros}</td><td class="num">${fmtN(T.pedidos)}</td><td class="num">${fmtN(T.bultos)}</td><td class="num">${fmtN(T.cajas)}</td>
+    (dias.length ? `<tr style="background:var(--head);font-weight:700"><td>TOTAL</td><td class="num">${T.registros}</td><td class="num">${fmtN(T.pedidos)}</td><td class="num">${fmtN(T.bultos)}</td><td class="num">${fmtN(T.cajas)}</td>
       <td class="num">${fmt(T.contado)}</td><td class="num">${fmt(T.credito)}</td><td class="num">${fmt(T.costo)}</td><td class="num">${T.pedConImporte ? fmt(T.costo / T.pedConImporte) : '-'}</td><td class="num">${T.sinImporte || ''}</td></tr>` : '<tr><td colspan="10">Sin envíos en este rango.</td></tr>');
+}
+function pintarGraficos(dias, R) {
+  const max = Math.max(1, ...dias.map(d => d.costo));
+  $('#kpBars').innerHTML = dias.length ? dias.map(d => `<div title="${esc(d.fecha)} · ${fmt(d.costo)}" style="height:${Math.max(3, d.costo / max * 100)}%"><span>${d.fecha.slice(8)}</span></div>`).join('') : '<span class="hint">Sin envíos en este rango.</span>';
+  const cu = [...R.cuentas].sort((a, b) => b[1].costo - a[1].costo), top = cu.slice(0, 6), resto = cu.slice(6).reduce((s, c) => s + c[1].costo, 0);
+  if (resto > 0) top.push([`OTRAS (${cu.length - 6})`, { costo: resto }]);
+  const cm = Math.max(1, ...top.map(c => c[1].costo));
+  $('#kpTop').innerHTML = top.length ? top.map(([n, v]) => `<div class="hb"><span title="${esc(n)}">${esc(n)}</span><span class="t"><i style="width:${v.costo / cm * 100}%"></i></span><b>${fmt(v.costo)}</b></div>`).join('') : '<span class="hint">Sin datos.</span>';
 }
 function rangoDeMes() {
   const mes = $('#kMes').value; if (!mes) return;
@@ -637,7 +714,7 @@ async function calcularKpis() {
     if (R.pendientes) avisos.push(`${R.pendientes} registros sin importe no entran al cálculo (falta completarlos en Registros).`);
     if (R.sinHrn) avisos.push(`${fmt(R.sinHrn)} no se pudo asignar a una cuenta porque no hay detalle HRN de esa fecha y nodo.`);
     $('#kpNota').textContent = avisos.join(' ');
-    pintarDias(dias);
+    pintarDias(dias); pintarGraficos(dias, R);
     tablaKpi($('#kpCuenta'), 'Cuenta', R.cuentas); tablaKpi($('#kpNodo'), 'Nodo', R.nodos); tablaKpi($('#kpTrans'), 'Transporte', R.transportes);
     $('#kpMsg').className = 'msg';
   } catch (err) { flash($('#kpMsg'), 'No se pudo calcular: ' + err.message, 'err'); }
