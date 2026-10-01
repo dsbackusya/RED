@@ -183,6 +183,34 @@
   .split { height:8px; border-radius:99px; overflow:hidden; display:flex; margin-top:6px; background:var(--line) } .split i { display:block; height:100% }
   #tab-kpis tr.hi td { background:color-mix(in srgb, var(--pri) 10%, transparent) }
   .bar-tools { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:10px }
+  .fb { display:flex; flex-wrap:wrap; gap:16px 26px; align-items:flex-end }
+  .fg { display:flex; flex-direction:column; gap:5px; min-width:0 } .fg > span { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#94a3b8; display:flex; align-items:center; gap:5px }
+  .pseg { display:inline-flex; background:var(--head); border-radius:9px; padding:3px; gap:2px; max-width:100%; overflow-x:auto; scrollbar-width:none } .pseg::-webkit-scrollbar { display:none }
+  .pseg button { font:inherit; font-size:12px; font-weight:500; padding:6px 12px; border:0; border-radius:7px; background:none; color:var(--mut); cursor:pointer; white-space:nowrap }
+  .pseg button:hover { color:var(--ink) } .pseg button.on { background:var(--card); color:var(--pri); font-weight:600; box-shadow:0 1px 2px rgba(15,23,42,.12) }
+  .rg { display:flex; gap:6px; align-items:center } .rg i { font-style:normal; color:#94a3b8 }
+  .tt { position:relative; display:inline-grid; place-items:center; width:14px; height:14px; border-radius:50%; background:#cbd5e1; color:#fff; font-size:9px; font-weight:700; cursor:help; letter-spacing:0; text-transform:none }
+  .tt:hover::after { content:attr(data-t); position:absolute; left:50%; top:20px; transform:translateX(-50%); width:230px; background:#0f172a; color:#fff; font-weight:400; font-size:11px; line-height:1.4; padding:8px 10px; border-radius:8px; z-index:5 }
+  .active { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid var(--line); font-size:12px; color:var(--mut) }
+  .pill { display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:99px; background:#eff6ff; color:#1d4ed8; font-weight:600; font-size:11px; border:1px solid #dbeafe }
+  .link { background:none; border:0; color:var(--pri); font:inherit; font-size:12px; font-weight:600; cursor:pointer; padding:0 4px }
+  .upd { color:var(--mut); font-size:12px; align-self:center; margin-right:4px }
+  .nbs { display:flex; gap:10px; flex-wrap:wrap; margin:0 0 14px } .nbs:empty { display:none }
+  .nb { flex:1; min-width:280px; display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; font-size:12px }
+  .nb.w { background:#fffbeb; color:#92400e; border:1px solid #fde68a } .nb.o { background:var(--okbg); color:var(--ok); border:1px solid var(--okln) }
+  .nb svg { width:18px; height:18px; flex:none } .nb .t { flex:1 } .nb .go { font-weight:700; text-decoration:underline; cursor:pointer; white-space:nowrap }
+  .nb .x { background:none; border:0; color:inherit; opacity:.55; cursor:pointer; font-size:16px; line-height:1 } .nb .x:hover { opacity:1 }
+  .dl { display:inline-flex; align-items:center; gap:3px; font-size:11px; font-weight:700; padding:1px 7px; border-radius:99px; margin-left:6px; vertical-align:1px }
+  .dl.up { background:#fef2f2; color:#b91c1c } .dl.dn { background:var(--okbg); color:var(--ok) } .dl.eq { background:var(--head); color:var(--mut) }
+  #kpCards .hero .dl.up { background:rgba(248,113,113,.2); color:#fecaca } #kpCards .hero .dl.dn { background:rgba(52,211,153,.2); color:#a7f3d0 } #kpCards .hero .dl.eq { background:rgba(255,255,255,.14); color:#cbd5e1 }
+  #kpCards .hero b { font-size:30px } #kpCards .hero .meta { display:flex; gap:16px; flex-wrap:wrap; margin-top:8px; font-size:11px; color:#b6c4dc } #kpCards .hero .meta b { display:inline; font-size:11px; margin:0; color:#fff; letter-spacing:0 }
+  .spark { margin-top:10px; width:100%; height:44px; display:block }
+  .cd .rw { display:flex; align-items:center; gap:9px; margin-top:9px } .cd .rw i.dot { width:9px; height:9px; border-radius:3px; flex:none }
+  .cd .rw div { flex:1; min-width:0 } .cd .rw .lab { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:10px; color:var(--mut); font-weight:600; text-transform:uppercase; letter-spacing:.04em }
+  .cd .rw b { display:block; margin:0; white-space:nowrap; font-size:18px; letter-spacing:-.4px } .cd .rw em { font-style:normal; font-size:12px; font-weight:700; padding:2px 8px; border-radius:99px; background:var(--head); color:var(--ink) }
+  #kpCards .kpi b { white-space:nowrap }
+  @media (min-width:1300px) { #kpCards { grid-template-columns:minmax(240px,1.5fr) repeat(3, minmax(130px,1fr)) minmax(240px,1.45fr) } }
+  @media (max-width:1299px) { #kpCards { grid-template-columns:repeat(2, minmax(0, 1fr)) } #kpCards .hero { grid-column:1/-1 } }
   .hide { display:none !important }
   @media (max-width:900px) {
     .shell { grid-template-columns:1fr; height:auto; min-height:100vh } aside { flex-direction:row; flex-wrap:wrap; align-items:center; border-right:0 }
@@ -356,20 +384,24 @@
 </section>
 
 <section id="tab-kpis" class="hide">
-  <div class="top"><h1>KPIs de costo</h1><div class="sub">Costo total, por pedido, por día y por cuenta</div></div>
-  <div class="card">
-    <div class="row">
-      <label>Mes<input type="month" id="kMes"></label>
-      <label>Desde<input type="date" id="kDesde"></label>
-      <label>Hasta<input type="date" id="kHasta"></label>
-      <label>Transporte<select id="kTrans"><option value="">Todos</option></select></label>
-      <label>Repartir costo entre cuentas por<select id="kBase"><option value="bultos">Bultos</option><option value="pedidos">Pedidos</option><option value="peso">Peso</option><option value="volumen">Volumen</option></select></label>
-      <button class="b g" id="kCalc">Calcular</button>
-      <button class="b sec" id="kExport">Exportar a Excel</button>
-    </div>
-    <div id="kpMsg" class="msg"></div>
-    <p class="hint" id="kpNota"></p>
+  <div class="top">
+    <div><h1>KPIs de costo</h1><div class="sub">Costo total, por pedido, por día y por cuenta</div></div>
+    <div class="acts"><span class="upd" id="kUpd"></span><button class="b sec" id="kRefrescar">Actualizar</button><button class="b sec" id="kExport">Exportar a Excel</button></div>
   </div>
+  <div class="card">
+    <div class="fb">
+      <div class="fg"><span>Período</span><div class="pseg" id="kPer"><button data-p="mes" class="on">Este mes</button><button data-p="ant">Mes anterior</button><button data-p="30">Últimos 30 días</button><button data-p="per">Personalizado</button></div></div>
+      <div class="fg" id="kgMes"><span>Mes</span><input type="month" id="kMes"></div>
+      <div class="fg hide" id="kgRango"><span>Rango</span><div class="rg"><input type="date" id="kDesde"><i>→</i><input type="date" id="kHasta"></div></div>
+      <div class="fg"><span>Transporte</span><div class="pseg" id="kTransSeg"><button data-t="" class="on">Todos</button></div><select id="kTrans" class="hide"><option value="">Todos</option></select></div>
+      <div class="fg"><span>Repartir costo entre cuentas por <i class="tt" data-t="El costo de cada nodo y día se divide entre las cuentas del HRN en proporción a este criterio. Por bultos es lo más habitual.">?</i></span>
+        <div class="pseg" id="kBaseSeg"><button data-r="bultos" class="on">Bultos</button><button data-r="pedidos">Pedidos</button><button data-r="peso">Peso</button><button data-r="volumen">Volumen</button></div>
+        <select id="kBase" class="hide"><option value="bultos">Bultos</option><option value="pedidos">Pedidos</option><option value="peso">Peso</option><option value="volumen">Volumen</option></select></div>
+    </div>
+    <div class="active" id="kAct"></div>
+    <div id="kpMsg" class="msg"></div>
+  </div>
+  <div class="nbs" id="kpAlertas"></div>
   <div class="kpis" id="kpCards"></div>
   <div class="ktabs" id="kpTabs">
     <button data-v="dia" class="on">Por día</button><button data-v="cuenta">Por cuenta <small id="nCta"></small></button><button data-v="nodo">Por nodo <small id="nNodo"></small></button><button data-v="trans">Por transporte <small id="nTrans"></small></button>
@@ -482,7 +514,7 @@ const norm = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g,'').toUppe
 const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SETIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 const PAGOS = ['CONTADO','CREDITO'];
 const num = v => { const n = Number(String(v ?? '').replace(/,/g,'')); return Number.isFinite(n) ? n : null; };
-const today = () => new Date().toISOString().slice(0,10);
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };   // fecha local (no UTC)
 const fdmy = f => f ? String(f).slice(0, 10).split('-').reverse().join('/') : '';
 const fdt = f => f ? fdmy(f) + ' ' + String(f).slice(11, 16) : '';
 
@@ -526,8 +558,8 @@ $('#logout').onclick = async () => { await sb.auth.signOut(); location.reload();
 async function mostrarApp(user) {
   $('#who').textContent = user.email;
   $('#app').classList.remove('hide');
-  $('#cFecha').value = today(); $('#hFecha').value = today(); $('#kHasta').value = today(); $('#kMes').value = today().slice(0, 7); $('#kDesde').value = today().slice(0, 8) + '01';
-  const d = new Date(); $('#rDesde').value = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0,10); $('#rHasta').value = today();
+  $('#cFecha').value = today(); $('#hFecha').value = today(); $('#kHasta').value = today(); $('#kMes').value = today().slice(0, 7); rangoDeMes();
+  $('#rDesde').value = today().slice(0, 8) + '01'; $('#rHasta').value = today();
   await cargarCatalogo();
   buscarRegistros(); buscarHrn();
   let t0 = (location.hash || '').slice(1); if (!TITULOS[t0]) { try { t0 = localStorage.getItem('tab') || ''; } catch (e) { t0 = ''; } }
@@ -1007,7 +1039,7 @@ function calcularKpi(envios, hrn, base) {
     g.set(r.descripcion_cuenta || '(SIN CUENTA)', c); grupos.set(k, g);
   });
   const nuevo = () => ({ costo: 0, pedidos: 0, bultos: 0 });
-  const R = { total: 0, pedidos: 0, bultos: 0, conImporte: 0, pendientes: 0, cuentas: new Map(), nodos: new Map(), transportes: new Map(), sinHrn: 0 };
+  const R = { total: 0, pedidos: 0, bultos: 0, conImporte: 0, pendientes: 0, cuentas: new Map(), nodos: new Map(), transportes: new Map(), sinHrn: 0, sinHrnNodos: new Set(), sinHrnFechas: new Set() };
   const suma = (mapa, clave, costo, pedidos, bultos) => {
     const a = mapa.get(clave) || nuevo(); a.costo += costo; a.pedidos += pedidos; a.bultos += bultos; mapa.set(clave, a);
   };
@@ -1019,7 +1051,7 @@ function calcularKpi(envios, hrn, base) {
     suma(R.nodos, e.nodo, imp, ped, bul);
     suma(R.transportes, e.transporte || '(SIN TRANSPORTE)', imp, ped, bul);
     const g = grupos.get(e.fecha + '|' + norm(e.nodo));
-    if (!g) { R.sinHrn += imp; suma(R.cuentas, SIN_HRN, imp, ped, bul); return; }
+    if (!g) { R.sinHrn += imp; R.sinHrnNodos.add(e.fecha + '|' + norm(e.nodo)); R.sinHrnFechas.add(e.fecha); suma(R.cuentas, SIN_HRN, imp, ped, bul); return; }
     const w = c => base === 'pedidos' ? c.peds.size : c[base];
     let tot = [...g.values()].reduce((x, c) => x + w(c), 0);
     const peso = tot > 0 ? w : (c => c.peds.size);
@@ -1160,17 +1192,110 @@ function transporteKpi(R) {
     return `<path d="${p}" fill="${ctaCOL[i % ctaCOL.length]}"><title>${esc(n)}: ${fmt(v)}</title></path>`; }).join('') + `<text x="100" y="104" text-anchor="middle" style="font-size:12px;font-weight:700;fill:var(--ink)">${fmt(T).replace('S/ ', 'S/')}</text>`;
   $('#trLg').innerHTML = d.map(([n, v], i) => `<div><i style="background:${ctaCOL[i % ctaCOL.length]}"></i><span>${esc(n)}</span><b>${(v / T * 100).toFixed(1)}%</b></div>`).join('');
 }
+// ---------- cabecera de KPIs: filtros que se aplican solos ----------
+const kst = { p: 'mes' };
+const isoLocal = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const ym = d => isoLocal(d).slice(0, 7);
 function rangoDeMes() {
   const mes = $('#kMes').value; if (!mes) return;
   const [y, m] = mes.split('-').map(Number);
   $('#kDesde').value = mes + '-01'; $('#kHasta').value = mes + '-' + String(new Date(y, m, 0).getDate()).padStart(2, '0');
 }
-$('#kMes').onchange = () => { $('#kTrans').value = ''; rangoDeMes(); calcularKpis(); };
-$('#kDesde').onchange = $('#kHasta').onchange = () => { $('#kMes').value = ''; };
+function kSync() {
+  document.querySelectorAll('#kPer button').forEach(b => b.classList.toggle('on', b.dataset.p === kst.p));
+  $('#kgMes').classList.toggle('hide', !['mes', 'ant', 'sel'].includes(kst.p)); $('#kgRango').classList.toggle('hide', kst.p !== 'per');
+  document.querySelectorAll('#kBaseSeg button').forEach(b => b.classList.toggle('on', b.dataset.r === $('#kBase').value));
+  document.querySelectorAll('#kTransSeg button').forEach(b => b.classList.toggle('on', b.dataset.t === $('#kTrans').value));
+}
+function kPeriodo(p) {
+  kst.p = p; const hoy = new Date();
+  if (p === 'mes') { $('#kMes').value = ym(hoy); rangoDeMes(); }
+  else if (p === 'ant') { $('#kMes').value = ym(new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1)); rangoDeMes(); }
+  else if (p === '30') { const d = new Date(hoy); d.setDate(d.getDate() - 29); $('#kDesde').value = isoLocal(d); $('#kHasta').value = isoLocal(hoy); $('#kMes').value = ''; }
+  kSync(); kAuto();
+}
+let kTimer, kSeq = 0, kUpdTs = 0;
+const kAuto = () => { clearTimeout(kTimer); kTimer = setTimeout(calcularKpis, 220); };
+$('#kPer').onclick = e => { const b = e.target.closest('button'); if (b) kPeriodo(b.dataset.p); };
+$('#kMes').onchange = () => { kst.p = 'sel'; rangoDeMes(); kSync(); kAuto(); };
+$('#kDesde').onchange = $('#kHasta').onchange = () => { kst.p = 'per'; $('#kMes').value = ''; kSync(); kAuto(); };
+$('#kTransSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#kTrans').value = b.dataset.t; kSync(); kAuto(); };
+$('#kBaseSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#kBase').value = b.dataset.r; kSync(); kAuto(); };
+$('#kRefrescar').onclick = () => calcularKpis();
+function kRestablecer() { $('#kTrans').value = ''; $('#kBase').value = 'bultos'; kPeriodo('mes'); }
+function pintarUpd() {
+  if (!kUpdTs) { $('#kUpd').textContent = ''; return; }
+  const s = Math.round((Date.now() - kUpdTs) / 1000), m = Math.round(s / 60);
+  $('#kUpd').textContent = s < 45 ? 'Actualizado ahora' : `Actualizado hace ${m} min`;
+}
+setInterval(pintarUpd, 30000);
+function pintarActivos() {
+  const mes = $('#kMes').value; let per;
+  if (mes && ['mes', 'ant', 'sel'].includes(kst.p)) { const [y, m] = mes.split('-').map(Number), t = new Date(y, m - 1, 1).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' }); per = t.charAt(0).toUpperCase() + t.slice(1); }
+  else per = `${kst.p === '30' ? 'Últimos 30 días · ' : ''}${fdmy($('#kDesde').value)} → ${fdmy($('#kHasta').value)}`;
+  $('#kAct').innerHTML = `Mostrando <span class="pill">${esc(per)}</span><span class="pill">${esc($('#kTrans').value || 'Todos los transportes')}</span><span class="pill">Reparto por ${esc($('#kBase').value)}</span><button class="link" id="kLimpiar">Restablecer filtros</button>`;
+  $('#kLimpiar').onclick = kRestablecer;
+}
+function pintarTransSeg(lista) {
+  const sel = $('#kTrans').value;
+  $('#kTrans').innerHTML = '<option value="">Todos</option>' + lista.map(t => `<option>${esc(t)}</option>`).join(''); $('#kTrans').value = sel;
+  $('#kTransSeg').innerHTML = ['', ...lista].map(t => `<button data-t="${esc(t)}">${t ? esc(t) : 'Todos'}</button>`).join(''); kSync();
+}
+async function periodoPrevio(desde, hasta, trans) {
+  if (!desde || !hasta) return { total: 0, pedidos: 0, bultos: 0 };
+  const d0 = new Date(desde + 'T00:00:00'), d1 = new Date(hasta + 'T00:00:00'), n = Math.round((d1 - d0) / 86400000) + 1;
+  const pf = isoLocal(new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() - n)), pt = isoLocal(new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() - 1));
+  const rows = await traerTodo(() => { let q = sb.from('envios').select('pedidos,bultos,importe').gte('fecha', pf).lte('fecha', pt).order('id'); if (trans) q = q.eq('transporte', trans); return q; });
+  const r = { total: 0, pedidos: 0, bultos: 0 };
+  rows.forEach(e => { const i = Number(e.importe) || 0; if (i > 0) { r.total += i; r.pedidos += Number(e.pedidos) || 0; r.bultos += Number(e.bultos) || 0; } });
+  return r;
+}
+const kDelta = (a, b) => { if (!b || !a) return ''; const d = (a - b) / b * 100, c = Math.abs(d) < 0.5 ? 'eq' : d > 0 ? 'up' : 'dn'; return `<span class="dl ${c}">${c === 'eq' ? '=' : d > 0 ? '▲' : '▼'} ${Math.abs(d).toFixed(1)}%</span>`; };
+function kSpark(vals) {
+  if (vals.length < 2) return '';
+  const W = 300, H = 44, mx = Math.max(...vals, 1), pts = vals.map((v, i) => [i / (vals.length - 1) * W, H - 4 - v / mx * (H - 10)]);
+  const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="kg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34d399" stop-opacity=".45"/><stop offset="1" stop-color="#34d399" stop-opacity="0"/></linearGradient></defs><path d="${d} L${W},${H} L0,${H} Z" fill="url(#kg)"/><path d="${d}" fill="none" stroke="#34d399" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function pintarResumen(R, dias, prev, envios) {
+  const cpp = R.pedidos ? R.total / R.pedidos : 0, cpb = R.bultos ? R.total / R.bultos : 0, pcpp = prev.pedidos ? prev.total / prev.pedidos : 0, pcpb = prev.bultos ? prev.total / prev.bultos : 0;
+  const conta = dias.reduce((x, d) => x + d.contado, 0), cred = dias.reduce((x, d) => x + d.credito, 0), sumaCD = conta + cred, pc = sumaCD ? Math.round(conta / sumaCD * 100) : 0;
+  const con = envios.filter(e => Number(e.importe) > 0), nC = con.filter(e => e.modo_pago === 'CONTADO').length, nR = con.length - nC;
+  const costos = dias.filter(d => d.costo > 0), mn = costos.length ? costos.reduce((a, b) => b.costo < a.costo ? b : a) : null, mxd = costos.length ? costos.reduce((a, b) => b.costo > a.costo ? b : a) : null;
+  const corto = f => fdmy(f).slice(0, 5);
+  $('#kpCards').innerHTML = `
+  <div class="kpi hero"><span>Costo total</span><b>${fmt(R.total)}${kDelta(R.total, prev.total)}</b>
+    <small>${R.conImporte} registros con importe${prev.total ? ` · vs ${fmt(prev.total)} del período anterior` : ' · sin período anterior para comparar'}</small>${kSpark(costos.map(d => d.costo))}
+    ${costos.length > 1 ? `<div class="meta"><span>Mejor día <b>${fmt(mn.costo)}</b> (${corto(mn.fecha)})</span><span>Día más alto <b>${fmt(mxd.costo)}</b> (${corto(mxd.fecha)})</span></div>` : ''}</div>
+  <div class="kpi"><span>Costo por pedido</span><b>${cpp ? fmt(cpp) : '-'}</b><small>${fmtN(R.pedidos)} pedidos${kDelta(cpp, pcpp)}</small></div>
+  <div class="kpi"><span>Costo por bulto</span><b>${cpb ? fmt(cpb) : '-'}</b><small>${fmtN(R.bultos)} bultos${kDelta(cpb, pcpb)}</small></div>
+  <div class="kpi"><span>Promedio por día</span><b>${dias.length ? fmt(R.total / dias.length) : '-'}</b><small>${dias.length} ${dias.length === 1 ? 'día' : 'días'} con envíos</small></div>
+  <div class="kpi cd"><span>Contado / Crédito</span>
+    <div class="rw"><i class="dot" style="background:var(--grn)"></i><div><span class="lab">Contado · ${nC} ${nC === 1 ? 'registro' : 'registros'}</span><b>${fmt(conta)}</b></div><em>${pc}%</em></div>
+    <div class="rw"><i class="dot" style="background:var(--ind)"></i><div><span class="lab">Crédito · ${nR} ${nR === 1 ? 'registro' : 'registros'}</span><b>${fmt(cred)}</b></div><em>${sumaCD ? 100 - pc : 0}%</em></div>
+    <div class="split"><i style="width:${pc}%;background:var(--grn)"></i><i style="flex:1;background:var(--ind)"></i></div></div>`;
+  if (!R.conImporte) $('#kpCards').innerHTML = `<div class="card empty" style="grid-column:1/-1"><b>Aún no hay importes en este rango</b><span>Completa el importe de los registros para ver los costos.</span></div>`;
+}
+function pintarAlertas(R) {
+  const ic = {
+    w: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>',
+    o: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' };
+  const nb = (tipo, texto, go, accion) => `<div class="nb ${tipo}">${ic[tipo]}<div class="t">${texto}</div>${go ? `<span class="go" data-go="${go}">${accion}</span>` : ''}<button class="x" aria-label="Cerrar">×</button></div>`;
+  const out = [];
+  if (R.sinHrn) { const n = R.sinHrnNodos.size, f = [...R.sinHrnFechas].sort().map(x => fdmy(x).slice(0, 5)); out.push(nb('w', `<b>${fmt(R.sinHrn)} sin cuenta asignada.</b> Falta el HRN de ${n} ${n === 1 ? 'nodo' : 'nodos'} (${f.slice(0, 4).join(', ')}${f.length > 4 ? '…' : ''}).`, 'hrn', 'Cargar HRN →')); }
+  if (R.pendientes) out.push(nb('w', `<b>${R.pendientes} ${R.pendientes === 1 ? 'registro sin importe' : 'registros sin importe'}</b> no ${R.pendientes === 1 ? 'entra' : 'entran'} al cálculo.`, 'registros', 'Ir a Registros →'));
+  else if (R.conImporte) out.push(nb('o', `<b>Datos completos:</b> los ${R.conImporte} registros del período ya tienen importe.`));
+  $('#kpAlertas').innerHTML = out.join('');
+}
+$('#kpAlertas').addEventListener('click', e => {
+  const go = e.target.closest('[data-go]'); if (go) return irA(go.dataset.go);
+  const x = e.target.closest('.x'); if (x) x.parentNode.remove();
+});
 
 async function calcularKpis() {
-  const desde = $('#kDesde').value, hasta = $('#kHasta').value, trans = $('#kTrans').value;
-  $('#kCalc').disabled = true; $('#kCalc').textContent = 'Calculando…';
+  const desde = $('#kDesde').value, hasta = $('#kHasta').value, trans = $('#kTrans').value, mi = ++kSeq;
+  $('#kRefrescar').disabled = true;
+  pintarActivos();
   $('#kpCards').innerHTML = Array(5).fill('<div class="kpi sk"><span></span><b></b><small></small></div>').join('');
   try {
     const envios = await traerTodo(() => {
@@ -1183,35 +1308,21 @@ async function calcularKpis() {
       if (desde) q = q.gte('fecha_reporte', desde); if (hasta) q = q.lte('fecha_reporte', hasta);
       return q;
     });
-    if (!trans) {
-      const ts = [...new Set(envios.map(e => e.transporte).filter(Boolean))].sort();
-      $('#kTrans').innerHTML = '<option value="">Todos</option>' + ts.map(t => `<option>${esc(t)}</option>`).join('');
-    }
+    const prev = await periodoPrevio(desde, hasta, trans);
+    if (mi !== kSeq) return;
+    if (!trans) pintarTransSeg([...new Set(envios.map(e => e.transporte).filter(Boolean))].sort());
     const R = calcularKpi(envios, hrn, $('#kBase').value);
     kpiResultado = R;
     const dias = agruparDias(envios); diasResultado = dias;
-    const conta = dias.reduce((x, d) => x + d.contado, 0), cred = dias.reduce((x, d) => x + d.credito, 0), sumaCD = conta + cred;
-    const nombradas = [...R.cuentas].filter(([k]) => k !== SIN_HRN).sort((a, b) => b[1].costo - a[1].costo);
-    $('#kpCards').innerHTML = [
-      ['Costo total', fmt(R.total), `${R.conImporte} registros con importe`],
-      ['Costo por pedido', R.pedidos ? fmt(R.total / R.pedidos) : '-', `${fmtN(R.pedidos)} pedidos`],
-      ['Costo por bulto', R.bultos ? fmt(R.total / R.bultos) : '-', `${fmtN(R.bultos)} bultos`],
-      ['Promedio por día', dias.length ? fmt(R.total / dias.length) : '-', `${dias.length} ${dias.length === 1 ? 'día' : 'días'} con envíos`],
-      ['Contado / Crédito', sumaCD ? `${Math.round(conta / sumaCD * 100)}% / ${Math.round(cred / sumaCD * 100)}%` : '-', `${fmt(conta)} · ${fmt(cred)}<div class="split"><i style="width:${sumaCD ? conta / sumaCD * 100 : 0}%;background:var(--grn)"></i><i style="flex:1;background:var(--ind)"></i></div>`],
-    ].map(([t, v, n]) => `<div class="kpi"><span>${t}</span><b>${v}</b><small>${n}</small></div>`).join('');
-    if (!R.conImporte) $('#kpCards').innerHTML = `<div class="card empty" style="grid-column:1/-1"><b>Aún no hay importes en este rango</b><span>Completa el importe de los registros para ver los costos.</span></div>`;
+    const nombradas = [...R.cuentas].filter(([k]) => k !== SIN_HRN);
+    pintarResumen(R, dias, prev, envios); pintarAlertas(R);
     $('#nCta').textContent = nombradas.length; $('#nNodo').textContent = R.nodos.size; $('#nTrans').textContent = R.transportes.size;
-    const avisos = [];
-    if (R.pendientes) avisos.push(`${R.pendientes} registros sin importe no entran al cálculo (falta completarlos en Registros).`);
-    if (R.sinHrn) avisos.push(`${fmt(R.sinHrn)} no se pudo asignar a una cuenta porque no hay detalle HRN de esa fecha y nodo.`);
-    $('#kpNota').textContent = avisos.join(' ');
     pintarDias(dias); pintarGraficos(dias, R);
     cuentasKpi(R); nodosKpi(R); transporteKpi(R);
-    $('#kpMsg').className = 'msg';
+    $('#kpMsg').className = 'msg'; kUpdTs = Date.now(); pintarUpd();
   } catch (err) { flash($('#kpMsg'), 'No se pudo calcular: ' + err.message, 'err'); }
-  $('#kCalc').disabled = false; $('#kCalc').textContent = 'Calcular';
+  if (mi === kSeq) $('#kRefrescar').disabled = false;
 }
-$('#kCalc').onclick = calcularKpis;
 document.querySelector('nav [data-tab="kpis"]').addEventListener('click', calcularKpis);
 $('#kExport').onclick = () => {
   if (!kpiResultado) return;
