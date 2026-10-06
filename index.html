@@ -435,6 +435,9 @@
   .cdr span { color:var(--ink) } .cdr small { display:inline; margin-left:8px; color:var(--mut); font-size:13px }
   .cdr b { font-size:15px; font-weight:600; margin:0; letter-spacing:-.01em } .cdr em { font-style:normal; text-align:right; color:var(--mut); font-size:13px }
   @media (max-width:900px) { #kpCards { grid-template-columns:1fr 1fr } #kpCards .cd { grid-column:1/-1 } }
+
+  #cfDlg, #dstDlg { width:min(440px, 92vw) } #cfDlg .in, #dstDlg .in { padding:24px; margin:0 }
+  button.b.red { background:var(--bad) } button.b.red:hover { background:#b80012 }
 </style>
 </head>
 <body>
@@ -490,7 +493,7 @@
     <button data-tab="cargar" class="on">Cargar</button>
     <button data-tab="registros">Registros</button>
     <button data-tab="kpis">Costos</button>
-    <button data-tab="hrn">Detalle</button>
+    <button data-tab="detalle">Detalle</button>
     <button data-tab="catalogo">Agencias</button>
   </nav>
   <span class="estado" id="estado"><span></span></span>
@@ -629,7 +632,7 @@
   <div id="kp-cal" class="hide"><div class="card"><h3>Calidad de datos</h3><p class="hint">Los KPIs son confiables en la medida en que los registros estén completos. Cada punto lleva a la pantalla donde se corrige.</p><div id="calList"></div></div></div>
 </section>
 
-<section id="tab-hrn" class="hide">
+<section id="tab-detalle" class="hide">
   <div class="top"><h1>Detalle</h1><div class="sub">Una fila por bulto</div></div>
   <div class="card">
     <div class="row">
@@ -682,6 +685,23 @@
   <label>Meta de costo del mes (S/)<input id="metaV" type="number" step="0.01" min="0" inputmode="decimal"></label>
   <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="b sec" id="metaQ">Quitar meta</button><button class="b sec" id="metaX">Cancelar</button><button class="b" id="metaOk">Guardar</button></div>
 </div></dialog>
+<dialog id="cfDlg"><form method="dialog" class="in">
+  <h3 id="cfT" style="margin:0 0 6px"></h3><p id="cfM" style="margin:0;color:var(--mut)"></p>
+  <div class="row" style="justify-content:flex-end;margin-top:20px"><button class="b sec" value="no">Cancelar</button><button class="b" id="cfOk" value="si"></button></div>
+</form></dialog>
+<dialog id="dstDlg"><form class="in" id="dstF" autocomplete="off">
+  <h3 style="margin:0 0 4px">Nuevo destino</h3><p class="hint" style="margin:0 0 14px">Se usará para completar agencia, transporte y modo de pago al cargar despachos.</p>
+  <div class="fgrid">
+    <label style="grid-column:1/-1">Destino<input id="dstN" required placeholder="Por ejemplo, Bagua"></label>
+    <label>Agencia<input id="dstA" list="dlAgencias"></label>
+    <label>Transporte<input id="dstT" list="dlTransportes"></label>
+    <label>Zona<input id="dstZ" list="dlZonas"></label>
+    <label>Modo de pago<select id="dstP"><option value="AL CONTADO">Al contado</option><option value="CREDITO">Crédito</option></select></label>
+  </div>
+  <div id="dstE" class="msg"></div>
+  <div class="row" style="justify-content:flex-end;margin-top:18px"><button type="button" class="b sec" id="dstX">Cancelar</button><button class="b" id="dstOk">Agregar destino</button></div>
+</form></dialog>
+<datalist id="dlTransportes"></datalist><datalist id="dlZonas"></datalist>
 <div id="toasts" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -698,6 +718,13 @@ const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(
 const fdmy = f => f ? String(f).slice(0, 10).split('-').reverse().join('/') : '';
 const fdt = f => f ? fdmy(f) + ' ' + String(f).slice(11, 16) : '';
 
+function confirmar(titulo, mensaje, ok = 'Aceptar', peligro = false) {
+  return new Promise(res => {
+    const d = $('#cfDlg'); $('#cfT').textContent = titulo; $('#cfM').textContent = mensaje || ''; $('#cfM').classList.toggle('hide', !mensaje);
+    const b = $('#cfOk'); b.textContent = ok; b.classList.toggle('red', !!peligro);
+    d.onclose = () => res(d.returnValue === 'si'); d.returnValue = 'no'; d.showModal();
+  });
+}
 document.addEventListener('change', e => { if (e.target.dataset && 'v' in e.target.dataset) e.target.dataset.v = e.target.value; });
 function setPaso(n) {
   document.querySelectorAll('#cSteps .step').forEach((el, i) => { el.className = 'step' + (i + 1 < n ? ' done' : i + 1 === n ? ' on' : ''); el.querySelector('i').textContent = i + 1 < n ? '✓' : i + 1; });
@@ -742,17 +769,17 @@ async function mostrarApp(user) {
   $('#rDesde').value = today().slice(0, 8) + '01'; $('#rHasta').value = today();
   await cargarCatalogo();
   buscarRegistros(); buscarHrn();
-  const h0 = (location.hash || '').slice(1); let t0 = h0.split('?')[0]; if (!TITULOS[t0]) { try { t0 = localStorage.getItem('tab') || ''; } catch (e) { t0 = ''; } }
+  const h0 = (location.hash || '').slice(1); let t0 = h0.split('?')[0]; if (t0 === 'hrn') t0 = 'detalle'; if (!TITULOS[t0]) { try { t0 = (localStorage.getItem('tab') || '').replace(/^hrn$/, 'detalle'); } catch (e) { t0 = ''; } }
   if (t0 === 'kpis' && h0.includes('?')) { poblarFiltros(); kAplicar(h0.split('?')[1]); }
   if (TITULOS[t0] && t0 !== 'cargar') irA(t0);
 }
-window.addEventListener('hashchange', () => { const t = location.hash.slice(1).split('?')[0]; if (TITULOS[t]) irA(t); });
+window.addEventListener('hashchange', () => { const t = location.hash.slice(1).split('?')[0].replace(/^hrn$/, 'detalle'); if (TITULOS[t]) irA(t); });
 
-const TITULOS = { cargar: 'Cargar despacho', registros: 'Registros', kpis: 'Costos', hrn: 'Detalle', catalogo: 'Agencias' };
+const TITULOS = { cargar: 'Cargar despacho', registros: 'Registros', kpis: 'Costos', detalle: 'Detalle', catalogo: 'Agencias' };
 const irA = tab => document.querySelector(`nav button[data-tab="${tab}"]`).click();
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
-  ['cargar','registros','kpis','hrn','catalogo'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
+  ['cargar','registros','kpis','detalle','catalogo'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
   document.title = TITULOS[b.dataset.tab] + ' – Red Troncal';
   history.replaceState(null, '', '#' + b.dataset.tab); try { localStorage.setItem('tab', b.dataset.tab); } catch (e) {}
   scrollTo(0, 0);
@@ -789,14 +816,26 @@ $('#kTabla').addEventListener('change', async e => {
 $('#kTabla').addEventListener('click', async e => {
   if (!e.target.dataset.del) return;
   const n = e.target.closest('tr').dataset.n;
-  if (!confirm('¿Eliminar ' + n + ' de Agencias?')) return;
+  if (!await confirmar('¿Eliminar ' + n + '?', 'Se quitará de Agencias. Los registros ya cargados no cambian.', 'Eliminar', true)) return;
   const { error } = await sb.from('agencias').delete().eq('destino', n);
   error ? flash($('#kMsg'), error.message, 'err') : cargarCatalogo();
 });
-$('#kNuevo').onclick = async () => {
-  const n = norm(prompt('Nombre del destino (ej. BAGUA):') || ''); if (!n) return;
-  const { error } = await sb.from('agencias').insert({ destino: n, observacion: 'AL CONTADO', concatenar: 'ENVIO DE PEDIDOS ' + n });
-  error ? flash($('#kMsg'), error.message, 'err') : cargarCatalogo();
+$('#kNuevo').onclick = () => {
+  const unicos = k => [...new Set([...catalogo.values()].map(r => r[k]).filter(Boolean))].sort();
+  $('#dlTransportes').innerHTML = unicos('transporte').map(v => `<option value="${esc(v)}">`).join('');
+  $('#dlZonas').innerHTML = unicos('zona').map(v => `<option value="${esc(v)}">`).join('');
+  $('#dstF').reset(); $('#dstE').className = 'msg'; $('#dstOk').disabled = false; $('#dstDlg').showModal(); $('#dstN').focus();
+};
+$('#dstX').onclick = () => $('#dstDlg').close();
+$('#dstF').onsubmit = async e => {
+  e.preventDefault();
+  const n = norm($('#dstN').value); if (!n) return;
+  if (catalogo.has(n)) { $('#dstE').textContent = n + ' ya está en Agencias.'; $('#dstE').className = 'msg err'; return; }
+  const v = id => $(id).value.trim(); $('#dstOk').disabled = true;
+  const { error } = await sb.from('agencias').insert({ destino: n, agencia: v('#dstA') || null, transporte: v('#dstT') || null, zona: v('#dstZ') || null, observacion: $('#dstP').value, concatenar: 'ENVIO DE PEDIDOS ' + n });
+  $('#dstOk').disabled = false;
+  if (error) { $('#dstE').textContent = error.message; $('#dstE').className = 'msg err'; return; }
+  $('#dstDlg').close(); toast(n + ' agregado a Agencias'); cargarCatalogo();
 };
 
 // ---------- carga ----------
@@ -871,7 +910,7 @@ $('#cTabla').addEventListener('change', e => {
 $('#cGuardar').onclick = async () => {
   const fecha = $('#cFecha').value;
   if (!fecha) return flash($('#cMsg'), 'Elige la fecha del despacho', 'err');
-  if (previa.some(r => !r.agencia) && !confirm('Hay nodos sin agencia. ¿Guardar igual?')) return;
+  if (previa.some(r => !r.agencia) && !await confirmar('Hay nodos sin agencia', 'Puedes completarla después en Registros. ¿Guardar igual?', 'Guardar')) return;
   $('#cGuardar').disabled = true;
   const filas = previa.map(r => ({ fecha, origen: 'LIMA', transporte: r.transporte, nodo: r.nodo, bultos: r.bultos, pedidos: r.pedidos, cajas: r.cajas,
     placa: r.placa || null, agencia: r.agencia || null, detalle_gasto: r.detalle_gasto, modo_pago: r.modo_pago }));
@@ -1077,7 +1116,7 @@ $('#rTabla').addEventListener('click', async e => {
     const id = act.closest('tr').dataset.id, r = registros.find(x => x.id === id); if (!r) return;
     if (act.dataset.act === 'adjuntar') { adjId = id; $('#adjFile').click(); return; }
     if (act.dataset.act === 'quitar') {
-      if (!confirm('¿Quitar el adjunto de este registro?')) return;
+      if (!await confirmar('¿Quitar el adjunto?', 'La foto o el PDF se borrará de este registro.', 'Quitar', true)) return;
       const { error } = await sb.from('envios').update({ factura_archivo: null }).eq('id', id);
       if (error) return flash($('#rMsg'), error.message, 'err');
       await sb.storage.from(BUCKET).remove([r.factura_archivo]);
@@ -1086,7 +1125,7 @@ $('#rTabla').addEventListener('click', async e => {
     return;
   }
   if (!e.target.dataset.del) return;
-  if (!confirm('¿Eliminar este registro?')) return;
+  if (!await confirmar('¿Eliminar este registro?', 'No se puede deshacer.', 'Eliminar', true)) return;
   const id = e.target.closest('tr').dataset.id, r = registros.find(x => x.id === id);
   const { error } = await sb.from('envios').delete().eq('id', id);
   if (error) return flash($('#rMsg'), error.message, 'err');
@@ -1169,7 +1208,7 @@ $('#hGuardar').onclick = async () => {
   const fecha = $('#hFecha').value;
   if (!fecha) return flash($('#hMsg'), 'Elige la fecha del reporte', 'err');
   const { count } = await sb.from('hrn_detalle').select('id', { count: 'exact', head: true }).eq('fecha_reporte', fecha);
-  if (count && !confirm(`Ya hay ${count} filas del ${fecha}. ¿Reemplazarlas por las ${hrnFilas.length} nuevas?`)) return;
+  if (count && !await confirmar('Ya hay datos de esta fecha', `Hay ${count} filas del ${fdmy(fecha)}. ¿Reemplazarlas por las ${hrnFilas.length} nuevas?`, 'Reemplazar', true)) return;
   $('#hGuardar').disabled = true;
   try {
     if (count) { const { error } = await sb.from('hrn_detalle').delete().eq('fecha_reporte', fecha); if (error) throw error; }
@@ -1514,7 +1553,7 @@ function calidadKpi(R, envios) {
     item('📎', '#fffbeb', 'Con foto de factura adjunta', 'La lectura automática rellena factura e importe desde la foto.', sinAdj.length, 'registros', 'Adjuntar fotos') +
     item('', '#fef2f2', 'Con agencia asignada', `${[...new Set(sinAg.map(e => e.nodo))].join(', ') || 'Todos los nodos tienen agencia'}${sinAg.length ? ': faltan en el catálogo de agencias.' : '.'}`, sinAg.length, 'catalogo', 'Completar catálogo') +
     item('🗺', '#fef2f2', 'Con zona', 'Necesaria para el análisis por zona y la matriz transporte × zona.', sinZona.length, 'catalogo', 'Completar catálogo') +
-    `<div class="cq-i"><div class="ic" style="background:#fffbeb">📦</div><div class="tx"><b>Importe repartido entre cuentas (HRN)</b><span>${R.sinHrn ? `${fmt(R.sinHrn)} sin cuenta: falta el HRN de ${R.sinHrnNodos.size} ${R.sinHrnNodos.size === 1 ? 'nodo' : 'nodos'}.` : 'Todo el costo está asignado a una cuenta.'}</span></div><div class="mt"><div class="tr"><i style="width:${hrnPc}%;background:${hrnPc >= 95 ? 'var(--grn)' : 'var(--amb)'}"></i></div><small>${hrnPc.toFixed(0)}% asignado</small></div><button class="b sec" data-go="hrn">Cargar HRN</button></div>`;
+    `<div class="cq-i"><div class="ic" style="background:#fffbeb">📦</div><div class="tx"><b>Importe repartido entre cuentas (HRN)</b><span>${R.sinHrn ? `${fmt(R.sinHrn)} sin cuenta: falta el HRN de ${R.sinHrnNodos.size} ${R.sinHrnNodos.size === 1 ? 'nodo' : 'nodos'}.` : 'Todo el costo está asignado a una cuenta.'}</span></div><div class="mt"><div class="tr"><i style="width:${hrnPc}%;background:${hrnPc >= 95 ? 'var(--grn)' : 'var(--amb)'}"></i></div><small>${hrnPc.toFixed(0)}% asignado</small></div><button class="b sec" data-go="detalle">Cargar HRN</button></div>`;
   $('#dotCal').className = (sinImp.length || sinFac.length || sinAdj.length || sinAg.length || sinZona.length || R.sinHrn) ? 'dotw' : '';
 }
 // ---------- detalle lateral ----------
@@ -1705,7 +1744,7 @@ function pintarAlertas(R) {
     o: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' };
   const nb = (tipo, texto, go, accion) => `<div class="nb ${tipo}">${ic[tipo]}<div class="t">${texto}</div>${go ? `<span class="go" data-go="${go}">${accion}</span>` : ''}<button class="x" aria-label="Cerrar">×</button></div>`;
   const out = [];
-  if (R.sinHrn) { const n = R.sinHrnNodos.size, f = [...R.sinHrnFechas].sort().map(x => fdmy(x).slice(0, 5)); out.push(nb('w', `<b>${fmt(R.sinHrn)} sin cuenta asignada.</b> Falta el HRN de ${n} ${n === 1 ? 'nodo' : 'nodos'} (${f.slice(0, 4).join(', ')}${f.length > 4 ? '…' : ''}).`, 'hrn', 'Cargar HRN')); }
+  if (R.sinHrn) { const n = R.sinHrnNodos.size, f = [...R.sinHrnFechas].sort().map(x => fdmy(x).slice(0, 5)); out.push(nb('w', `<b>${fmt(R.sinHrn)} sin cuenta asignada.</b> Falta el HRN de ${n} ${n === 1 ? 'nodo' : 'nodos'} (${f.slice(0, 4).join(', ')}${f.length > 4 ? '…' : ''}).`, 'detalle', 'Cargar HRN')); }
   if (R.pendientes) out.push(nb('w', `<b>${R.pendientes} ${R.pendientes === 1 ? 'registro sin importe' : 'registros sin importe'}</b> no ${R.pendientes === 1 ? 'entra' : 'entran'} al cálculo.`, 'registros', 'Ir a Registros'));
   $('#kpAlertas').innerHTML = out.join('');
 }
