@@ -425,6 +425,16 @@
   .insw .nbs:empty + .ins .hl:first-child, .insw .nbs > .nb:first-child { border-top:0 !important }
   .ktabs button small:empty { display:none }
   #dotCal.dotw { margin-left:6px }
+
+  /* Cifras de Costos: 3 columnas iguales; contado y crédito en filas simples */
+  #kpCards { grid-template-columns:repeat(3, minmax(0, 1fr)) }
+  #kpCards .kpi { padding-top:14px }
+  .cd .split { margin:10px 0 12px; height:8px }
+  .cdr { display:grid; grid-template-columns:10px 1fr auto 44px; gap:0 10px; align-items:baseline; padding:5px 0; font-size:14px }
+  .cdr i { width:10px; height:10px; border-radius:3px; align-self:center }
+  .cdr span { color:var(--ink) } .cdr small { display:inline; margin-left:8px; color:var(--mut); font-size:13px }
+  .cdr b { font-size:15px; font-weight:600; margin:0; letter-spacing:-.01em } .cdr em { font-style:normal; text-align:right; color:var(--mut); font-size:13px }
+  @media (max-width:900px) { #kpCards { grid-template-columns:1fr 1fr } #kpCards .cd { grid-column:1/-1 } }
 </style>
 </head>
 <body>
@@ -1472,9 +1482,9 @@ function pintarResumen(R, dias, prev, envios) {
   <div class="kpi"><span>Costo por pedido</span><b>${cpp ? fmt(cpp) : '-'}</b><small>${fmtN(R.pedidos)} pedidos${kDelta(cpp, pcpp)}</small></div>
   <div class="kpi"><span>Costo por caja</span><b>${cpc ? fmt(cpc) : '-'}</b><small>${fmtN(R.cajas)} cajas${kDelta(cpc, pcpc)}</small></div>
   <div class="kpi cd"><span>Contado y crédito</span>
-    <div class="rw"><i class="dot" style="background:var(--grn)"></i><div><span class="lab">Contado, ${nC} ${nC === 1 ? 'registro' : 'registros'}</span><b>${fmt(conta)}</b></div><em>${pc}%</em></div>
-    <div class="rw"><i class="dot" style="background:var(--ind)"></i><div><span class="lab">Crédito, ${nR} ${nR === 1 ? 'registro' : 'registros'}</span><b>${fmt(cred)}</b></div><em>${sumaCD ? 100 - pc : 0}%</em></div>
-    <div class="split"><i style="width:${pc}%;background:var(--grn)"></i><i style="flex:1;background:var(--ind)"></i></div></div>
+    <div class="split"><i style="width:${pc}%;background:var(--grn)"></i><i style="flex:1;background:var(--ind)"></i></div>
+    <div class="cdr"><i style="background:var(--grn)"></i><span>Contado<small>${nC} ${nC === 1 ? 'registro' : 'registros'}</small></span><b>${fmt(conta)}</b><em>${pc}%</em></div>
+    <div class="cdr"><i style="background:var(--ind)"></i><span>Crédito<small>${nR} ${nR === 1 ? 'registro' : 'registros'}</small></span><b>${fmt(cred)}</b><em>${sumaCD ? 100 - pc : 0}%</em></div></div>
 `;
   if (!R.conImporte) $('#kpCards').innerHTML = `<div class="card empty" style="grid-column:1/-1"><b>Aún no hay importes en este rango</b><span>Completa el importe de los registros para ver los costos.</span></div>`;
 }
