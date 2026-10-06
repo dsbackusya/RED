@@ -438,6 +438,7 @@
 
   #cfDlg, #dstDlg { width:min(440px, 92vw) } #cfDlg .in, #dstDlg .in { padding:24px; margin:0 }
   button.b.red { background:var(--bad) } button.b.red:hover { background:#b80012 }
+  #dstDlg select.cb + input { margin-top:6px } #dstDlg .fgrid { grid-template-columns:minmax(0,1fr) minmax(0,1fr) } #dstDlg .fgrid select, #dstDlg .fgrid input { width:100%; min-width:0 } #dstDlg .fgrid label { min-width:0 } #dstDlg { overflow-x:hidden }
 </style>
 </head>
 <body>
@@ -693,15 +694,14 @@
   <h3 style="margin:0 0 4px">Nuevo destino</h3><p class="hint" style="margin:0 0 14px">Se usará para completar agencia, transporte y modo de pago al cargar despachos.</p>
   <div class="fgrid">
     <label style="grid-column:1/-1">Destino<input id="dstN" required placeholder="Por ejemplo, Bagua"></label>
-    <label>Agencia<input id="dstA" list="dlAgencias"></label>
-    <label>Transporte<input id="dstT" list="dlTransportes"></label>
-    <label>Zona<input id="dstZ" list="dlZonas"></label>
+    <label>Agencia<select id="dstA" class="cb"></select><input id="dstA_n" class="hide" placeholder="Nombre de la agencia"></label>
+    <label>Transporte<select id="dstT" class="cb"></select><input id="dstT_n" class="hide" placeholder="Nombre del transporte"></label>
+    <label>Zona<select id="dstZ" class="cb"></select><input id="dstZ_n" class="hide" placeholder="Nombre de la zona"></label>
     <label>Modo de pago<select id="dstP"><option value="AL CONTADO">Al contado</option><option value="CREDITO">Crédito</option></select></label>
   </div>
   <div id="dstE" class="msg"></div>
   <div class="row" style="justify-content:flex-end;margin-top:18px"><button type="button" class="b sec" id="dstX">Cancelar</button><button class="b" id="dstOk">Agregar destino</button></div>
 </form></dialog>
-<datalist id="dlTransportes"></datalist><datalist id="dlZonas"></datalist>
 <div id="toasts" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -822,17 +822,25 @@ $('#kTabla').addEventListener('click', async e => {
 });
 $('#kNuevo').onclick = () => {
   const unicos = k => [...new Set([...catalogo.values()].map(r => r[k]).filter(Boolean))].sort();
-  $('#dlTransportes').innerHTML = unicos('transporte').map(v => `<option value="${esc(v)}">`).join('');
-  $('#dlZonas').innerHTML = unicos('zona').map(v => `<option value="${esc(v)}">`).join('');
+  const ags = [...new Set([...$('#dlAgencias').options].map(o => o.value).concat(unicos('agencia')))].sort();
+  combo('#dstA', ags); combo('#dstT', unicos('transporte')); combo('#dstZ', unicos('zona'));
   $('#dstF').reset(); $('#dstE').className = 'msg'; $('#dstOk').disabled = false; $('#dstDlg').showModal(); $('#dstN').focus();
 };
+// lista con las opciones existentes y "Agregar nueva…", que muestra un campo para escribir
+function combo(sel, valores) {
+  const el = $(sel), n = $(sel + '_n');
+  el.innerHTML = '<option value="">Sin definir</option>' + valores.map(v => `<option>${esc(v)}</option>`).join('') + '<option value="__n">Agregar nueva…</option>';
+  n.classList.add('hide'); n.value = '';
+  el.onchange = () => { const nuevo = el.value === '__n'; n.classList.toggle('hide', !nuevo); if (nuevo) n.focus(); };
+}
+const comboVal = sel => { const v = $(sel).value; return v === '__n' ? $(sel + '_n').value.trim() : v; };
 $('#dstX').onclick = () => $('#dstDlg').close();
 $('#dstF').onsubmit = async e => {
   e.preventDefault();
   const n = norm($('#dstN').value); if (!n) return;
   if (catalogo.has(n)) { $('#dstE').textContent = n + ' ya está en Agencias.'; $('#dstE').className = 'msg err'; return; }
   const v = id => $(id).value.trim(); $('#dstOk').disabled = true;
-  const { error } = await sb.from('agencias').insert({ destino: n, agencia: v('#dstA') || null, transporte: v('#dstT') || null, zona: v('#dstZ') || null, observacion: $('#dstP').value, concatenar: 'ENVIO DE PEDIDOS ' + n });
+  const { error } = await sb.from('agencias').insert({ destino: n, agencia: comboVal('#dstA') || null, transporte: comboVal('#dstT') || null, zona: comboVal('#dstZ') || null, observacion: $('#dstP').value, concatenar: 'ENVIO DE PEDIDOS ' + n });
   $('#dstOk').disabled = false;
   if (error) { $('#dstE').textContent = error.message; $('#dstE').className = 'msg err'; return; }
   $('#dstDlg').close(); toast(n + ' agregado a Agencias'); cargarCatalogo();
