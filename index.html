@@ -517,6 +517,7 @@
       <label>Desde<input type="date" id="rDesde"></label>
       <label>Hasta<input type="date" id="rHasta"></label>
       <label>Transporte<select id="rTrans"><option value="">Todos</option></select></label>
+      <div class="fg" style="gap:4px"><span style="font-size:13px;font-weight:500;color:var(--mut)">Estado</span><div class="pseg" id="rEstado"><button data-e="" class="on">Todos</button><button data-e="pend">Pendientes <small id="nPend"></small></button><button data-e="term">Terminados <small id="nTerm"></small></button></div></div>
       <label>Modo de pago<select id="rPago"><option value="">Todos</option><option>CONTADO</option><option>CREDITO</option></select></label>
       <label>Nodo / destino<input id="rNodo" placeholder="Buscar nodo…"></label>
       <button class="b g" id="rBuscar">Buscar</button>
@@ -1037,11 +1038,25 @@ async function buscarRegistros() {
   const { data, error } = await q;
   if (error) { conexion(false); return flash($('#rMsg'), error.message, 'err'); }
   conexion(true);
-  registros = data;
+  regBase = data;
   const ts = [...new Set(data.map(r => r.transporte).filter(Boolean))].sort(), sel = $('#rTrans').value;
   if (!sel) $('#rTrans').innerHTML = '<option value="">Todos</option>' + ts.map(t => `<option>${esc(t)}</option>`).join('');
+  aplicarEstado();
+}
+// Un registro está terminado cuando tiene importe, N° de factura y la factura adjunta
+let regBase = [], estadoReg = '';
+const regTerminado = r => Number(r.importe) > 0 && !!r.factura && !!r.factura_archivo;
+function aplicarEstado() {
+  const nT = regBase.filter(regTerminado).length;
+  $('#nPend').textContent = regBase.length - nT; $('#nTerm').textContent = nT;
+  registros = estadoReg === 'term' ? regBase.filter(regTerminado) : estadoReg === 'pend' ? regBase.filter(r => !regTerminado(r)) : regBase;
   pintarResumenRegistros(); pintarTablaRegistros();
 }
+$('#rEstado').addEventListener('click', e => {
+  const b = e.target.closest('button[data-e]'); if (!b) return;
+  estadoReg = b.dataset.e; document.querySelectorAll('#rEstado button').forEach(x => x.classList.toggle('on', x === b));
+  pag.n = 1; aplicarEstado();
+});
 $('#rBuscar').onclick = () => { $('#rTrans').dataset.k = ''; pag.n = 1; buscarRegistros(); };
 $('#rRefrescar').onclick = () => buscarRegistros();
 $('#rNuevo').onclick = () => irA('cargar');
