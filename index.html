@@ -490,7 +490,7 @@
     <button data-tab="cargar" class="on">Cargar</button>
     <button data-tab="registros">Registros</button>
     <button data-tab="kpis">Costos</button>
-    <button data-tab="hrn">HRN</button>
+    <button data-tab="hrn">Detalle</button>
     <button data-tab="catalogo">Agencias</button>
   </nav>
   <span class="estado" id="estado"><span></span></span>
@@ -630,7 +630,7 @@
 </section>
 
 <section id="tab-hrn" class="hide">
-  <div class="top"><h1>HRN</h1><div class="sub">Una fila por bulto</div></div>
+  <div class="top"><h1>Detalle</h1><div class="sub">Una fila por bulto</div></div>
   <div class="card">
     <div class="row">
       <label>Fecha del reporte<input type="date" id="hFecha"></label>
@@ -748,7 +748,7 @@ async function mostrarApp(user) {
 }
 window.addEventListener('hashchange', () => { const t = location.hash.slice(1).split('?')[0]; if (TITULOS[t]) irA(t); });
 
-const TITULOS = { cargar: 'Cargar despacho', registros: 'Registros', kpis: 'Costos', hrn: 'HRN', catalogo: 'Agencias' };
+const TITULOS = { cargar: 'Cargar despacho', registros: 'Registros', kpis: 'Costos', hrn: 'Detalle', catalogo: 'Agencias' };
 const irA = tab => document.querySelector(`nav button[data-tab="${tab}"]`).click();
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
