@@ -416,6 +416,15 @@
   }
   @media (prefers-reduced-motion:reduce) { *, *::before, *::after { animation:none !important; transition:none !important } }
 
+
+  /* Costos simplificado: avisos y hallazgos en una sola lista */
+  .insw { background:var(--card); border-radius:var(--rad); overflow:hidden; margin:0 0 36px } .insw:not(:has(.nb, .hl)) { display:none }
+  .insw .ins { margin:0; background:none; border-radius:0 } .insw .nbs { margin:0 }
+  .insw .nb { background:none; color:var(--ink); border-radius:0; border-top:1px solid var(--line) !important; padding:14px 20px; margin:0; font-size:14px }
+  .insw .nb.w b { color:var(--warn); font-weight:600 }
+  .insw .nbs:empty + .ins .hl:first-child, .insw .nbs > .nb:first-child { border-top:0 !important }
+  .ktabs button small:empty { display:none }
+  #dotCal.dotw { margin-left:6px }
 </style>
 </head>
 <body>
@@ -535,11 +544,11 @@
 <section id="tab-kpis" class="hide">
   <div class="top">
     <div><h1>Costos</h1><div class="sub">Qué se paga por mover la carga, y a quién</div></div>
-    <div class="acts"><span class="upd" id="kUpd"></span><button class="b sec" id="kRefrescar">Actualizar</button><button class="b sec" id="kLink">Copiar enlace</button><button class="b sec" id="kPdf">Informe PDF</button><button class="b sec" id="kExport">Exportar a Excel</button></div>
+    <div class="acts"><span class="upd hide" id="kUpd"></span><button class="b sec" id="kRefrescar">Actualizar</button><button class="b sec" id="kLink">Copiar enlace</button><button class="b sec" id="kPdf">Informe PDF</button><button class="b sec" id="kExport">Exportar a Excel</button></div>
   </div>
   <div class="card">
     <div class="fb">
-      <div class="fg"><span>Período</span><div class="pseg" id="kPer"><button data-p="mes" class="on">Este mes</button><button data-p="ant">Mes anterior</button><button data-p="30">Últimos 30 días</button><button data-p="per">Personalizado</button></div></div>
+      <div class="fg"><span>Período</span><div class="pseg" id="kPer"><button data-p="mes" class="on">Mes</button><button data-p="30">Últimos 30 días</button><button data-p="per">Personalizado</button></div></div>
       <div class="fg" id="kgMes"><span>Mes</span><input type="month" id="kMes"></div>
       <div class="fg hide" id="kgRango"><span>Rango</span><div class="rg"><input type="date" id="kDesde"><i>a</i><input type="date" id="kHasta"></div></div>
       <div class="fg"><span>Transporte</span><div class="pseg" id="kTransSeg"><button data-t="" class="on">Todos</button></div><select id="kTrans" class="hide"><option value="">Todos</option></select></div>
@@ -554,37 +563,26 @@
     <div id="kpMsg" class="msg"></div>
   </div>
   <div class="kpis" id="kpCards"></div>
-  <div class="nbs" id="kpAlertas"></div>
-  <div class="ins" id="kpHall"></div>
+  <div class="insw"><div class="nbs" id="kpAlertas"></div><div class="ins" id="kpHall"></div></div>
   <div class="ktabs" id="kpTabs">
-    <button data-v="res" class="on">Resumen</button><button data-v="dia">Por día</button><button data-v="cuenta">Por cuenta <small id="nCta"></small></button><button data-v="nodo">Por nodo <small id="nNodo"></small></button><button data-v="age">Por agencia <small id="nAge"></small></button><button data-v="zona">Por zona <small id="nZona"></small></button><button data-v="trans">Por transporte <small id="nTrans"></small></button><button data-v="cal">Calidad de datos <span id="dotCal"></span></button>
+    <button data-v="res" class="on">Resumen</button><button data-v="cuenta">Cuentas <small id="nCta"></small></button><button data-v="nodo">Nodos <small id="nNodo"></small></button><button data-v="age">Agencias <small id="nAge"></small></button><button data-v="zona">Transporte y zona</button><button data-v="cal">Calidad de datos<span id="dotCal"></span></button>
   </div>
   <div id="kp-res">
     <div class="cgrid">
       <div class="card"><h3>Evolución diaria del costo</h3><p class="hint">Cada barra es el costo del día. La línea es el promedio móvil de 7 días con envíos.</p><svg id="resLine" class="csvg" viewBox="0 0 900 250" width="100%" style="max-height:290px"></svg></div>
       <div class="card"><h3>Dónde se concentra el costo</h3><p class="hint">Top 5 de cada dimensión; clic para ver el detalle.</p><div id="resTops"></div></div>
     </div>
-  </div>
-  <div id="kp-dia" class="hide">
-    <div class="card">
-      <h3>Costo por día</h3><p class="hint">Cada columna es un día; el color separa contado y crédito. Pasa el cursor para resaltar su fila en la tabla.</p>
-      <div class="cols" id="kpBars"></div>
-      <div class="lg"><span><i style="background:var(--grn)"></i>Contado</span><span><i style="background:var(--ind)"></i>Crédito</span></div>
-      <details class="dt"><summary>Ver detalle por día <span id="nDias"></span></summary><div class="tw"><table id="kpDias"></table></div></details>
-    </div>
     <div class="cgrid" style="margin-top:14px">
       <div class="card"><h3>Calendario de costos</h3><p class="hint">Cada día se colorea según su costo. Clic en un día para ver sus registros.</p><div class="cal" id="calGrid"></div><div class="ramp" id="calRamp"></div></div>
-      <div class="ccol">
-        <div class="card"><h3>Mejores y peores días</h3><p class="hint">Para detectar picos.</p><div id="calMP"></div></div>
-        <div class="card"><h3>Costo promedio por día de la semana</h3><p class="hint">¿Qué días se despacha más caro?</p><svg id="calDow" class="csvg" viewBox="0 0 320 150" width="100%"></svg></div>
-      </div>
+      <div class="card"><h3>Costo promedio por día de la semana</h3><p class="hint">Para ver qué días se despacha más caro.</p><svg id="calDow" class="csvg" viewBox="0 0 320 150" width="100%"></svg></div>
     </div>
+    <details class="dt card" style="margin-top:14px"><summary>Detalle por día <span id="nDias"></span></summary><div class="tw"><table id="kpDias"></table></div></details>
   </div>
   <div id="kp-cuenta" class="hide">
   <div class="insight" id="ctaInsight"></div>
   <div class="card ctl"><div class="row">
     <label>Ordenar por<select id="ctaOrd"><option value="costo">Costo (mayor a menor)</option><option value="cpp">Costo por pedido (mayor a menor)</option><option value="pedidos">Pedidos (mayor a menor)</option><option value="nombre">Nombre (A-Z)</option></select></label>
-    <label>Mostrar<select id="ctaTop"><option value="8">Top 8</option><option value="12">Top 12</option><option value="999" selected>Todas</option></select></label>
+    <label class="hide">Mostrar<select id="ctaTop"><option value="8">Top 8</option><option value="12">Top 12</option><option value="999" selected>Todas</option></select></label>
     <label>Buscar cuenta<input id="ctaQ" placeholder="Nombre…"></label>
     <label class="chk"><input type="checkbox" id="ctaSin" checked> Incluir "sin detalle HRN"</label>
     <div class="seg" id="ctaVista"><button data-v="barras" class="on">Barras</button><button data-v="tabla">Tabla</button></div>
@@ -596,15 +594,10 @@
       <div id="ctaBarras"></div><div id="ctaTabla" class="tw hide"></div>
       <div class="key"><span><i style="background:var(--grn)"></i>hasta el promedio</span><span><i style="background:var(--amb)"></i>hasta 1.5× el promedio</span><span><i style="background:var(--red)"></i>más de 1.5× el promedio</span></div>
     </div>
-    <div class="ccol">
-      <div class="card"><h3>Participación en el costo</h3><p class="hint">Las 5 cuentas principales y el resto.</p>
-        <div style="display:flex;justify-content:center"><svg id="ctaDonut" class="csvg" viewBox="0 0 200 200" width="180" height="180"></svg></div><div class="cl" id="ctaLg"></div></div>
-      <div class="card"><h3>Alertas</h3><p class="hint">Cuentas con costo por pedido fuera de lo normal.</p><div id="ctaAl"></div></div>
-    </div>
   </div>
-  <div class="card"><h3>Volumen frente a costo por pedido</h3>
+  <details class="dt card"><summary>Volumen frente a costo por pedido</summary>
     <p class="hint">Cada punto es una cuenta: a la derecha, más pedidos; arriba, más caro por pedido; el tamaño es el costo total. Las cuentas con pocos pedidos y costo alto suelen ser envíos sueltos que conviene revisar.</p>
-    <svg id="ctaSc" class="csvg" viewBox="0 0 900 300" width="100%" style="max-height:340px"></svg></div>
+    <svg id="ctaSc" class="csvg" viewBox="0 0 900 300" width="100%" style="max-height:340px"></svg></details>
   <div class="tip" id="ctaTip"></div>
   </div>
   <div id="kp-nodo" class="hide">
@@ -619,17 +612,11 @@
     </div>
   </div>
   <div id="kp-zona" class="hide">
+    <div class="card"><h3>Costo por transporte</h3><div class="tw"><table id="kpTrans"></table></div></div>
     <div class="card"><h3>Costo por zona</h3><p class="hint">La zona sale del catálogo de Agencias.</p><div id="zonaBarras"></div></div>
     <div class="card"><h3>Tarifa por caja según transporte y zona</h3><p class="hint">Costo dividido entre cajas. Las celdas más oscuras son las rutas más caras por caja.</p><div class="tw" style="max-height:none"><table class="mx" id="zonaMx"></table></div></div>
   </div>
   <div id="kp-cal" class="hide"><div class="card"><h3>Calidad de datos</h3><p class="hint">Los KPIs son confiables en la medida en que los registros estén completos. Cada punto lleva a la pantalla donde se corrige.</p><div id="calList"></div></div></div>
-  <div id="kp-trans" class="hide">
-    <div class="cgrid">
-      <div class="card"><h3>Costo por transporte</h3><p class="hint">Con pocos transportes, la tabla es suficiente.</p><div class="tw"><table id="kpTrans"></table></div></div>
-      <div class="card"><h3>Participación</h3><p class="hint">Reparto del costo entre transportistas.</p>
-        <div style="display:flex;justify-content:center"><svg id="trDonut" class="csvg" viewBox="0 0 200 200" width="180" height="180"></svg></div><div class="cl" id="trLg"></div></div>
-    </div>
-  </div>
 </section>
 
 <section id="tab-hrn" class="hide">
@@ -1301,10 +1288,6 @@ function pintarDias(dias) {
     (dias.length ? '' : '<tr><td colspan="10"><div class="empty"><b>Sin envíos en este rango</b></div></td></tr>');
   $('#nDias').textContent = `(${dias.length})`;
 }
-function pintarGraficos(dias, R) {
-  const max = Math.max(1, ...dias.map(d => d.costo));
-  $('#kpBars').innerHTML = dias.length ? dias.map(d => `<div class="c" data-d="${d.fecha}" data-det="dia|${d.fecha}" title="${esc(d.fecha)}, ${fmt(d.costo)} (contado ${fmt(d.contado)}, crédito ${fmt(d.credito)})" style="height:${Math.max(3, d.costo / max * 100)}%"><i style="background:var(--ind);flex:${d.credito || 0}"></i><i style="background:var(--grn);flex:${d.contado || 0}"></i><span>${d.fecha.slice(8)}</span></div>`).join('') : '<span class="hint">Sin envíos en este rango.</span>';
-}
 // ---------- costo por cuenta (vista ranking) ----------
 let ctaDatos = [], ctaPts = [];
 const ctaCOL = ['#2563eb', '#059669', '#7c3aed', '#d97706', '#0891b2', '#94a3b8'], ctaVAR = { g: 'var(--grn)', a: 'var(--amb)', r: 'var(--red)' };
@@ -1316,7 +1299,7 @@ function cuentasKpi(R) {
 function pintarCuentas() {
   const base = ctaDatos.filter(x => $('#ctaSin').checked || !x.sin), T = base.reduce((s, x) => s + x.costo, 0), P = base.reduce((s, x) => s + x.pedidos, 0), B = base.reduce((s, x) => s + x.bultos, 0);
   const prom = P ? T / P : 0, porCosto = [...base].sort((a, b) => b.costo - a.costo);
-  if (!base.length || !T) { ['#ctaInsight', '#ctaBarras', '#ctaTabla', '#ctaLg', '#ctaAl'].forEach(i => $(i).innerHTML = ''); $('#ctaDonut').innerHTML = ''; $('#ctaSc').innerHTML = ''; $('#ctaBarras').innerHTML = '<p class="hint">Sin datos en este rango.</p>'; return; }
+  if (!base.length || !T) { ['#ctaInsight', '#ctaBarras', '#ctaTabla'].forEach(i => $(i).innerHTML = ''); $('#ctaSc').innerHTML = ''; $('#ctaBarras').innerHTML = '<p class="hint">Sin datos en este rango.</p>'; return; }
   { const named = porCosto.filter(x => !x.sin), Tn = named.reduce((x, y) => x + y.costo, 0); let ac = 0, n80 = 0; for (const x of named) { ac += x.costo; n80++; if (Tn && ac / Tn >= 0.8) break; }
     $('#ctaInsight').innerHTML = Tn ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span><b>${Math.round(named.slice(0, 3).reduce((x, y) => x + y.costo, 0) / Tn * 100)}%</b> del costo está en las 3 primeras cuentas · <b>${n80} ${n80 === 1 ? 'cuenta explica' : 'cuentas explican'}</b> el 80%</span>` : ''; }
   let d = base; const q = norm($('#ctaQ').value); if (q) d = d.filter(x => norm(x.nombre).includes(q));
@@ -1329,19 +1312,6 @@ function pintarCuentas() {
   $('#ctaTabla').innerHTML = '<table><tr><th>Cuenta</th><th class="num">Costo</th><th class="num">% total</th><th class="num">Pedidos</th><th class="num">Bultos</th><th class="num">Costo por pedido</th><th class="num">Costo por bulto</th></tr>' +
     vis.map(x => `<tr><td><b>${esc(x.nombre)}</b></td><td class="num">${fmt(x.costo)}</td><td class="num">${(x.costo / T * 100).toFixed(1)}%</td><td class="num">${fmtN(x.pedidos)}</td><td class="num">${fmtN(x.bultos)}</td><td class="num">${x.pedidos ? fmt(x.cpp) : '-'}</td><td class="num">${x.bultos ? fmt(x.costo / x.bultos) : '-'}</td></tr>`).join('') +
     `<tr style="font-weight:700;background:var(--head)"><td>TOTAL</td><td class="num">${fmt(T)}</td><td class="num">100%</td><td class="num">${fmtN(P)}</td><td class="num">${fmtN(B)}</td><td class="num">${fmt(prom)}</td><td class="num">${B ? fmt(T / B) : '-'}</td></tr></table>`;
-
-  // participación (donut)
-  const top5 = porCosto.slice(0, 5), resto = T - top5.reduce((s, x) => s + x.costo, 0), seg = top5.map(x => [x.nombre, x.costo]); if (porCosto.length > 5) seg.push([`Otras ${porCosto.length - 5} cuentas`, resto]);
-  let a0 = -Math.PI / 2; const R0 = 80, r0 = 50, cx = 100, cy = 100;
-  $('#ctaDonut').innerHTML = seg.map(([n, v], i) => { const a1 = a0 + Math.min(v / T, 0.99999) * 2 * Math.PI, big = a1 - a0 > Math.PI ? 1 : 0;
-    const p = `M${cx + R0 * Math.cos(a0)},${cy + R0 * Math.sin(a0)} A${R0},${R0} 0 ${big} 1 ${cx + R0 * Math.cos(a1)},${cy + R0 * Math.sin(a1)} L${cx + r0 * Math.cos(a1)},${cy + r0 * Math.sin(a1)} A${r0},${r0} 0 ${big} 0 ${cx + r0 * Math.cos(a0)},${cy + r0 * Math.sin(a0)} Z`; a0 = a1;
-    return `<path d="${p}" fill="${ctaCOL[i]}"><title>${esc(n)}: ${fmt(v)}</title></path>`; }).join('') + `<text x="100" y="97" text-anchor="middle" style="font-size:12px;font-weight:700;fill:var(--ink)">${fmt(T).replace('S/ ', 'S/')}</text><text x="100" y="112" text-anchor="middle">total</text>`;
-  $('#ctaLg').innerHTML = seg.map(([n, v], i) => `<div><i style="background:${ctaCOL[i]}"></i><span>${esc(n.length > 26 ? n.slice(0, 25) + '…' : n)}</span><b>${(v / T * 100).toFixed(1)}%</b></div>`).join('');
-
-  // alertas
-  const al = base.filter(x => !x.sin && x.pedidos && x.cpp > prom * 2).sort((a, b) => b.cpp - a.cpp).slice(0, 4), sinx = base.find(x => x.sin);
-  $('#ctaAl').innerHTML = (al.map(x => `<div class="al ${x.cpp > prom * 4 ? 'r' : ''}"><span>⚠</span><div><b>${esc(x.nombre)}</b><br>${fmt(x.cpp)} por pedido: ${(x.cpp / prom).toFixed(1)}× el promedio (${fmtN(x.pedidos)} ${x.pedidos === 1 ? 'pedido' : 'pedidos'}).</div></div>`).join('') +
-    (sinx ? `<div class="al"><span>ⓘ</span><div><b>${fmt(sinx.costo)} sin cuenta asignada</b><br>No hay HRN cargado para esos nodos y fechas: súbelo para repartirlo.</div></div>` : '')) || '<p class="hint">Nada fuera de lo normal.</p>';
 
   // dispersión volumen vs costo por pedido
   ctaPts = base.filter(x => !x.sin && x.pedidos);
@@ -1370,8 +1340,8 @@ $('#ctaVista').onclick = e => {
   $('#ctaBarras').classList.toggle('hide', b.dataset.v !== 'barras'); $('#ctaTabla').classList.toggle('hide', b.dataset.v !== 'tabla');
 };
 // ---------- pestañas de KPIs, nodo y transporte ----------
-const KT = ['res', 'dia', 'cuenta', 'nodo', 'age', 'zona', 'trans', 'cal'];
-function kTab(v) { document.querySelectorAll('#kpTabs button').forEach(x => x.classList.toggle('on', x.dataset.v === v)); KT.forEach(t => $('#kp-' + t).classList.toggle('hide', t !== v)); kHash(); }
+const KT = ['res', 'cuenta', 'nodo', 'age', 'zona', 'cal'];
+function kTab(v) { v = { dia: 'res', trans: 'zona' }[v] || v; document.querySelectorAll('#kpTabs button').forEach(x => x.classList.toggle('on', x.dataset.v === v)); KT.forEach(t => $('#kp-' + t).classList.toggle('hide', t !== v)); kHash(); }
 $('#kpTabs').onclick = e => { const b = e.target.closest('button'); if (b) kTab(b.dataset.v); };
 document.addEventListener('mouseover', e => { const el = e.target.closest && e.target.closest('#tab-kpis [data-d]'); if (el) document.querySelectorAll(`#tab-kpis [data-d="${el.dataset.d}"]`).forEach(x => x.classList.add('hi')); });
 document.addEventListener('mouseout', e => { const el = e.target.closest && e.target.closest('#tab-kpis [data-d]'); if (el) document.querySelectorAll(`#tab-kpis [data-d="${el.dataset.d}"]`).forEach(x => x.classList.remove('hi')); });
@@ -1406,16 +1376,7 @@ function zonasKpi(R, envios) {
   const vals = trs.flatMap(t => zs.map(z => cell(t, z))).filter(v => v != null), lo = Math.min(...vals), hi = Math.max(...vals);
   $('#zonaMx').innerHTML = vals.length ? `<tr><th>Transporte</th>${zs.map(z => `<th>${esc(z)}</th>`).join('')}</tr>` + trs.map(t => `<tr><td><b>${esc(t)}</b></td>${zs.map(z => { const v = cell(t, z); if (v == null) return '<td class="z">—</td>'; const q = (v - lo) / (hi - lo || 1); return `<td style="background:rgba(220,38,38,${(0.08 + q * 0.42).toFixed(2)});color:${q > 0.6 ? '#7f1d1d' : 'var(--ink)'}">${fmt(v)}</td>`; }).join('')}</tr>`).join('') : '<tr><td>Sin datos en este rango.</td></tr>';
 }
-function transporteKpi(R) {
-  tablaKpi($('#kpTrans'), 'Transporte', R.transportes, 'tra');
-  const d = [...R.transportes].map(([nombre, v]) => [nombre, v.costo]).sort((a, b) => b[1] - a[1]), T = d.reduce((s, x) => s + x[1], 0);
-  if (!T) { $('#trDonut').innerHTML = ''; $('#trLg').innerHTML = ''; return; }
-  let a0 = -Math.PI / 2; const R0 = 80, r0 = 50;
-  $('#trDonut').innerHTML = d.map(([n, v], i) => { const a1 = a0 + Math.min(v / T, 0.99999) * 2 * Math.PI, big = a1 - a0 > Math.PI ? 1 : 0;
-    const p = `M${100 + R0 * Math.cos(a0)},${100 + R0 * Math.sin(a0)} A${R0},${R0} 0 ${big} 1 ${100 + R0 * Math.cos(a1)},${100 + R0 * Math.sin(a1)} L${100 + r0 * Math.cos(a1)},${100 + r0 * Math.sin(a1)} A${r0},${r0} 0 ${big} 0 ${100 + r0 * Math.cos(a0)},${100 + r0 * Math.sin(a0)} Z`; a0 = a1;
-    return `<path d="${p}" fill="${ctaCOL[i % ctaCOL.length]}"><title>${esc(n)}: ${fmt(v)}</title></path>`; }).join('') + `<text x="100" y="104" text-anchor="middle" style="font-size:12px;font-weight:700;fill:var(--ink)">${fmt(T).replace('S/ ', 'S/')}</text>`;
-  $('#trLg').innerHTML = d.map(([n, v], i) => `<div><i style="background:${ctaCOL[i % ctaCOL.length]}"></i><span>${esc(n)}</span><b>${(v / T * 100).toFixed(1)}%</b></div>`).join('');
-}
+function transporteKpi(R) { tablaKpi($('#kpTrans'), 'Transporte', R.transportes, 'tra'); }
 // ---------- cabecera de KPIs: filtros que se aplican solos ----------
 const kst = { p: 'mes' };
 const isoLocal = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -1426,7 +1387,7 @@ function rangoDeMes() {
   $('#kDesde').value = mes + '-01'; $('#kHasta').value = mes + '-' + String(new Date(y, m, 0).getDate()).padStart(2, '0');
 }
 function kSync() {
-  document.querySelectorAll('#kPer button').forEach(b => b.classList.toggle('on', b.dataset.p === kst.p));
+  document.querySelectorAll('#kPer button').forEach(b => b.classList.toggle('on', b.dataset.p === kst.p || (b.dataset.p === 'mes' && ['ant', 'sel'].includes(kst.p))));
   $('#kgMes').classList.toggle('hide', !['mes', 'ant', 'sel'].includes(kst.p)); $('#kgRango').classList.toggle('hide', kst.p !== 'per');
   document.querySelectorAll('#kBaseSeg button').forEach(b => b.classList.toggle('on', b.dataset.r === $('#kBase').value));
   document.querySelectorAll('#kTransSeg button').forEach(b => b.classList.toggle('on', b.dataset.t === $('#kTrans').value));
@@ -1458,7 +1419,9 @@ function pintarActivos() {
   const mes = $('#kMes').value; let per;
   if (mes && ['mes', 'ant', 'sel'].includes(kst.p)) { const [y, m] = mes.split('-').map(Number), t = new Date(y, m - 1, 1).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' }); per = t.charAt(0).toUpperCase() + t.slice(1); }
   else per = `${kst.p === '30' ? 'Últimos 30 días, ' : ''}del ${fdmy($('#kDesde').value)} al ${fdmy($('#kHasta').value)}`;
-  $('#kAct').innerHTML = `Mostrando <span class="pill">${esc(per)}</span><span class="pill">${esc($('#kTrans').value || 'Todos los transportes')}</span>${$('#kAgencia').value ? `<span class="pill">${esc($('#kAgencia').value)}</span>` : ''}${$('#kZona').value ? `<span class="pill">Zona ${esc($('#kZona').value)}</span>` : ''}${$('#kPago').value ? `<span class="pill">${$('#kPago').value === 'C' ? 'Solo contado' : 'Solo crédito'}</span>` : ''}<span class="pill">Reparto por ${esc($('#kBase').value)}</span><button class="link" id="kLimpiar">Restablecer filtros</button>`;
+  const hay = $('#kTrans').value || $('#kAgencia').value || $('#kZona').value || $('#kPago').value || $('#kBase').value !== 'bultos';
+  $('#kAct').classList.toggle('hide', !hay);
+  $('#kAct').innerHTML = `<span class="hide"><span class="pill">${esc(per)}</span><span class="pill">${esc($('#kTrans').value || 'Todos los transportes')}</span>${$('#kAgencia').value ? `<span class="pill">${esc($('#kAgencia').value)}</span>` : ''}${$('#kZona').value ? `<span class="pill">Zona ${esc($('#kZona').value)}</span>` : ''}${$('#kPago').value ? `<span class="pill">${$('#kPago').value === 'C' ? 'Solo contado' : 'Solo crédito'}</span>` : ''}<span class="pill">Reparto por ${esc($('#kBase').value)}</span></span><button class="link" id="kLimpiar">Restablecer filtros</button>`;
   $('#kLimpiar').onclick = kRestablecer;
 }
 function pintarTransSeg(lista) {
@@ -1501,21 +1464,18 @@ function pintarResumen(R, dias, prev, envios) {
   const conta = dias.reduce((x, d) => x + d.contado, 0), cred = dias.reduce((x, d) => x + d.credito, 0), sumaCD = conta + cred, pc = sumaCD ? Math.round(conta / sumaCD * 100) : 0;
   const con = envios.filter(e => Number(e.importe) > 0), nC = con.filter(e => e.modo_pago === 'CONTADO').length, nR = con.length - nC;
   const costos = dias.filter(d => d.costo > 0), mn = costos.length ? costos.reduce((a, b) => b.costo < a.costo ? b : a) : null, mxd = costos.length ? costos.reduce((a, b) => b.costo > a.costo ? b : a) : null;
-  const nE = envios.length, nF = envios.filter(e => e.factura).length, nA = envios.filter(e => e.factura_archivo).length, pf = nE ? Math.round(nF / nE * 100) : 0;
-  const corto = f => fdmy(f).slice(0, 5);
+    const corto = f => fdmy(f).slice(0, 5);
   $('#kpCards').innerHTML = `
   <div class="kpi hero"><span>Costo total</span><b>${fmt(R.total)}${kDelta(R.total, prev.total)}</b>
-    <small>${R.conImporte} ${R.conImporte === 1 ? 'registro con importe' : 'registros con importe'}. ${prev.total ? `Período anterior: ${fmt(prev.total)}.` : 'No hay período anterior para comparar.'}</small>
+    <small>${R.conImporte} ${R.conImporte === 1 ? 'registro con importe' : 'registros con importe'}. ${prev.total ? `Período anterior: ${fmt(prev.total)}.` : ''}</small>
     ${costos.length > 1 ? `<div class="meta"><span>Mejor día <b>${fmt(mn.costo)}</b> (${corto(mn.fecha)})</span><span>Día más alto <b>${fmt(mxd.costo)}</b> (${corto(mxd.fecha)})</span></div>` : ''}${metaHtml(R)}</div>
   <div class="kpi"><span>Costo por pedido</span><b>${cpp ? fmt(cpp) : '-'}</b><small>${fmtN(R.pedidos)} pedidos${kDelta(cpp, pcpp)}</small></div>
   <div class="kpi"><span>Costo por caja</span><b>${cpc ? fmt(cpc) : '-'}</b><small>${fmtN(R.cajas)} cajas${kDelta(cpc, pcpc)}</small></div>
-  <div class="kpi"><span>Promedio por día</span><b>${dias.length ? fmt(R.total / dias.length) : '-'}</b><small>${dias.length} ${dias.length === 1 ? 'día' : 'días'} con envíos</small></div>
   <div class="kpi cd"><span>Contado y crédito</span>
     <div class="rw"><i class="dot" style="background:var(--grn)"></i><div><span class="lab">Contado, ${nC} ${nC === 1 ? 'registro' : 'registros'}</span><b>${fmt(conta)}</b></div><em>${pc}%</em></div>
     <div class="rw"><i class="dot" style="background:var(--ind)"></i><div><span class="lab">Crédito, ${nR} ${nR === 1 ? 'registro' : 'registros'}</span><b>${fmt(cred)}</b></div><em>${sumaCD ? 100 - pc : 0}%</em></div>
     <div class="split"><i style="width:${pc}%;background:var(--grn)"></i><i style="flex:1;background:var(--ind)"></i></div></div>
-  <div class="kpi" data-kt="cal" style="cursor:pointer"><span>Respaldo de facturas</span><div class="ring"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="25" fill="none" stroke="var(--line)" stroke-width="8"/><circle cx="32" cy="32" r="25" fill="none" stroke="${pf < 50 ? 'var(--amb)' : 'var(--grn)'}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${157 * pf / 100} 157" transform="rotate(-90 32 32)"/><text x="32" y="36" text-anchor="middle" style="font-size:13px;font-weight:700;fill:var(--ink)">${pf}%</text></svg>
-    <div><b>${nF}</b> de ${nE} con N° de factura<br><b>${nA}</b> con foto adjunta</div></div></div>`;
+`;
   if (!R.conImporte) $('#kpCards').innerHTML = `<div class="card empty" style="grid-column:1/-1"><b>Aún no hay importes en este rango</b><span>Completa el importe de los registros para ver los costos.</span></div>`;
 }
 function hallazgosKpi(R, envios) {
@@ -1530,7 +1490,7 @@ function hallazgosKpi(R, envios) {
   if (sinFac.length) out.push(['w', '', `${fmt(mFac)} (${Math.round(mFac / T * 100)}%) sin N° de factura`, `${sinFac.length} de ${R.conImporte} registros aún no tienen su factura registrada.`, 'Revisar', 'cal']);
   const cu = [...R.cuentas].filter(([k]) => k !== SIN_HRN).sort((a, b) => b[1].costo - a[1].costo)[0];
   if (cu && cu[1].costo / T >= 0.3) out.push(['b', '', `${cu[0]} concentra el ${Math.round(cu[1].costo / T * 100)}% del costo`, `${fmtN(cu[1].pedidos)} de ${fmtN(R.pedidos)} pedidos del período.`, 'Ver cuentas', 'cuenta']);
-  $('#kpHall').innerHTML = out.slice(0, 5).map(([c, i, t, d, a, go]) => `<div class="hl ${c}" data-kt="${go}"><i>${i}</i><div><b>${esc(t)}</b><span>${esc(d)}</span><em>${a}</em></div></div>`).join('');
+  $('#kpHall').innerHTML = out.slice(0, 3).map(([c, i, t, d, a, go]) => `<div class="hl ${c}" data-kt="${go}"><i>${i}</i><div><b>${esc(t)}</b><span>${esc(d)}</span><em>${a}</em></div></div>`).join('');
 }
 function calidadKpi(R, envios) {
   const n = envios.length; if (!n) { $('#calList').innerHTML = '<div class="empty"><b>Sin registros en este rango</b></div>'; $('#dotCal').className = ''; return; }
@@ -1685,9 +1645,7 @@ function calendarioKpi(dias) {
     $('#calGrid').innerHTML = h;
     $('#calRamp').innerHTML = 'Menos <i style="background:rgba(37,99,235,.1)"></i><i style="background:rgba(37,99,235,.25)"></i><i style="background:rgba(37,99,235,.4)"></i><i style="background:rgba(37,99,235,.6)"></i> Más';
   }
-  const ord = [...cost].sort((a, b) => b.costo - a.costo), fila = (x, c, mx) => `<div class="rk" style="grid-template-columns:50px 1fr 90px;padding:5px 4px" data-det="dia|${x.fecha}"><span class="nm">${fdmy(x.fecha).slice(0, 5)}</span><span class="bar"><i style="width:${x.costo / mx * 100}%;background:${c}"></i></span><span class="v">${fmt(x.costo)}</span></div>`;
-  $('#calMP').innerHTML = ord.length > 1 ? '<div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;margin-bottom:2px">Más caros</div>' + ord.slice(0, 3).map(x => fila(x, 'var(--red)', ord[0].costo)).join('') +
-    '<div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;margin:8px 0 2px">Más baratos</div>' + ord.slice(-3).reverse().map(x => fila(x, 'var(--grn)', ord[0].costo)).join('') : '<p class="hint">Se necesitan al menos 2 días con envíos.</p>';
+  // (mejores y peores días: ya se ven en el calendario)
   const sem = [1, 2, 3, 4, 5, 6, 0].map(w => { const v = cost.filter(d => new Date(d.fecha + 'T00:00:00').getDay() === w).map(d => d.costo); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0; }), ms = Math.max(...sem, 1);
   $('#calDow').innerHTML = cost.length ? sem.map((v, i) => `<rect x="${12 + i * 43}" y="${118 - v / ms * 92}" width="32" height="${v / ms * 92}" rx="4" fill="#93c5fd"/><text x="${28 + i * 43}" y="138" text-anchor="middle">${['L', 'M', 'X', 'J', 'V', 'S', 'D'][i]}</text>${v ? `<text x="${28 + i * 43}" y="${112 - v / ms * 92}" text-anchor="middle" style="font-weight:700;fill:var(--ink)">${Math.round(v)}</text>` : ''}`).join('') : '';
 }
@@ -1768,8 +1726,8 @@ async function calcularKpis() {
     const dias = agruparDias(envios); diasResultado = dias;
     const nombradas = [...R.cuentas].filter(([k]) => k !== SIN_HRN);
     pintarResumen(R, dias, prev, envios); pintarAlertas(R); hallazgosKpi(R, envios);
-    $('#nCta').textContent = nombradas.length; $('#nNodo').textContent = R.nodos.size; $('#nAge').textContent = R.agencias.size; $('#nZona').textContent = R.zonas.size; $('#nTrans').textContent = R.transportes.size;
-    pintarDias(dias); pintarGraficos(dias, R); resumenKpi(R, dias); calendarioKpi(dias);
+    $('#nCta').textContent = nombradas.length; $('#nNodo').textContent = R.nodos.size; $('#nAge').textContent = R.agencias.size;
+    pintarDias(dias); resumenKpi(R, dias); calendarioKpi(dias);
     cuentasKpi(R); nodosKpi(R); agenciasKpi(R); zonasKpi(R, envios); transporteKpi(R); calidadKpi(R, envios);
     $('#kpMsg').className = 'msg'; kUpdTs = Date.now(); pintarUpd(); kHash();
   } catch (err) { flash($('#kpMsg'), 'No se pudo calcular: ' + err.message, 'err'); }
