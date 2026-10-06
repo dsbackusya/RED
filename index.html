@@ -568,10 +568,6 @@
       <div class="fg"><span>Transporte</span><div class="pseg" id="kTransSeg"><button data-t="" class="on">Todos</button></div><select id="kTrans" class="hide"><option value="">Todos</option></select></div>
       <div class="fg"><span>Agencia</span><select id="kAgencia"><option value="">Todas</option></select></div>
       <div class="fg"><span>Zona</span><select id="kZona"><option value="">Todas</option></select></div>
-      <div class="fg"><span>Pago</span><div class="pseg" id="kPagoSeg"><button data-g="" class="on">Todos</button><button data-g="C">Contado</button><button data-g="R">Crédito</button></div><input type="hidden" id="kPago" value=""></div>
-      <div class="fg"><span>Repartir el costo por <i class="tt" data-t="El costo de cada nodo y día se divide entre las cuentas del HRN en proporción a este criterio. Por bultos es lo más habitual.">?</i></span>
-        <div class="pseg" id="kBaseSeg"><button data-r="bultos" class="on">Bultos</button><button data-r="pedidos">Pedidos</button><button data-r="peso">Peso</button><button data-r="volumen">Volumen</button></div>
-        <select id="kBase" class="hide"><option value="bultos">Bultos</option><option value="pedidos">Pedidos</option><option value="peso">Peso</option><option value="volumen">Volumen</option></select></div>
     </div>
     <div class="active" id="kAct"></div>
     <div id="kpMsg" class="msg"></div>
@@ -1446,9 +1442,7 @@ function rangoDeMes() {
 function kSync() {
   document.querySelectorAll('#kPer button').forEach(b => b.classList.toggle('on', b.dataset.p === kst.p || (b.dataset.p === 'mes' && ['ant', 'sel'].includes(kst.p))));
   $('#kgMes').classList.toggle('hide', !['mes', 'ant', 'sel'].includes(kst.p)); $('#kgRango').classList.toggle('hide', kst.p !== 'per');
-  document.querySelectorAll('#kBaseSeg button').forEach(b => b.classList.toggle('on', b.dataset.r === $('#kBase').value));
   document.querySelectorAll('#kTransSeg button').forEach(b => b.classList.toggle('on', b.dataset.t === $('#kTrans').value));
-  document.querySelectorAll('#kPagoSeg button').forEach(b => b.classList.toggle('on', b.dataset.g === $('#kPago').value));
 }
 function kPeriodo(p) {
   kst.p = p; const hoy = new Date();
@@ -1463,9 +1457,8 @@ $('#kPer').onclick = e => { const b = e.target.closest('button'); if (b) kPeriod
 $('#kMes').onchange = () => { kst.p = 'sel'; rangoDeMes(); kSync(); kAuto(); };
 $('#kDesde').onchange = $('#kHasta').onchange = () => { kst.p = 'per'; $('#kMes').value = ''; kSync(); kAuto(); };
 $('#kTransSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#kTrans').value = b.dataset.t; kSync(); kAuto(); };
-$('#kBaseSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#kBase').value = b.dataset.r; kSync(); kAuto(); };
 $('#kRefrescar').onclick = () => calcularKpis();
-function kRestablecer() { $('#kTrans').value = ''; $('#kAgencia').value = ''; $('#kZona').value = ''; $('#kPago').value = ''; $('#kBase').value = 'bultos'; kPeriodo('mes'); }
+function kRestablecer() { $('#kTrans').value = ''; $('#kAgencia').value = ''; $('#kZona').value = ''; kPeriodo('mes'); }
 function pintarUpd() {
   if (!kUpdTs) { $('#kUpd').textContent = ''; return; }
   const s = Math.round((Date.now() - kUpdTs) / 1000), m = Math.round(s / 60);
@@ -1476,9 +1469,9 @@ function pintarActivos() {
   const mes = $('#kMes').value; let per;
   if (mes && ['mes', 'ant', 'sel'].includes(kst.p)) { const [y, m] = mes.split('-').map(Number), t = new Date(y, m - 1, 1).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' }); per = t.charAt(0).toUpperCase() + t.slice(1); }
   else per = `${kst.p === '30' ? 'Últimos 30 días, ' : ''}del ${fdmy($('#kDesde').value)} al ${fdmy($('#kHasta').value)}`;
-  const hay = $('#kTrans').value || $('#kAgencia').value || $('#kZona').value || $('#kPago').value || $('#kBase').value !== 'bultos';
+  const hay = $('#kTrans').value || $('#kAgencia').value || $('#kZona').value;
   $('#kAct').classList.toggle('hide', !hay);
-  $('#kAct').innerHTML = `<span class="hide"><span class="pill">${esc(per)}</span><span class="pill">${esc($('#kTrans').value || 'Todos los transportes')}</span>${$('#kAgencia').value ? `<span class="pill">${esc($('#kAgencia').value)}</span>` : ''}${$('#kZona').value ? `<span class="pill">Zona ${esc($('#kZona').value)}</span>` : ''}${$('#kPago').value ? `<span class="pill">${$('#kPago').value === 'C' ? 'Solo contado' : 'Solo crédito'}</span>` : ''}<span class="pill">Reparto por ${esc($('#kBase').value)}</span></span><button class="link" id="kLimpiar">Restablecer filtros</button>`;
+  $('#kAct').innerHTML = `<span class="hide"><span class="pill">${esc(per)}</span><span class="pill">${esc($('#kTrans').value || 'Todos los transportes')}</span>${$('#kAgencia').value ? `<span class="pill">${esc($('#kAgencia').value)}</span>` : ''}${$('#kZona').value ? `<span class="pill">Zona ${esc($('#kZona').value)}</span>` : ''}</span><button class="link" id="kLimpiar">Restablecer filtros</button>`;
   $('#kLimpiar').onclick = kRestablecer;
 }
 function pintarTransSeg(lista) {
@@ -1488,10 +1481,9 @@ function pintarTransSeg(lista) {
 }
 const zonaDe = n => (catalogo.get(norm(n)) || {}).zona || '(sin zona)';
 function kPasa(e) {
-  const ag = $('#kAgencia').value, zo = $('#kZona').value, pg = $('#kPago').value;
+  const ag = $('#kAgencia').value, zo = $('#kZona').value;
   if (ag && (ag === '(sin agencia)' ? e.agencia : e.agencia !== ag)) return false;
   if (zo && zonaDe(e.nodo) !== zo) return false;
-  if (pg && (pg === 'C') !== (e.modo_pago === 'CONTADO')) return false;
   return true;
 }
 function poblarFiltros() {
@@ -1572,7 +1564,7 @@ function abrirDetalle(tipo, k) {
     const c = R.cuentas.get(k); if (!c) return; titulo = 'Cuenta';
     const nm = [...(R.cuentaNodos.get(k) || [])].sort((a, b) => b[1] - a[1]), prom = R.pedidos ? R.total / R.pedidos : 0;
     kpis = `<div><span>Costo asignado</span><b>${fmt(c.costo)}</b></div><div><span>% del total</span><b>${R.total ? (c.costo / R.total * 100).toFixed(1) : 0}%</b></div><div><span>Pedidos</span><b>${fmtN(c.pedidos)}</b></div><div><span>Costo por pedido</span><b>${c.pedidos ? fmt(c.costo / c.pedidos) : '-'}</b></div>`;
-    extra = `<div class="hint">${c.pedidos && prom ? `Comparado con el promedio (${fmt(prom)}): <b>${(c.costo / c.pedidos / prom).toFixed(1)}×</b>. ` : ''}El costo se reparte desde cada nodo por <b>${esc($('#kBase').value)}</b> entre las cuentas del HRN.</div><div class="hint" style="margin-top:12px">Nodos donde aparece</div><div class="tw"><table><tr><th>Nodo</th><th class="num">Costo asignado</th><th class="num">% de la cuenta</th></tr>${nm.map(([n, v]) => `<tr><td>${esc(n)}</td><td class="num">${fmt(v)}</td><td class="num">${c.costo ? (v / c.costo * 100).toFixed(0) : 0}%</td></tr>`).join('')}</table></div>`;
+    extra = `<div class="hint">${c.pedidos && prom ? `Comparado con el promedio (${fmt(prom)}): <b>${(c.costo / c.pedidos / prom).toFixed(1)}×</b>. ` : ''}El costo se reparte desde cada nodo por <b>bultos</b> entre las cuentas del HRN.</div><div class="hint" style="margin-top:12px">Nodos donde aparece</div><div class="tw"><table><tr><th>Nodo</th><th class="num">Costo asignado</th><th class="num">% de la cuenta</th></tr>${nm.map(([n, v]) => `<tr><td>${esc(n)}</td><td class="num">${fmt(v)}</td><td class="num">${c.costo ? (v / c.costo * 100).toFixed(0) : 0}%</td></tr>`).join('')}</table></div>`;
   } else {
     if (tipo === 'nodo') { sel = env.filter(e => e.nodo === k); titulo = 'Nodo'; nodoReg = k; }
     else if (tipo === 'age') { sel = env.filter(e => (e.agencia || '(sin agencia)') === k); titulo = 'Agencia'; }
@@ -1597,7 +1589,6 @@ document.addEventListener('click', e => {
   const d = e.target.closest('#tab-kpis [data-det]'); if (d) { const i = d.dataset.det.indexOf('|'); abrirDetalle(d.dataset.det.slice(0, i), d.dataset.det.slice(i + 1)); }
 });
 $('#kAgencia').onchange = $('#kZona').onchange = () => { kSync(); kAuto(); };
-$('#kPagoSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#kPago').value = b.dataset.g; kSync(); kAuto(); };
 let kpEnvios = [];
 let kMeta = { aplica: false };
 
@@ -1621,7 +1612,7 @@ async function traerHrn(desde, hasta) {
 // ---------- meta mensual ----------
 const mesNombre = m => { const [y, n] = m.split('-').map(Number), t = new Date(y, n - 1, 1).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' }); return t.charAt(0).toUpperCase() + t.slice(1); };
 async function cargarMeta() {
-  const mes = $('#kMes').value, sinFiltros = !$('#kTrans').value && !$('#kAgencia').value && !$('#kZona').value && !$('#kPago').value;
+  const mes = $('#kMes').value, sinFiltros = !$('#kTrans').value && !$('#kAgencia').value && !$('#kZona').value;
   if (!mes || !['mes', 'ant', 'sel'].includes(kst.p)) return { aplica: false, motivo: 'rango' };
   if (!sinFiltros) return { aplica: false, motivo: 'filtros', mes };
   const { data, error } = await sb.from('metas').select('monto').eq('mes', mes).maybeSingle();
@@ -1659,8 +1650,7 @@ document.addEventListener('click', e => { if (e.target.closest('#metaBtn')) abri
 function kParams() {
   const p = new URLSearchParams(), porMes = ['mes', 'ant', 'sel'].includes(kst.p) && $('#kMes').value;
   if (porMes) p.set('mes', $('#kMes').value); else { p.set('d', $('#kDesde').value); p.set('h', $('#kHasta').value); }
-  [['t', '#kTrans'], ['ag', '#kAgencia'], ['zo', '#kZona'], ['pg', '#kPago']].forEach(([k, id]) => { if ($(id).value) p.set(k, $(id).value); });
-  if ($('#kBase').value !== 'bultos') p.set('b', $('#kBase').value);
+  [['t', '#kTrans'], ['ag', '#kAgencia'], ['zo', '#kZona']].forEach(([k, id]) => { if ($(id).value) p.set(k, $(id).value); });
   const v = document.querySelector('#kpTabs .on')?.dataset.v; if (v && v !== 'res') p.set('v', v);
   return p.toString();
 }
@@ -1670,8 +1660,7 @@ function kAplicar(qs) {
   if (p.get('mes')) { kst.p = 'sel'; $('#kMes').value = p.get('mes'); rangoDeMes(); }
   else if (p.get('d')) { kst.p = 'per'; $('#kMes').value = ''; $('#kDesde').value = p.get('d'); $('#kHasta').value = p.get('h') || p.get('d'); }
   const t = p.get('t'); $('#kTrans').innerHTML = '<option value="">Todos</option>' + (t ? `<option>${esc(t)}</option>` : ''); $('#kTrans').value = t || '';
-  $('#kAgencia').value = p.get('ag') || ''; $('#kZona').value = p.get('zo') || ''; $('#kPago').value = p.get('pg') || '';
-  $('#kBase').value = ['bultos', 'pedidos', 'peso', 'volumen'].includes(p.get('b')) ? p.get('b') : 'bultos';
+  $('#kAgencia').value = p.get('ag') || ''; $('#kZona').value = p.get('zo') || '';
   kSync(); if (KT.includes(p.get('v'))) kTab(p.get('v'));
 }
 $('#kLink').onclick = () => { history.replaceState(null, '', '#kpis?' + kParams()); (navigator.clipboard ? navigator.clipboard.writeText(location.href) : Promise.reject()).then(() => toast('Enlace copiado: abre estos mismos filtros', 'ok'), () => toast('No se pudo copiar el enlace', 'err')); };
@@ -1778,7 +1767,7 @@ async function calcularKpis() {
     if (mi !== kSeq) return;
     if (!trans) pintarTransSeg([...new Set(envios.map(e => e.transporte).filter(Boolean))].sort());
     envios = envios.filter(kPasa); kpEnvios = envios;
-    const R = calcularKpi(envios, hrn, $('#kBase').value);
+    const R = calcularKpi(envios, hrn, 'bultos');
     kpiResultado = R;
     const dias = agruparDias(envios); diasResultado = dias;
     const nombradas = [...R.cuentas].filter(([k]) => k !== SIN_HRN);
