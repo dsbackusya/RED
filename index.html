@@ -1959,7 +1959,10 @@ async function lqExcel(filas, L) {
 // carpeta de una liquidación: Excel + fotos de las facturas
 async function lqCarpeta(zip, filas, L) {
   const cod = lqCod(L.numero), dir = zip.folder(cod), fotos = dir.folder('facturas'), usados = new Set();
-  dir.file(cod + '.xlsx', await lqExcel(filas, L));
+  // nombre del Excel: FORMATO RENDICIÓN - AÑO MES - DÍA (fecha del despacho); si hay otro igual en el ZIP, se numera
+  const [fy, fm, fd] = String(filas[0].fecha).slice(0, 10).split('-'), mes = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'][Number(fm) - 1];
+  const base = `FORMATO RENDICIÓN - ${fy} ${mes} - ${fd}`, previos = Object.keys(zip.files).filter(n => n.endsWith('.xlsx') && n.split('/').pop().startsWith(base)).length;
+  dir.file(base + (previos ? ` (${previos + 1})` : '') + '.xlsx', await lqExcel(filas, L));
   const cola = [...filas]; let falla = 0;
   await Promise.all(Array.from({ length: 5 }, async () => {
     while (cola.length) {
