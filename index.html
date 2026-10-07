@@ -683,7 +683,7 @@
       <label>Archivo Excel del día<input type="file" id="cFile" accept=".xlsx,.xls,.csv"></label>
       <button class="b sec" id="cPlantilla">Descargar plantilla</button>
     </div>
-    <p class="hint">Se lee la primera tabla con encabezados NODO, PEDIDOS, BULTO, CAJAS y TRANSPORTE (la hoja RESUMEN sirve tal cual). Agencia, modo de pago y detalle del gasto se completan desde Agencias. Las filas amarillas no están en esa hoja.</p>
+    <p class="hint">Un solo Excel: se lee el despacho (hoja RESUMEN, con NODO, PEDIDOS, BULTO, CAJAS y TRANSPORTE) y, si trae la hoja DETALLE, también su detalle por bulto. Agencia, modo de pago y detalle del gasto se completan desde Agencias. Las filas amarillas no están en esa hoja.</p>
     <div id="cMsg" class="msg"></div>
   </div>
   <div class="card hide" id="cPrev">
@@ -691,6 +691,7 @@
       <b id="cResumen"></b>
       <button class="b" id="cGuardar">Guardar en registros</button>
     </div>
+    <p class="hint" id="cHrn" style="margin:8px 0 0"></p>
     <div class="tw" style="margin-top:8px"><table id="cTabla"></table></div>
   </div>
 </section>
@@ -760,7 +761,7 @@
     <label>Ordenar por<select id="ctaOrd"><option value="costo">Costo (mayor a menor)</option><option value="cpp">Costo por pedido (mayor a menor)</option><option value="pedidos">Pedidos (mayor a menor)</option><option value="nombre">Nombre (A-Z)</option></select></label>
     <label class="hide">Mostrar<select id="ctaTop"><option value="8">Top 8</option><option value="12">Top 12</option><option value="999" selected>Todas</option></select></label>
     <label>Buscar cuenta<input id="ctaQ" placeholder="Nombre…"></label>
-    <label class="chk"><input type="checkbox" id="ctaSin" checked> Incluir "sin detalle HRN"</label>
+    <label class="chk"><input type="checkbox" id="ctaSin" checked> Incluir "sin detalle"</label>
     <div class="seg" id="ctaVista"><button data-v="barras" class="on">Barras</button><button data-v="tabla">Tabla</button></div>
   </div></div>
   <div class="cgrid">
@@ -829,9 +830,9 @@
   <div class="card">
     <div class="row">
       <label>Fecha del reporte<input type="date" id="hFecha"></label>
-      <label>Archivo Excel (hoja ( HRN ))<input type="file" id="hFile" accept=".xlsx,.xls,.csv"></label>
+      <label>Archivo Excel (hoja DETALLE)<input type="file" id="hFile" accept=".xlsx,.xls,.csv"></label>
     </div>
-    <p class="hint">Se lee la hoja ( HRN ) con sus 39 columnas, una fila por bulto. Los datos se acumulan: lo ya cargado no se borra y las filas repetidas de esa fecha no se duplican.</p>
+    <p class="hint">Se lee la hoja DETALLE con sus 39 columnas, una fila por bulto. Los datos se acumulan: lo ya cargado no se borra y las filas repetidas de esa fecha no se duplican.</p>
     <div id="hMsg" class="msg"></div>
   </div>
   <div class="card hide" id="hPrev">
@@ -977,6 +978,7 @@ const sb = supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
 
 let catalogo = new Map();   // nodo normalizado -> fila
 let previa = [];            // filas de la carga en curso
+let hrnCarga = null;        // detalle HRN encontrado en el mismo Excel
 let registros = [];
 
 // ---------- sesión ----------
@@ -1117,9 +1119,10 @@ function leerTabla(wb) {
 $('#cFile').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
   try {
-    await xlsxLib(); const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
+    hrnCarga = null; await xlsxLib(); const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
     const filas = leerTabla(wb);
-    if (!filas) return flash($('#cMsg'), 'No encontré una tabla con encabezados NODO y CAJAS. Usa la plantilla.', 'err');
+    if (!filas) return flash($('#cMsg'), 'No encontré una tabla con encabezados NODO y CAJAS. Usa la plantilla.' + (leerHrn(wb) ? ' Este archivo solo trae el detalle: súbelo en la pestaña Detalle.' : ''), 'err');
+    hrnCarga = leerHrn(wb);
     setPaso(2);
     previa = filas.map(r => {
       const c = catalogo.get(norm(r.nodo));
@@ -1146,6 +1149,7 @@ function pintarPrevia() {
       <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}"></td>
       <td data-c="pago" data-l="Modo de pago"><select data-f="modo_pago" data-v="${r.modo_pago}">${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
       <td data-c="detalle" data-l="Detalle del gasto"><input data-f="detalle_gasto" value="${esc(r.detalle_gasto)}"></td></tr>`).join('');
+  $('#cHrn').textContent = hrnCarga ? `Detalle en el mismo archivo: ${hrnCarga.length} filas, ${new Set(hrnCarga.map(r => r.nodo)).size} nodos. Se guardará junto con el despacho, sin borrar lo anterior.` : 'Este archivo no trae la hoja DETALLE: solo se guardará el despacho.';
   $('#cPrev').classList.remove('hide');
 }
 $('#cTabla').addEventListener('change', e => {
@@ -1169,8 +1173,13 @@ $('#cGuardar').onclick = async () => {
   const { error } = await sb.from('envios').upsert(filas, { onConflict: 'fecha,nodo' });
   $('#cGuardar').disabled = false;
   if (error) return flash($('#cMsg'), error.message, 'err');
-  flash($('#cMsg'), `Guardados ${filas.length} nodos del ${fdmy(fecha)}. Completa importe y factura en Registros.`, 'ok');
-  previa = []; $('#cPrev').classList.add('hide'); $('#cFile').value = ''; setPaso(1);
+  let extra = '';
+  if (hrnCarga) {
+    try { extra = ' Detalle: ' + hrnTexto(fecha, await guardarHrn(fecha, hrnCarga)) + '.'; }
+    catch (err) { previa = []; $('#cPrev').classList.add('hide'); $('#cFile').value = ''; setPaso(1); $('#rDesde').value = fecha; $('#rHasta').value = fecha; buscarRegistros(); return flash($('#cMsg'), `El despacho se guardó, pero el detalle no: ${err.message}. Súbelo de nuevo en la pestaña Detalle; no se duplicará.`, 'err'); }
+  }
+  flash($('#cMsg'), `Guardados ${filas.length} nodos del ${fdmy(fecha)}.${extra} Completa importe y factura en Registros.`, 'ok');
+  previa = []; hrnCarga = null; $('#cPrev').classList.add('hide'); $('#cFile').value = ''; setPaso(1);
   $('#rDesde').value = fecha; $('#rHasta').value = fecha; buscarRegistros();
 };
 
@@ -1433,7 +1442,7 @@ function valorHrn(v, tipo) {
   return String(v).trim();
 }
 function leerHrn(wb) {
-  const hojas = [...wb.SheetNames].sort((a, b) => norm(b).includes('HRN') - norm(a).includes('HRN'));
+  const hojas = [...wb.SheetNames].sort((a, b) => /DETALLE|HRN/.test(norm(b)) - /DETALLE|HRN/.test(norm(a)));
   for (const nombre of hojas) {
     const filas = XLSX.utils.sheet_to_json(wb.Sheets[nombre], { header: 1, defval: '', raw: true });
     const hi = filas.findIndex(f => f.some(c => norm(c) === 'PEDIDO CLIENTE'));
@@ -1459,7 +1468,7 @@ $('#hFile').onchange = async e => {
   try {
     await xlsxLib(); const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
     const filas = leerHrn(wb);
-    if (!filas) return flash($('#hMsg'), 'No encontré la hoja ( HRN ) con la columna "Pedido Cliente".', 'err');
+    if (!filas) return flash($('#hMsg'), 'No encontré la hoja DETALLE con la columna "Pedido Cliente".', 'err');
     hrnFilas = filas; $('#hMsg').className = 'msg'; pintarResumenHrn();
   } catch (err) { flash($('#hMsg'), 'No se pudo leer el archivo: ' + err.message, 'err'); }
 };
@@ -1476,21 +1485,26 @@ function pintarResumenHrn() {
     [...por].sort().map(([n, g]) => `<tr class="${catalogo.has(norm(n)) ? '' : 'miss'}"><td><b>${esc(n)}</b></td><td class="n">${g.peds.size}</td><td class="n">${g.bultos}</td><td class="n">${g.rolls.size}</td><td>${catalogo.has(norm(n)) ? 'Sí' : 'No'}</td></tr>`).join('');
   $('#hPrev').classList.remove('hide');
 }
+// acumulable: nunca se borra lo anterior; solo se agregan las filas que aún no están en esa fecha
+async function guardarHrn(fecha, filas) {
+  const clave = r => r.lpn ? 'L|' + r.lpn : 'P|' + [r.pedido_cliente, r.nodo, r.roll_contenedor, r.bultos].join('|');
+  const ya = await traerTodo(() => sb.from('hrn_detalle').select('lpn,pedido_cliente,nodo,roll_contenedor,bultos').eq('fecha_reporte', fecha).order('id'));
+  const existentes = new Set(ya.map(clave)), nuevas = filas.filter(r => !existentes.has(clave(r)));
+  for (let i = 0; i < nuevas.length; i += 400) {
+    const lote = nuevas.slice(i, i + 400).map(r => ({ ...r, fecha_reporte: fecha }));
+    const { error } = await sb.from('hrn_detalle').insert(lote); if (error) throw error;
+  }
+  hrnCargado = false;
+  return { nuevas: nuevas.length, repetidas: filas.length - nuevas.length };
+}
+const hrnTexto = (f, x) => x.nuevas ? `${x.nuevas === 1 ? 'se agregó 1 fila' : 'se agregaron ' + x.nuevas + ' filas'} al ${fdmy(f)}` + (x.repetidas ? `; ${x.repetidas} ya ${x.repetidas === 1 ? 'estaba cargada' : 'estaban cargadas'}` : '') : `no hay filas nuevas: las ${x.repetidas} ya estaban cargadas en el ${fdmy(f)}`;
 $('#hGuardar').onclick = async () => {
   const fecha = $('#hFecha').value;
   if (!fecha) return flash($('#hMsg'), 'Elige la fecha del reporte', 'err');
   $('#hGuardar').disabled = true;
   try {
-    // acumulable: nunca se borra lo anterior; solo se agregan las filas que aún no están en esa fecha
-    const clave = r => r.lpn ? 'L|' + r.lpn : 'P|' + [r.pedido_cliente, r.nodo, r.roll_contenedor, r.bultos].join('|');
-    const ya = await traerTodo(() => sb.from('hrn_detalle').select('lpn,pedido_cliente,nodo,roll_contenedor,bultos').eq('fecha_reporte', fecha).order('id'));
-    const existentes = new Set(ya.map(clave)), nuevas = hrnFilas.filter(r => !existentes.has(clave(r)));
-    for (let i = 0; i < nuevas.length; i += 400) {
-      const lote = nuevas.slice(i, i + 400).map(r => ({ ...r, fecha_reporte: fecha }));
-      const { error } = await sb.from('hrn_detalle').insert(lote); if (error) throw error;
-    }
-    const repetidas = hrnFilas.length - nuevas.length;
-    flash($('#hMsg'), nuevas.length ? `Se ${nuevas.length === 1 ? 'agregó 1 fila' : 'agregaron ' + nuevas.length + ' filas'} al ${fdmy(fecha)}` + (repetidas ? `; ${repetidas} ya ${repetidas === 1 ? 'estaba cargada' : 'estaban cargadas'}.` : '.') : `No hay filas nuevas: las ${repetidas} ya estaban cargadas en el ${fdmy(fecha)}.`, 'ok');
+    const x = await guardarHrn(fecha, hrnFilas), t = hrnTexto(fecha, x);
+    flash($('#hMsg'), t.charAt(0).toUpperCase() + t.slice(1) + '.', 'ok');
     hrnFilas = []; $('#hPrev').classList.add('hide'); $('#hFile').value = '';
     $('#qDesde').value = fecha; $('#qHasta').value = fecha; buscarHrn();
   } catch (err) { flash($('#hMsg'), 'Error al guardar: ' + err.message + '. Vuelve a cargar el archivo: las filas que ya entraron no se duplican.', 'err'); }
@@ -1528,14 +1542,14 @@ $('#qBuscar').onclick = buscarHrn;
 $('#qExport').onclick = async () => {
   await xlsxLib(); let todo; try { todo = await traerTodo(() => hrnConsultaQ('*', false)); } catch (e) { return flash($('#hMsg'), e.message, 'err'); }
   const aoa = [['Fecha reporte', ...HRN_COLS.map(c => c[1])]].concat(todo.map(r => [r.fecha_reporte, ...HRN_COLS.map(c => r[c[0]])]));
-  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'HRN');
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'DETALLE');
   XLSX.writeFile(wb, `hrn_${$('#qDesde').value || 'inicio'}_${$('#qHasta').value || 'hoy'}.xlsx`);
 };
 
 // ---------- KPIs ----------
 const fmt = n => 'S/ ' + (n || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtN = n => (n || 0).toLocaleString('es-PE');
-const SIN_HRN = '(SIN DETALLE HRN)';
+const SIN_HRN = '(SIN DETALLE)';
 let kpiResultado = null;
 
 async function traerTodo(crear) {
@@ -1548,7 +1562,7 @@ async function traerTodo(crear) {
   }
 }
 
-// Reparte el importe de cada nodo/día entre las cuentas del HRN en proporción a "base".
+// Reparte el importe de cada nodo/día entre las cuentas del detalle en proporción a "base".
 function calcularKpi(envios, hrn, base) {
   const grupos = new Map();
   hrn.forEach(r => {
@@ -1831,7 +1845,7 @@ function calidadKpi(R, envios) {
     item('', '', 'Con foto de factura adjunta', 'La lectura automática rellena factura e importe desde la foto.', sinAdj.length, 'registros', 'Adjuntar fotos') +
     item('', '#fef2f2', 'Con agencia asignada', `${esc([...new Set(sinAg.map(e => e.nodo))].join(', ') || 'Todos los nodos tienen agencia')}${sinAg.length ? ': faltan en el catálogo de agencias.' : '.'}`, sinAg.length, 'catalogo', 'Completar catálogo') +
     item('', '', 'Con zona', 'Necesaria para el análisis por zona y la matriz transporte × zona.', sinZona.length, 'catalogo', 'Completar catálogo') +
-    `<div class="cq-i"><div class="tx"><b>Importe repartido entre cuentas (HRN)</b><span>${R.sinHrn ? `${fmt(R.sinHrn)} sin cuenta: falta el HRN de ${R.sinHrnNodos.size} ${R.sinHrnNodos.size === 1 ? 'nodo' : 'nodos'}.` : 'Todo el costo está asignado a una cuenta.'}</span></div><div class="mt"><div class="tr"><i style="width:${hrnPc}%;background:${hrnPc >= 95 ? 'var(--grn)' : 'var(--amb)'}"></i></div><small>${hrnPc.toFixed(0)}% asignado</small></div><button class="b sec" data-go="detalle">Cargar HRN</button></div>`;
+    `<div class="cq-i"><div class="tx"><b>Importe repartido entre cuentas</b><span>${R.sinHrn ? `${fmt(R.sinHrn)} sin cuenta: falta el detalle de ${R.sinHrnNodos.size} ${R.sinHrnNodos.size === 1 ? 'nodo' : 'nodos'}.` : 'Todo el costo está asignado a una cuenta.'}</span></div><div class="mt"><div class="tr"><i style="width:${hrnPc}%;background:${hrnPc >= 95 ? 'var(--grn)' : 'var(--amb)'}"></i></div><small>${hrnPc.toFixed(0)}% asignado</small></div><button class="b sec" data-go="detalle">Cargar detalle</button></div>`;
   $('#dotCal').className = (sinImp.length || sinFac.length || sinAdj.length || sinAg.length || sinZona.length || R.sinHrn) ? 'dotw' : '';
 }
 // ---------- detalle lateral ----------
@@ -1842,7 +1856,7 @@ function abrirDetalle(tipo, k) {
     const c = R.cuentas.get(k); if (!c) return; titulo = 'Cuenta';
     const nm = [...(R.cuentaNodos.get(k) || [])].sort((a, b) => b[1] - a[1]), prom = R.pedidos ? R.total / R.pedidos : 0;
     kpis = `<div><span>Costo asignado</span><b>${fmt(c.costo)}</b></div><div><span>% del total</span><b>${R.total ? (c.costo / R.total * 100).toFixed(1) : 0}%</b></div><div><span>Pedidos</span><b>${fmtN(c.pedidos)}</b></div><div><span>Costo por pedido</span><b>${c.pedidos ? fmt(c.costo / c.pedidos) : '-'}</b></div>`;
-    extra = `<div class="hint">${c.pedidos && prom ? `Comparado con el promedio (${fmt(prom)}): <b>${(c.costo / c.pedidos / prom).toFixed(1)}×</b>. ` : ''}El costo se reparte desde cada nodo por <b>bultos</b> entre las cuentas del HRN.</div><div class="hint" style="margin-top:12px">Nodos donde aparece</div><div class="tw"><table><tr><th>Nodo</th><th class="num">Costo asignado</th><th class="num">% de la cuenta</th></tr>${nm.map(([n, v]) => `<tr><td>${esc(n)}</td><td class="num">${fmt(v)}</td><td class="num">${c.costo ? (v / c.costo * 100).toFixed(0) : 0}%</td></tr>`).join('')}</table></div>`;
+    extra = `<div class="hint">${c.pedidos && prom ? `Comparado con el promedio (${fmt(prom)}): <b>${(c.costo / c.pedidos / prom).toFixed(1)}×</b>. ` : ''}El costo se reparte desde cada nodo por <b>bultos</b> entre las cuentas del detalle.</div><div class="hint" style="margin-top:12px">Nodos donde aparece</div><div class="tw"><table><tr><th>Nodo</th><th class="num">Costo asignado</th><th class="num">% de la cuenta</th></tr>${nm.map(([n, v]) => `<tr><td>${esc(n)}</td><td class="num">${fmt(v)}</td><td class="num">${c.costo ? (v / c.costo * 100).toFixed(0) : 0}%</td></tr>`).join('')}</table></div>`;
   } else {
     if (tipo === 'nodo') { sel = env.filter(e => e.nodo === k); titulo = 'Nodo'; nodoReg = k; }
     else if (tipo === 'age') { sel = env.filter(e => (e.agencia || '(sin agencia)') === k); titulo = 'Agencia'; }
@@ -2020,7 +2034,7 @@ function pintarAlertas(R) {
     o: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' };
   const nb = (tipo, texto, go, accion) => `<div class="nb ${tipo}">${ic[tipo]}<div class="t">${texto}</div>${go ? `<span class="go" data-go="${go}">${accion}</span>` : ''}<button class="x" aria-label="Cerrar">${ICO.x}</button></div>`;
   const out = [];
-  if (R.sinHrn) { const n = R.sinHrnNodos.size, f = [...R.sinHrnFechas].sort().map(x => fdmy(x).slice(0, 5)); out.push(nb('w', `<b>${fmt(R.sinHrn)} sin cuenta asignada.</b> Falta el HRN de ${n} ${n === 1 ? 'nodo' : 'nodos'} (${f.slice(0, 4).join(', ')}${f.length > 4 ? '…' : ''}).`, 'detalle', 'Cargar HRN')); }
+  if (R.sinHrn) { const n = R.sinHrnNodos.size, f = [...R.sinHrnFechas].sort().map(x => fdmy(x).slice(0, 5)); out.push(nb('w', `<b>${fmt(R.sinHrn)} sin cuenta asignada.</b> Falta el detalle de ${n} ${n === 1 ? 'nodo' : 'nodos'} (${f.slice(0, 4).join(', ')}${f.length > 4 ? '…' : ''}).`, 'detalle', 'Cargar detalle')); }
   if (R.pendientes) out.push(nb('w', `<b>${R.pendientes} ${R.pendientes === 1 ? 'registro sin importe' : 'registros sin importe'}</b> no ${R.pendientes === 1 ? 'entra' : 'entran'} al cálculo.`, 'registros', 'Ir a Registros'));
   $('#kpAlertas').innerHTML = out.join('');
 }
