@@ -1411,7 +1411,8 @@ $('#cGuardar').onclick = async () => {
     try { detalle = ` Detalle: ${hrnTexto(fecha, await guardarHrn(fecha, hrnCarga))}.`; }
     catch (err) { cReiniciar(); return flash($('#cMsg'), `El despacho se guardó, pero el detalle no: ${err.message}. Vuelve a subir el mismo archivo: las filas del detalle que ya entraron no se duplican.`, 'err'); }
   }
-  cMostrarOk('Despacho guardado', `${filas.length} ${filas.length === 1 ? 'nodo' : 'nodos'} del ${fdmy(fecha)}.${detalle} Falta completar importe y factura de cada registro.`, false);
+  const hayD = filas.some(r => r.motivo === 'DESPACHO'), hayR = filas.some(r => r.motivo === 'RECOJO');
+  cMostrarOk(hayD && hayR ? 'Despachos y recojos guardados' : hayR ? (filas.length === 1 ? 'Recojo guardado' : 'Recojos guardados') : (filas.length === 1 ? 'Despacho guardado' : 'Despachos guardados'), `${filas.length} ${filas.length === 1 ? 'registro' : 'registros'} del ${fdmy(fecha)}.${detalle} Falta completar importe y factura de cada uno.`, false);
   previa = []; hrnCarga = null; $('#cFile').value = '';
 };
 cChips(); setPaso(1);
