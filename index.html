@@ -483,17 +483,6 @@
     #rTabla td, #kTabla td { display:block; padding:0; border:0; white-space:normal; min-width:0; background:none !important; text-align:left }
     #rTabla td[data-l]::before, #kTabla td[data-l]::before { content:attr(data-l); display:block; margin-bottom:4px; font-size:12px; color:var(--mut); font-weight:500 }
     #rTabla td input, #rTabla td select, #kTabla td input, #kTabla td select { width:100% !important; min-width:0 !important; background:var(--head); border:0; text-align:left; padding:10px 12px; font-size:16px }
-    #rTabla td input.chip { width:100% !important; text-align:left } #rTabla td.n input { text-align:left; font-weight:600 }
-    #rTabla td[data-c=nodo] { grid-column:1/-1; order:1; font-size:19px; font-weight:700; letter-spacing:-.02em } #rTabla .nodo { font-size:19px }
-    #rTabla td[data-c=estado] { grid-column:1/3; order:2 } #rTabla td[data-c=motivo] { grid-column:3/5; order:2 } #rTabla td[data-c=fecha] { grid-column:5/7; order:3; text-align:right; font-size:13px; color:var(--mut); align-self:center }
-    #rTabla td[data-c=trans] { grid-column:1/4; order:4 } #rTabla td[data-c=pago] { grid-column:4/7; order:5 }
-    #rTabla td[data-c=importe] { grid-column:1/4; order:6 } #rTabla td[data-c=factura] { grid-column:4/7; order:7 }
-    #rTabla td[data-c=adj] { grid-column:1/-1; order:8 } #rTabla td[data-c=agencia] { grid-column:1/-1; order:9 }
-    #rTabla td[data-c=placa] { grid-column:1/4; order:10 } #rTabla td[data-c=bultos] { grid-column:4/5; order:11 } #rTabla td[data-c=pedidos] { grid-column:5/6; order:12 } #rTabla td[data-c=cajas] { grid-column:6/7; order:13 }
-    #rTabla td[data-c=bultos], #rTabla td[data-c=pedidos], #rTabla td[data-c=cajas] { text-align:center; font-weight:600; font-size:16px } #rTabla td[data-c=bultos]::before, #rTabla td[data-c=pedidos]::before, #rTabla td[data-c=cajas]::before { text-align:center }
-    #rTabla td[data-c=detalle] { grid-column:1/-1; order:14 } #rTabla td[data-c=del] { grid-column:1/-1; order:15; text-align:right; border-top:1px solid var(--line); padding-top:8px; margin-top:2px } #rTabla .del { min-height:40px; font-size:15px }
-    #rTabla td.adj { min-width:0 } #rTabla td.adj a { display:inline-flex; align-items:center; gap:8px; font-size:16px } #rTabla .thumb { width:44px; height:44px }
-    #rTabla td.adj .lnk, #rTabla td.adj button { font-size:16px; min-height:40px }
     #rPag { flex-direction:column; align-items:stretch; gap:10px; background:none; border:0; padding:6px 0 0 } #rPag .l, #rPag .r { justify-content:space-between; flex-wrap:wrap }
     #rPag button { min-width:40px; min-height:40px }
     /* Agencias */
@@ -527,8 +516,6 @@
     .pseg { display:flex; width:100%; overflow-x:auto } .pseg button { flex:1 0 auto; padding:7px 14px }
     .row > label:has(input[type=date]) { flex:1 1 calc(50% - 6px); min-width:0 } .fb .fg:has(input[type=date]), .fb .rg { min-width:0 }
     .rg { width:100% } .rg input { flex:1; min-width:0 }
-    #rTabla td.adj { display:flex !important; flex-wrap:wrap; align-items:center; gap:6px 18px } #rTabla td.adj::before { flex-basis:100% }
-    #rTabla td.adj a { text-decoration:none; color:var(--pri) } #rTabla td.adj button.b { width:100% }
     #rTabla td select[data-v] { text-align:center; border-radius:12px; font-size:15px; font-weight:600 }
     .lqsel { display:flex; gap:20px; padding:0 4px 10px; font-size:15px } .lqsel button { padding:6px 0; font-size:15px }
     .kpis { grid-template-columns:1fr 1fr } .kpi small { overflow:visible; white-space:normal }
@@ -568,34 +555,73 @@
     #lqHist td:first-child { font-size:17px }
   }
 
-  /* Registros en escritorio: todas las columnas caben (ancho fijo, textos largos con "…", acciones como íconos) */
+  /* Registros en escritorio: todas las columnas caben (ancho fijo, textos largos con "…") */
   @media (min-width:761px) {
     main:has(#tab-registros:not(.hide)) { max-width:1680px }
     #tab-registros .tw { overflow-x:auto }
-    #rTabla { table-layout:fixed; width:100%; min-width:1280px }
-    #rTabla th[data-c=fecha] { width:82px } #rTabla th[data-c=estado] { width:100px } #rTabla th[data-c=motivo] { width:92px } #rTabla th[data-c=trans] { width:74px } #rTabla th[data-c=nodo] { width:100px }
-    #rTabla th[data-c=bultos], #rTabla th[data-c=pedidos], #rTabla th[data-c=cajas] { width:50px; text-align:center } #rTabla th[data-c=placa] { width:78px }
-    #rTabla th[data-c=pago] { width:88px } #rTabla th[data-c=importe] { width:84px } #rTabla th[data-c=factura] { width:120px } #rTabla th[data-c=adj] { width:96px } #rTabla th[data-c=del] { width:40px }
+    #rTabla { table-layout:fixed; width:100%; min-width:1200px }
     #rTabla th, #rTabla td { padding-left:6px; padding-right:6px; overflow:hidden; text-overflow:ellipsis }
-    #rTabla td input, #rTabla td select { min-width:0 !important; width:100%; text-overflow:ellipsis }
-    #rTabla td input.chip { width:100%; min-width:0 } #rTabla td.n input { min-width:0 }
-    #rTabla td.adj { min-width:0; display:table-cell; white-space:nowrap } #rTabla td.adj .thumb { vertical-align:middle } #rTabla td.adj .tx { display:none } #rTabla td.adj .ic { display:inline }
-    #rTabla td.adj a { text-decoration:none; margin-right:2px } #rTabla td.adj .lnk { text-decoration:none; font-size:16px; color:var(--mut); padding:2px 5px; border-radius:6px; line-height:1 } #rTabla td.adj .lnk:hover { background:var(--head); color:var(--ink) }
-    #rTabla td.adj [data-act=quitar]:hover { color:var(--bad) } #rTabla td.adj > button.b { padding:6px 10px; font-size:12px }
-    #rTabla .del .tx { display:none } #rTabla .del { padding:6px; border-radius:8px } #rTabla th.c { text-align:center }
+    #rTabla th[data-c=fecha] { width:84px } #rTabla th[data-c=motivo] { width:90px } #rTabla th[data-c=trans] { width:80px } #rTabla th[data-c=nodo] { width:120px }
+    #rTabla th[data-c=bultos], #rTabla th[data-c=pedidos], #rTabla th[data-c=cajas] { width:56px; text-align:center }
+    #rTabla th[data-c=pago] { width:100px } #rTabla th[data-c=importe] { width:104px } #rTabla th[data-c=prog] { width:184px } #rTabla th[data-c=acc] { width:122px }
+    #rTabla td input, #rTabla td select { min-width:0 !important; width:100%; text-overflow:ellipsis; font-size:13px }
+    #rTabla td[data-c=agencia] input { padding-left:6px; padding-right:4px }
+    #rTabla td[data-c=acc] { white-space:nowrap; overflow:visible } #rTabla .del .tx { display:none } #rTabla .del { padding:6px; border-radius:8px } #rTabla th.c { text-align:center }
     #rTabla td[data-c=nodo] .nodo { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
     #rTabla td .tb { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
   }
-  @media (max-width:760px) { #rTabla td.adj .ic { display:none } #rTabla td.adj .tx { display:inline } #rTabla .del .tx { display:inline } }
-
-  /* en pantallas medianas se oculta "Detalle del gasto" (es automático) para que la agencia se lea completa */
-  @media (min-width:761px) and (max-width:1499px) { #rTabla th[data-c=detalle], #rTabla td[data-c=detalle] { display:none } #rTabla { min-width:1210px } }
-
-  @media (min-width:761px) {
-    #rTabla input[type=number]::-webkit-inner-spin-button, #rTabla input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0 } #rTabla input[type=number] { -moz-appearance:textfield; appearance:textfield }
-    #rTabla td.adj .thumb { width:26px; height:26px } #rTabla td.n input { padding-right:4px }
+  /* Registros en móvil: cada registro es una tarjeta */
+  @media (max-width:760px) {
+    #rTabla tr[data-id] { grid-auto-flow:row dense }
+    #rTabla td[data-c=nodo] { grid-column:1/5; order:1; font-size:19px; font-weight:700; letter-spacing:-.02em } #rTabla .nodo { font-size:19px }
+    #rTabla td[data-c=motivo] { grid-column:5/7; order:1; text-align:right; align-self:center }
+    #rTabla td[data-c=fecha] { grid-column:1/4; order:2; font-size:13px; color:var(--mut) } #rTabla td[data-c=trans] { grid-column:4/7; order:2; text-align:right }
+    #rTabla td[data-c=bultos] { grid-column:1/3; order:3 } #rTabla td[data-c=pedidos] { grid-column:3/5; order:3 } #rTabla td[data-c=cajas] { grid-column:5/7; order:3 }
+    #rTabla td[data-c=bultos], #rTabla td[data-c=pedidos], #rTabla td[data-c=cajas] { text-align:center; font-weight:600; font-size:16px } #rTabla td[data-c=bultos]::before, #rTabla td[data-c=pedidos]::before, #rTabla td[data-c=cajas]::before { text-align:center }
+    #rTabla td[data-c=agencia] { grid-column:1/-1; order:4 }
+    #rTabla td[data-c=pago] { grid-column:1/4; order:5 } #rTabla td[data-c=importe] { grid-column:4/7; order:5; text-align:right; font-size:19px }
+    #rTabla td[data-c=prog] { grid-column:1/-1; order:6 }
+    #rTabla td[data-c=acc] { grid-column:1/-1; order:7; display:flex; gap:8px; border-top:1px solid var(--line); padding-top:12px; margin-top:2px }
+    #rTabla td[data-c=acc] .b.edit { flex:1; justify-content:center; min-height:44px; font-size:15px } #rTabla .del { min-height:44px; font-size:15px; padding:0 14px } #rTabla .del .tx { display:inline }
   }
-  @media (min-width:761px) { #rTabla td input.chip { font-size:11px; padding-left:6px; padding-right:6px } #rTabla td input, #rTabla td select { font-size:13px } #rTabla td[data-c=agencia] input { padding-left:6px; padding-right:4px } }
+
+  /* progreso (stepper) y ventana de edición del registro */
+  .stp { display:flex; align-items:center }
+  .stp .pt { display:grid; place-items:center; width:20px; height:20px; border-radius:50%; border:2px solid #c7c7cc; background:var(--card); color:#fff; flex:none }
+  .stp .pt svg { width:11px; height:11px; display:none; stroke-width:3.2 }
+  .stp .pt.hecho { background:var(--ok); border-color:var(--ok) } .stp .pt.hecho svg { display:block }
+  .stp .pt.env { background:var(--pri); border-color:var(--pri) } .stp .pt.env svg { display:block }
+  .stp .pt.sig { border-color:var(--pri); box-shadow:0 0 0 3px rgba(0,102,204,.15) }
+  .stp .ln { width:14px; height:2px; background:#d2d2d7; flex:none } .stp .ln.hecho { background:var(--ok) }
+  .rprog { display:flex; flex-direction:column; gap:5px; align-items:flex-start } .rprog .tx { font-size:12px; font-weight:600 }
+  .rprog .tx.ok { color:var(--ok) } .rprog .tx.w { color:var(--warn) } .rprog .tx.e { color:var(--pri) }
+  .placa { display:block; font-size:11px; color:var(--mut); font-weight:500; margin-top:1px; overflow:hidden; text-overflow:ellipsis }
+  button.b.edit { background:var(--card); color:var(--pri); border-color:#cfe1f5; padding:6px 13px } button.b.edit:hover { background:#f0f6fd; border-color:#cfe1f5 }
+  button.b .ico { width:14px; height:14px }
+  #regDlg { width:min(620px,94vw) }
+  #regDlg .rm-h { padding:22px 26px 0; display:flex; justify-content:space-between; align-items:flex-start; gap:12px }
+  #regDlg .rm-h small { color:var(--mut); font-size:13px } #regDlg h2 { margin:2px 0 0; font-size:24px; letter-spacing:-.025em }
+  #regDlg .rm-meta { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px }
+  #regDlg .rm-nav { display:flex; gap:2px } #regDlg .rm-ib { border:0; background:none; color:var(--mut); cursor:pointer; padding:7px; border-radius:8px; display:grid; place-items:center } #regDlg .rm-ib:hover { background:var(--head); color:var(--ink) } #regDlg .rm-ib:disabled { opacity:.3; cursor:default } #regDlg .rm-ib .ico { width:18px; height:18px }
+  #regDlg .rm-st { margin:20px 26px 6px; padding:16px 18px; background:var(--head); border-radius:14px }
+  #regDlg .stp.g { justify-content:space-between } #regDlg .stp.g .it { display:flex; flex-direction:column; align-items:center; gap:6px; width:72px; font-size:12px; color:var(--mut); text-align:center } #regDlg .stp.g .it.hecho { color:var(--ink); font-weight:600 }
+  #regDlg .stp.g .pt { width:26px; height:26px } #regDlg .stp.g .pt svg { width:14px; height:14px } #regDlg .stp.g .ln { flex:1; width:auto; margin-top:-22px }
+  #regDlg .rm-b { padding:14px 26px 6px; display:grid; grid-template-columns:1fr 1fr; gap:14px }
+  #regDlg label { display:flex; flex-direction:column; gap:5px; font-size:13px; color:var(--mut); font-weight:500 } #regDlg label.full { grid-column:1/-1 }
+  #regDlg input { font:inherit; font-size:16px; padding:11px 13px; border:0; border-radius:12px; background:var(--head); color:var(--ink); width:100% }
+  #regDlg input:focus { outline:2px solid rgba(0,102,204,.45); background:var(--card) } #regDlg input:disabled { opacity:.55 }
+  #regDlg .imp { position:relative } #regDlg .imp input { padding-left:36px; font-weight:600 } #regDlg .imp::before { content:"S/"; position:absolute; left:13px; bottom:12px; color:var(--mut); font-weight:600 }
+  #regDlg .rm-foto { grid-column:1/-1; display:flex; gap:14px; align-items:center; border:1.5px dashed #c7c7cc; border-radius:14px; padding:12px; background:#fafafc }
+  #regDlg .rm-th { width:74px; height:74px; border-radius:10px; background:var(--head); display:grid; place-items:center; color:var(--mut); flex:none; overflow:hidden } #regDlg .rm-th img { width:100%; height:100%; object-fit:cover } #regDlg .rm-th .ico { width:26px; height:26px }
+  #regDlg .rm-tx { flex:1; min-width:0 } #regDlg .rm-tx b { display:block; font-size:14px; color:var(--ink) } #regDlg .rm-tx span { font-size:12px; color:var(--mut) }
+  #regDlg .rm-ac { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end }
+  #regDlg .rm-av { grid-column:1/-1; background:var(--warnbg); color:var(--warn); border-radius:12px; padding:10px 13px; font-size:13px }
+  #regDlg .rm-f { padding:18px 26px 22px; display:flex; gap:8px; justify-content:flex-end; align-items:center } #regDlg .rm-f .sp { flex:1; color:var(--mut); font-size:13px }
+  @media (max-width:760px) {
+    #regDlg .rm-b { grid-template-columns:1fr } #regDlg h2 { font-size:22px } #regDlg .stp.g .it { width:60px }
+    #regDlg .rm-foto { flex-wrap:wrap } #regDlg .rm-ac { width:100%; justify-content:flex-start }
+    #regDlg .rm-f { position:sticky; bottom:0; background:var(--card); border-top:1px solid var(--line) } #regDlg .rm-f .sp { display:none } #regDlg .rm-f .b { flex:1; justify-content:center; padding:12px; font-size:15px }
+  }
   .ico { width:1.1em; height:1.1em; vertical-align:-.2em; flex:none } .ar { display:inline-block; vertical-align:0; margin-left:2px } .nb .x svg, .x2 svg, .x2 { display:grid; place-items:center }
   .pag button .ico { width:14px; height:14px; vertical-align:-2px }
 </style>
@@ -692,7 +718,7 @@
 
 <section id="tab-registros" class="hide">
   <div class="top">
-    <div><h1>Registros</h1><div class="sub">Edita el importe, la factura y el resto de celdas directamente en la tabla</div></div>
+    <div><h1>Registros</h1><div class="sub">Sigue el avance de cada registro y edita placa, importe, factura y foto con Editar</div></div>
     <div class="acts"><button class="b sec" id="rRefrescar">Refrescar</button><button class="b" id="rNuevo">Nuevo registro</button></div>
   </div>
   <div class="kpis" id="rCards"></div>
@@ -709,7 +735,7 @@
       <button class="b sec" id="rExport">Excel</button>
     </div>
     <div id="rMsg" class="msg"></div>
-    <div class="fbar"><span><i class="dot"></i>Edita importe, factura y demás celdas directamente; se guardan al salir de la celda.</span><span id="rTotal"></span></div>
+    <div class="fbar"><span><i class="dot"></i>Agencia y pago se editan en la tabla y se guardan al salir de la celda; placa, importe, factura y foto con el botón Editar.</span><span id="rTotal"></span></div>
   </div>
   <div class="card tcard">
     <div class="tw"><table id="rTabla"></table></div>
@@ -879,6 +905,22 @@
   <button data-tab="catalogo">Agencias<small>Destinos, agencias y zonas</small></button>
   <button class="cancel" id="masX">Cerrar</button>
 </div></div>
+<dialog id="regDlg"><form id="rmF" autocomplete="off">
+  <div class="rm-h">
+    <div><small id="rmSub"></small><h2 id="rmNodo"></h2><div class="rm-meta" id="rmMeta"></div></div>
+    <div class="rm-nav"><button type="button" class="rm-ib" id="rmPrev" aria-label="Registro anterior"></button><button type="button" class="rm-ib" id="rmNext" aria-label="Registro siguiente"></button><button type="button" class="rm-ib" id="rmX" aria-label="Cerrar"></button></div>
+  </div>
+  <div class="rm-st" id="rmSt"></div>
+  <div class="rm-b">
+    <div class="rm-av" id="rmAv" hidden></div>
+    <label>Placa<input id="rmPlaca" placeholder="ABC-123"></label>
+    <label class="imp">Importe<input id="rmImp" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00"></label>
+    <label class="full">N° de factura<input id="rmFac" placeholder="F001-0000"></label>
+    <label class="full">Detalle del gasto<input id="rmDet"></label>
+    <div class="rm-foto"><div class="rm-th" id="rmTh"></div><div class="rm-tx"><b id="rmTt"></b><span id="rmTs"></span></div><div class="rm-ac" id="rmAc"></div></div>
+  </div>
+  <div class="rm-f"><span class="sp" id="rmHint"></span><button type="button" class="b sec" id="rmCancel">Cancelar</button><button type="button" class="b sec" id="rmSig">Guardar y siguiente</button><button class="b" id="rmOk">Guardar</button></div>
+</form></dialog>
 <div class="ov" id="ov"></div>
 <aside class="dr" id="dr" aria-label="Detalle"><header><div><small id="drT"></small><h2 id="drN"></h2></div><button class="x2" id="drX" aria-label="Cerrar"></button></header><div class="bd" id="drB"></div></aside>
 <dialog id="metaDlg"><div class="in">
@@ -931,6 +973,8 @@ const ICO = {
   x: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
   check: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   prev: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+  img: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg>',
+  edit: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg>',
   next: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>'
 };
 const flecha = sube => `<svg class="ar" viewBox="0 0 10 10" width="9" height="9" fill="currentColor" aria-hidden="true"><path d="${sube ? 'M5 1.5l4 7H1z' : 'M5 8.5l-4-7h8z'}"/></svg>`;
@@ -1207,17 +1251,11 @@ const BUCKET = 'Facturas';
 const MAX_ADJUNTO = 20 * 1024;   // todo adjunto se guarda con 20 KB o menos
 const urlAdjunto = path => sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 const esImagen = path => /\.(png|jpe?g|gif|webp|bmp|heic)$/i.test(path);
-function adjuntoHtml(r) {
-  const fijo = regEnviado(r);
-  if (!r.factura_archivo) return `<button class="b sec" data-act="adjuntar">${ICO.clip} Adjuntar</button>`;
-  const u = esc(urlAdjunto(r.factura_archivo));
-  return `<a href="${u}" target="_blank" rel="noopener" title="Ver factura">${esImagen(r.factura_archivo) ? `<img class="thumb" src="${u}" alt="Factura">` : ICO.file}<span class="tx"> Ver</span></a>${fijo ? '' : `<button class="lnk" data-act="adjuntar" title="Cambiar foto"><span class="ic">${ICO.refresh}</span><span class="tx">Cambiar</span></button><button class="lnk" data-act="quitar" title="Quitar foto"><span class="ic">${ICO.x}</span><span class="tx">Quitar</span></button>`}`;
-}
 let adjId = null;
 $('#adjFile').onchange = async e => {
   const f = e.target.files[0]; e.target.value = '';
   if (!f || !adjId) return;
-  const r = registros.find(x => x.id === adjId); if (!r) return;
+  const r = regBase.find(x => x.id === adjId); if (!r) return;
   if (!/^(image\/|application\/pdf)/.test(f.type)) return flash($('#rMsg'), 'Solo se aceptan imágenes o PDF.', 'err');
   const esImg = f.type.startsWith('image/');
   if (f.size > 30 * 1024 * 1024) return flash($('#rMsg'), 'El archivo supera los 30 MB.', 'err');
@@ -1287,12 +1325,12 @@ $('#fGuardar').onclick = async () => {
   const { error } = await sb.from('envios').update(cambios).eq('id', fReg.id);
   $('#fGuardar').disabled = false;
   if (error) { $('#fEstado').className = 'aviso'; $('#fEstado').textContent = 'No se pudo guardar: ' + error.message; return; }
-  cerrarFactura(); flash($('#rMsg'), 'Datos de la factura guardados', 'ok'); buscarRegistros();
+  Object.assign(fReg, cambios); cerrarFactura(); flash($('#rMsg'), 'Datos de la factura guardados', 'ok');
+  repintarFila(fReg); contarEstados(); pintarResumenRegistros(); rmSync(fReg);
 };
 function refrescarAdjunto(r) {
-  const tr = document.querySelector(`#rTabla tr[data-id="${r.id}"]`); if (!tr) return;
-  tr.querySelector('td.adj').innerHTML = adjuntoHtml(r);
-  const te = tr.querySelector('td[data-c=estado]'); if (te) te.innerHTML = estadoTag(r); contarEstados();
+  repintarFila(r); contarEstados();
+  if ($('#regDlg').open && rm.id === r.id) { rmFoto(r); rmVivo(); }
 }
 
 // ---------- registros ----------
@@ -1320,29 +1358,35 @@ function pintarResumenRegistros() {
   $('#rTotal').innerHTML = `<b>${d.length}</b> registros encontrados, Importe total <b>${fmt(tot)}</b>`;
 }
 const lqCod = n => 'LIQ-' + String(n).padStart(4, '0');
-function estadoTag(r) {
-  if (regEnviado(r)) return `<span class="tb env" title="Incluido en ${lqNumeros.has(r.liquidacion_id) ? lqCod(lqNumeros.get(r.liquidacion_id)) : 'una liquidación'}">Enviado${lqNumeros.has(r.liquidacion_id) ? ' ' + lqCod(lqNumeros.get(r.liquidacion_id)).slice(4) : ''}</span>`;
-  return regListo(r) ? '<span class="tb">Terminado</span>' : '<span class="tb pen">Pendiente</span>';
+// avance del registro: importe, factura, foto y enviado
+const PASOS = ['Importe', 'Factura', 'Foto', 'Enviado'];
+const regPasos = r => [Number(r.importe) > 0, !!r.factura, !!r.factura_archivo, regEnviado(r)];
+const regFalta = r => regEnviado(r) ? ['e', 'Enviado' + (lqNumeros.has(r.liquidacion_id) ? ' ' + lqCod(lqNumeros.get(r.liquidacion_id)) : '')] : !(Number(r.importe) > 0) ? ['w', 'Falta importe'] : !r.factura ? ['w', 'Falta factura'] : !r.factura_archivo ? ['w', 'Falta foto'] : ['ok', 'Lista para liquidar'];
+function stepper(r, grande) {
+  const p = regPasos(r), sig = p.findIndex(x => !x);
+  return '<div class="stp' + (grande ? ' g' : '') + '">' + p.map((h, i) => {
+    const punto = `<span class="pt ${h ? (i === 3 ? 'env' : 'hecho') : i === sig ? 'sig' : ''}" title="${PASOS[i]}">${ICO.check}</span>`;
+    return (grande ? `<div class="it${h ? ' hecho' : ''}">${punto}<span>${PASOS[i]}</span></div>` : punto) + (i < 3 ? `<span class="ln${h ? ' hecho' : ''}"></span>` : '');
+  }).join('') + '</div>';
 }
 function filaRegistro(r) {
-  const L = regEnviado(r) ? ' disabled title="Está en una liquidación. Anúlala para editarlo."' : '';
+  const L = regEnviado(r) ? ' disabled title="Está en una liquidación. Anúlala para editarlo."' : '', [k, t] = regFalta(r);
   return `<tr data-id="${r.id}">
-      <td class="mono sm" data-c="fecha">${fdmy(r.fecha)}</td><td data-c="estado">${estadoTag(r)}</td><td data-c="motivo">${motTag(r.motivo)}</td><td data-c="trans" data-l="Transporte">${tbadge(r.transporte)}</td><td data-c="nodo"><span class="nodo" title="${esc(r.nodo)}">${PIN}${esc(r.nodo)}</span></td>
+      <td class="mono sm" data-c="fecha">${fdmy(r.fecha)}</td><td data-c="motivo">${motTag(r.motivo)}</td><td data-c="trans" data-l="Transporte">${tbadge(r.transporte)}</td>
+      <td data-c="nodo"><span class="nodo" title="${esc(r.nodo)}">${PIN}${esc(r.nodo)}</span>${r.placa ? `<span class="placa mono">${esc(r.placa)}</span>` : ''}</td>
       <td class="c" data-c="bultos" data-l="Bultos">${r.bultos ?? ''}</td><td class="c" data-c="pedidos" data-l="Pedidos">${r.pedidos ?? ''}</td><td class="c" data-c="cajas" data-l="Cajas">${r.cajas ?? ''}</td>
-      <td data-c="placa" data-l="Placa"><input class="chip mono" data-f="placa" value="${esc(r.placa)}" placeholder="placa"></td>
       <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" title="${esc(r.agencia)}" value="${esc(r.agencia)}" placeholder="Sin agencia asignada"></td>
-      <td data-c="detalle" data-l="Detalle del gasto"><input data-f="detalle_gasto" value="${esc(r.detalle_gasto)}"></td>
       <td class="c" data-c="pago" data-l="Pago"><select data-f="modo_pago" data-v="${r.modo_pago}"${L}>${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
-      <td class="n" data-c="importe" data-l="Importe"><input class="mono imp" data-f="importe" type="number" step="0.01" value="${r.importe == null ? '' : Number(r.importe).toFixed(2)}" placeholder="0.00"${L}></td>
-      <td data-c="factura" data-l="N° de factura"><input class="mono" data-f="factura" value="${esc(r.factura)}" placeholder="F001-0000"${L}></td>
-      <td class="adj" data-c="adj" data-l="Factura adjunta">${adjuntoHtml(r)}</td>
-      <td class="c" data-c="del"><button class="del" data-del="1"${L} title="Eliminar registro" aria-label="Eliminar registro">${TRASH}<span class="tx"> Eliminar</span></button></td></tr>`;
+      <td class="num" data-c="importe" data-l="Importe">${Number(r.importe) > 0 ? `<b class="mono">${Number(r.importe).toFixed(2)}</b>` : '<span class="sm">sin importe</span>'}</td>
+      <td data-c="prog"><div class="rprog">${stepper(r)}<span class="tx ${k}">${t}</span></div></td>
+      <td class="c" data-c="acc"><button class="b edit" data-act="editar">${ICO.edit}<span>${regEnviado(r) ? 'Ver' : 'Editar'}</span></button><button class="del" data-del="1"${L} title="Eliminar registro" aria-label="Eliminar registro">${TRASH}<span class="tx"> Eliminar</span></button></td></tr>`;
 }
+const repintarFila = r => { const tr = document.querySelector(`#rTabla tr[data-id="${r.id}"]`); if (tr) tr.outerHTML = filaRegistro(r); };
 function pintarTablaRegistros() {
   const N = registros.length, paginas = Math.max(1, Math.ceil(N / pag.size));
   pag.n = Math.min(Math.max(1, pag.n), paginas);
   const ini = (pag.n - 1) * pag.size, vista = registros.slice(ini, ini + pag.size);
-  $('#rTabla').innerHTML = '<tr><th data-c="fecha">Fecha</th><th data-c="estado">Estado</th><th data-c="motivo">Motivo</th><th data-c="trans">Transporte</th><th data-c="nodo">Nodo</th><th data-c="bultos" class="c">Bultos</th><th data-c="pedidos" class="c">Pedidos</th><th data-c="cajas" class="c">Cajas</th><th data-c="placa">Placa</th><th data-c="agencia">Agencia</th><th data-c="detalle">Detalle del gasto</th><th data-c="pago" class="c">Pago</th><th data-c="importe" class="num">Importe</th><th data-c="factura">Factura</th><th data-c="adj">Adjunto</th><th data-c="del" class="c" aria-label="Acciones"></th></tr>' + (vista.map(filaRegistro).join('') || '<tr><td colspan="16"><div class="empty"><b>Sin registros en este rango</b><span>Ajusta las fechas o sube un despacho en «Cargar despacho».</span></div></td></tr>');
+  $('#rTabla').innerHTML = '<tr><th data-c="fecha">Fecha</th><th data-c="motivo">Motivo</th><th data-c="trans">Transporte</th><th data-c="nodo">Nodo</th><th data-c="bultos" class="c">Bultos</th><th data-c="pedidos" class="c">Pedidos</th><th data-c="cajas" class="c">Cajas</th><th data-c="agencia">Agencia</th><th data-c="pago" class="c">Pago</th><th data-c="importe" class="num">Importe</th><th data-c="prog">Progreso</th><th data-c="acc" class="c" aria-label="Acciones"></th></tr>' + (vista.map(filaRegistro).join('') || '<tr><td colspan="12"><div class="empty"><b>Sin registros en este rango</b><span>Ajusta las fechas o sube un despacho en «Cargar despacho».</span></div></td></tr>');
   const nums = []; for (let i = 1; i <= paginas; i++) if (i === 1 || i === paginas || Math.abs(i - pag.n) <= 1) nums.push(i); else if (nums[nums.length - 1] !== '…') nums.push('…');
   $('#rPag').innerHTML = `<div class="l"><span>Filas por página:</span><select id="rSize" aria-label="Filas por página">${[15, 25, 50, 100].map(v => `<option${v === pag.size ? ' selected' : ''}>${v}</option>`).join('')}</select><span>Mostrando <b>${N ? ini + 1 : 0}-${Math.min(N, ini + pag.size)}</b> de <b>${N}</b> registros</span></div>
     <div class="r"><button data-p="prev"${pag.n <= 1 ? ' disabled' : ''} aria-label="Anterior">${ICO.prev}</button>${nums.map(n => n === '…' ? '<span>…</span>' : `<button data-p="${n}" class="${n === pag.n ? 'on' : ''}">${n}</button>`).join('')}<button data-p="next"${pag.n >= paginas ? ' disabled' : ''} aria-label="Siguiente">${ICO.next}</button></div>`;
@@ -1402,36 +1446,94 @@ $('#topSearch').addEventListener('keydown', e => {
 $('#rTabla').addEventListener('change', async e => {
   const tr = e.target.closest('tr'); if (!tr || !e.target.dataset.f) return;
   const f = e.target.dataset.f; let v = e.target.value.trim();
-  if (f === 'importe') v = v === '' ? null : num(v); else if (v === '') v = null;
+  if (v === '') v = null;
   const { error } = await sb.from('envios').update({ [f]: v }).eq('id', tr.dataset.id);
   if (error) return flash($('#rMsg'), error.message, 'err');
-  const r = registros.find(x => x.id === tr.dataset.id); if (r) r[f] = v;
+  const r = regBase.find(x => x.id === tr.dataset.id); if (r) r[f] = v;
   flash($('#rMsg'), 'Guardado', 'ok');
-  if (r) { const td = tr.querySelector('td[data-c=estado]'); if (td) td.innerHTML = estadoTag(r); contarEstados(); }
-  pintarResumenRegistros();
 });
 $('#rTabla').addEventListener('click', async e => {
-  const act = e.target.closest('[data-act]');
-  if (act) {
-    const id = act.closest('tr').dataset.id, r = registros.find(x => x.id === id); if (!r) return;
-    if (act.dataset.act === 'adjuntar') { adjId = id; $('#adjFile').click(); return; }
-    if (act.dataset.act === 'quitar') {
-      if (!await confirmar('¿Quitar el adjunto?', 'La foto o el PDF se borrará de este registro.', 'Quitar', true)) return;
-      const { error } = await sb.from('envios').update({ factura_archivo: null }).eq('id', id);
-      if (error) return flash($('#rMsg'), error.message, 'err');
-      await sb.storage.from(BUCKET).remove([r.factura_archivo]);
-      r.factura_archivo = null; refrescarAdjunto(r); flash($('#rMsg'), 'Adjunto quitado', 'ok');
-    }
-    return;
-  }
-  if (!e.target.dataset.del || e.target.disabled) return;
+  const ed = e.target.closest('[data-act=editar]'); if (ed) return abrirReg(ed.closest('tr').dataset.id, registros.map(x => x.id));
+  const del = e.target.closest('[data-del]'); if (!del || del.disabled) return;
   if (!await confirmar('¿Eliminar este registro?', 'No se puede deshacer.', 'Eliminar', true)) return;
-  const id = e.target.closest('tr').dataset.id, r = registros.find(x => x.id === id);
+  const id = del.closest('tr').dataset.id, r = regBase.find(x => x.id === id);
   const { error } = await sb.from('envios').delete().eq('id', id);
   if (error) return flash($('#rMsg'), error.message, 'err');
   if (r?.factura_archivo) await sb.storage.from(BUCKET).remove([r.factura_archivo]);
   buscarRegistros();
 });
+
+// ---------- ventana para editar un registro ----------
+let rm = { id: null, orden: [] };
+const rmReg = () => regBase.find(x => x.id === rm.id);
+const rmLeer = () => ({ placa: $('#rmPlaca').value.trim() || null, importe: $('#rmImp').value === '' ? null : num($('#rmImp').value), factura: $('#rmFac').value.trim() || null, detalle_gasto: $('#rmDet').value.trim() || null });
+const rmSucio = () => { const r = rmReg(), v = rmLeer(); return !!r && !regEnviado(r) && Object.keys(v).some(k => (v[k] ?? '') != (r[k] ?? '')); };
+function rmNav() {
+  const i = rm.orden.indexOf(rm.id), sin = i < 0 || i >= rm.orden.length - 1;
+  $('#rmPrev').disabled = i <= 0; $('#rmNext').disabled = sin; $('#rmSig').disabled = sin;
+}
+function abrirReg(id, orden) {
+  const r = regBase.find(x => x.id === id); if (!r) return;
+  rm.id = id; if (orden) rm.orden = orden;
+  const bloq = regEnviado(r);
+  $('#rmSub').textContent = fdmy(r.fecha); $('#rmNodo').textContent = r.nodo;
+  $('#rmMeta').innerHTML = motTag(r.motivo) + tbadge(r.transporte) + (r.agencia ? `<span class="tb">${esc(r.agencia)}</span>` : '') + (r.cajas != null ? `<span class="tb">${r.cajas} ${r.cajas === 1 ? 'caja' : 'cajas'}</span>` : '');
+  $('#rmPlaca').value = r.placa ?? ''; $('#rmImp').value = r.importe == null ? '' : Number(r.importe).toFixed(2); $('#rmFac').value = r.factura ?? ''; $('#rmDet').value = r.detalle_gasto ?? '';
+  ['#rmPlaca', '#rmImp', '#rmFac', '#rmDet'].forEach(q => $(q).disabled = bloq);
+  const av = $('#rmAv'); av.hidden = !bloq; av.textContent = bloq ? `Está en ${lqNumeros.has(r.liquidacion_id) ? lqCod(lqNumeros.get(r.liquidacion_id)) : 'una liquidación'}. Anula la liquidación para editarlo.` : '';
+  $('#rmOk').hidden = $('#rmSig').hidden = bloq; $('#rmCancel').textContent = bloq ? 'Cerrar' : 'Cancelar';
+  rmNav(); rmFoto(r); rmVivo();
+  if (!$('#regDlg').open) $('#regDlg').showModal();
+}
+function rmVivo() {
+  const r = rmReg(); if (!r) return;
+  const vista = { ...r, ...rmLeer() };
+  $('#rmSt').innerHTML = stepper(vista, true); $('#rmHint').textContent = regFalta(vista)[1];
+}
+function rmFoto(r) {
+  const f = r.factura_archivo, bloq = regEnviado(r), u = f ? esc(urlAdjunto(f)) : '';
+  $('#rmTh').innerHTML = f ? (esImagen(f) ? `<img src="${u}" alt="Factura">` : ICO.file) : ICO.img;
+  $('#rmTt').textContent = f ? 'Factura adjunta' : 'Sin foto de la factura';
+  $('#rmTs').textContent = f ? 'Se guarda con 20 KB o menos' : (bloq ? '' : 'Toma o elige una foto: se lee el N° y el importe automáticamente');
+  $('#rmAc').innerHTML = (f ? `<a class="b sec" href="${u}" target="_blank" rel="noopener">Ver</a>` : '') + (bloq ? '' : f ? '<button type="button" class="b sec" data-f="cambiar">Cambiar</button><button type="button" class="b sec" data-f="quitar">Quitar</button>' : '<button type="button" class="b" data-f="cambiar">Adjuntar foto</button>');
+}
+// después de leer la factura con el OCR, el importe y el N° se reflejan en la ventana
+function rmSync(r) {
+  if (!$('#regDlg').open || rm.id !== r.id) return;
+  $('#rmImp').value = r.importe == null ? '' : Number(r.importe).toFixed(2); $('#rmFac').value = r.factura ?? ''; rmFoto(r); rmVivo();
+}
+['#rmPlaca', '#rmImp', '#rmFac', '#rmDet'].forEach(q => $(q).addEventListener('input', rmVivo));
+$('#rmPrev').innerHTML = ICO.prev; $('#rmNext').innerHTML = ICO.next; $('#rmX').innerHTML = ICO.x;
+$('#rmAc').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-f]'), r = rmReg(); if (!b || !r) return;
+  if (b.dataset.f === 'cambiar') { adjId = r.id; $('#adjFile').click(); return; }
+  if (!await confirmar('¿Quitar el adjunto?', 'La foto o el PDF se borrará de este registro.', 'Quitar', true)) return;
+  const { error } = await sb.from('envios').update({ factura_archivo: null }).eq('id', r.id);
+  if (error) return flash($('#rMsg'), error.message, 'err');
+  await sb.storage.from(BUCKET).remove([r.factura_archivo]);
+  r.factura_archivo = null; refrescarAdjunto(r); flash($('#rMsg'), 'Adjunto quitado', 'ok');
+});
+async function guardarReg(siguiente) {
+  const r = rmReg(); if (!r || regEnviado(r)) return;
+  const v = rmLeer();
+  if (v.importe != null && v.importe < 0) return toast('El importe no puede ser negativo', 'err');
+  if (rmSucio()) {
+    $('#rmOk').disabled = $('#rmSig').disabled = true;
+    const { error } = await sb.from('envios').update(v).eq('id', r.id);
+    $('#rmOk').disabled = false; rmNav();
+    if (error) return toast(error.message, 'err');
+    Object.assign(r, v); repintarFila(r); contarEstados(); pintarResumenRegistros(); toast('Guardado');
+  }
+  if (siguiente) abrirReg(rm.orden[rm.orden.indexOf(rm.id) + 1]); else $('#regDlg').close();
+}
+async function rmIr(delta) {
+  if (rmSucio() && !await confirmar('Hay cambios sin guardar', 'Si cambias de registro se perderán.', 'Descartar', true)) return;
+  abrirReg(rm.orden[rm.orden.indexOf(rm.id) + delta]);
+}
+$('#rmF').onsubmit = e => { e.preventDefault(); guardarReg(false); };
+$('#rmSig').onclick = () => guardarReg(true);
+$('#rmPrev').onclick = () => rmIr(-1); $('#rmNext').onclick = () => rmIr(1);
+$('#rmCancel').onclick = $('#rmX').onclick = async () => { if (rmSucio() && !await confirmar('Hay cambios sin guardar', 'Si cierras se perderán.', 'Descartar', true)) return; $('#regDlg').close(); };
 
 $('#rExport').onclick = async () => {
   await xlsxLib();
