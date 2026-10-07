@@ -853,22 +853,7 @@
 </section>
 
 <section id="tab-detalle" class="hide">
-  <div class="top"><h1>Detalle</h1><div class="sub">Una fila por bulto</div></div>
-  <div class="card">
-    <div class="row">
-      <label>Fecha del reporte<input type="date" id="hFecha"></label>
-      <label>Archivo Excel (hoja DETALLE)<input type="file" id="hFile" accept=".xlsx,.xls,.csv"></label>
-    </div>
-    <p class="hint">Se lee la hoja DETALLE con sus 39 columnas, una fila por bulto. Los datos se acumulan: lo ya cargado no se borra y las filas repetidas de esa fecha no se duplican.</p>
-    <div id="hMsg" class="msg"></div>
-  </div>
-  <div class="card hide" id="hPrev">
-    <div class="row" style="justify-content:space-between">
-      <b id="hResumen"></b>
-      <button class="b" id="hGuardar">Guardar detalle</button>
-    </div>
-    <div class="tw" style="margin-top:8px;max-height:40vh"><table id="hResTabla"></table></div>
-  </div>
+  <div class="top"><h1>Detalle</h1><div class="sub">Una fila por bulto. Se carga desde Cargar despacho, en la hoja DETALLE</div></div>
   <div class="card">
     <div class="row">
       <label>Desde<input type="date" id="qDesde"></label>
@@ -879,6 +864,7 @@
       <button class="b sec" id="qExport">Exportar a Excel</button>
     </div>
     <p class="hint" id="qInfo"></p>
+    <div id="hMsg" class="msg"></div>
   </div>
   <div class="tw"><table id="qTabla"></table></div>
 </section>
@@ -1047,7 +1033,7 @@ $('#logout').onclick = async () => { await sb.auth.signOut(); location.reload();
 async function mostrarApp(user) {
   $('#who').textContent = user.email;
   $('#app').classList.remove('hide');
-  $('#cFecha').value = today(); $('#hFecha').value = today(); $('#kHasta').value = today(); $('#kMes').value = today().slice(0, 7); rangoDeMes();
+  $('#cFecha').value = today(); $('#kHasta').value = today(); $('#kMes').value = today().slice(0, 7); rangoDeMes();
   $('#rDesde').value = today().slice(0, 8) + '01'; $('#rHasta').value = today();
   await cargarCatalogo();
   buscarRegistros(); iniciarTiempoReal();
@@ -1187,10 +1173,10 @@ $('#cFile').onchange = async e => {
   try {
     hrnCarga = null; await xlsxLib(); const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
     const filas = leerTabla(wb);
-    if (!filas) return flash($('#cMsg'), 'No encontré filas en las hojas DESPACHO o RECOJOS (con encabezados NODO y CAJAS). Usa la plantilla.' + (leerHrn(wb) ? ' Este archivo solo trae el detalle: súbelo en la pestaña Detalle.' : ''), 'err');
     hrnCarga = leerHrn(wb);
+    if (!filas && !hrnCarga) return flash($('#cMsg'), 'No encontré filas en las hojas DESPACHO, RECOJOS o DETALLE. Descarga la plantilla y completa esas hojas.', 'err');
     setPaso(2);
-    previa = filas.map(r => {
+    previa = (filas || []).map(r => {
       const c = catalogo.get(norm(r.nodo));
       return { ...r, transporte: r.transporte || norm(c?.transporte), placa: '', agencia: c?.agencia || '',
                modo_pago: c ? (norm(c.observacion).includes('CONTADO') ? 'CONTADO' : 'CREDITO') : 'CONTADO', en_catalogo: !!c,
@@ -1202,6 +1188,10 @@ $('#cFile').onchange = async e => {
 };
 
 function pintarPrevia() {
+  if (!previa.length) {   // el archivo solo trae la hoja DETALLE
+    $('#cResumen').textContent = `Solo detalle: ${hrnCarga.length} filas, ${new Set(hrnCarga.map(r => r.nodo)).size} nodos`; $('#cTabla').innerHTML = '';
+    $('#cHrn').textContent = 'Se agregará al detalle de la fecha elegida, sin borrar lo anterior ni duplicar filas repetidas.'; $('#cPrev').classList.remove('hide'); return;
+  }
   const faltan = previa.filter(r => !r.en_catalogo).length;
   const nRec = previa.filter(r => r.motivo === 'RECOJO').length;
   $('#cResumen').textContent = `${previa.length - nRec} ${previa.length - nRec === 1 ? 'despacho' : 'despachos'}` + (nRec ? ` y ${nRec} ${nRec === 1 ? 'recojo' : 'recojos'}` : '') + `, ${previa.length} nodos, ${previa.reduce((s, r) => s + (r.pedidos || 0), 0)} pedidos, ${previa.reduce((s, r) => s + (r.bultos || 0), 0)} bultos, ${previa.reduce((s, r) => s + (r.cajas || 0), 0)} cajas` + (faltan ? `, ${faltan} sin catálogo` : '');
@@ -1229,6 +1219,12 @@ $('#cTabla').addEventListener('change', e => {
 $('#cGuardar').onclick = async () => {
   const fecha = $('#cFecha').value;
   if (!fecha) return flash($('#cMsg'), 'Elige la fecha del despacho', 'err');
+  if (!previa.length) {   // solo detalle
+    $('#cGuardar').disabled = true;
+    try { const t = hrnTexto(fecha, await guardarHrn(fecha, hrnCarga)); flash($('#cMsg'), 'Detalle: ' + t + '.', 'ok'); hrnCarga = null; $('#cPrev').classList.add('hide'); $('#cFile').value = ''; setPaso(1); }
+    catch (err) { flash($('#cMsg'), 'No se pudo guardar el detalle: ' + err.message + '. Vuelve a subir el archivo: las filas que ya entraron no se duplican.', 'err'); }
+    $('#cGuardar').disabled = false; return;
+  }
   const repetidos = new Set(), vistos = new Set(); previa.forEach(r => { const k = norm(r.nodo) + '|' + r.motivo; if (vistos.has(k)) repetidos.add(r.nodo + (r.motivo === 'RECOJO' ? ' (recojo)' : '')); vistos.add(k); });
   if (repetidos.size) return flash($('#cMsg'), `Hay nodos repetidos con el mismo motivo: ${[...repetidos].join(', ')}. Deja una sola fila por nodo y motivo.`, 'err');
   if (previa.some(r => !r.agencia) && !await confirmar('Hay nodos sin agencia', 'Puedes completarla después en Registros. ¿Guardar igual?', 'Guardar')) return;
@@ -1246,7 +1242,7 @@ $('#cGuardar').onclick = async () => {
   let extra = '';
   if (hrnCarga) {
     try { extra = ' Detalle: ' + hrnTexto(fecha, await guardarHrn(fecha, hrnCarga)) + '.'; }
-    catch (err) { previa = []; $('#cPrev').classList.add('hide'); $('#cFile').value = ''; setPaso(1); $('#rDesde').value = fecha; $('#rHasta').value = fecha; buscarRegistros(); return flash($('#cMsg'), `El despacho se guardó, pero el detalle no: ${err.message}. Súbelo de nuevo en la pestaña Detalle; no se duplicará.`, 'err'); }
+    catch (err) { previa = []; $('#cPrev').classList.add('hide'); $('#cFile').value = ''; setPaso(1); $('#rDesde').value = fecha; $('#rHasta').value = fecha; buscarRegistros(); return flash($('#cMsg'), `El despacho se guardó, pero el detalle no: ${err.message}. Vuelve a subir el mismo archivo: las filas del detalle que ya entraron no se duplican.`, 'err'); }
   }
   flash($('#cMsg'), `Guardados ${filas.length} ${filas.length === 1 ? 'nodo' : 'nodos'} del ${fdmy(fecha)}.${extra} Completa importe y factura en Registros.`, 'ok');
   previa = []; hrnCarga = null; $('#cPrev').classList.add('hide'); $('#cFile').value = ''; setPaso(1);
@@ -1563,7 +1559,6 @@ $('#rExport').onclick = async () => {
 // ---------- detalle HRN ----------
 const HRN_COLS = [['pedido_cliente','Pedido Cliente','t'],['nro_doc_referencia','Nro. Doc. Referencia','t'],['tipo_documento','Tipo Documento','t'],['lpn','LPN','t'],['fecha_recepcion','Fecha de Recepcion','d'],['ubicacion_recepcion','Ubicacion Recepción','t'],['cuenta_procedencia','Cuenta Procedencia','t'],['descripcion_cuenta','Descripcion Cuenta','t'],['nodo','NODO','t'],['bultos','BULTOS','n'],['observacion','OBSERVACION','t'],['fecha_ruta','Fecha Ruta','d'],['flag_carga_stage','Flag Carga Stage','n'],['fecha_carga_stage','Fecha Carga Stage','d'],['flag_terminar_carga','Flag Terminar Carga','n'],['fecha_terminar_carga','Fecha Terminar Carga','d'],['fecha_despacho','Fecha Despacho','d'],['flag_reprogramado','Flag Reprogramado','n'],['contador_reprogramado','Contador Reprogramado','n'],['motivo_pedido','Motivo Pedido','t'],['alto','Alto','n'],['ancho','Ancho','n'],['largo','Largo','n'],['volumen','Volumen','n'],['peso','Peso','n'],['roll_contenedor','Roll Contenedor','t'],['codigo_zona','Código Zona','t'],['zona','Zona','t'],['orden_clasificacion','Orden Clasificación','t'],['estado_contenedor','Estado Contenedor','t'],['placa_real','Placa Real','t'],['fecha_pedido','Fecha de Pedido','d'],['fecha_creacion','Fecha de Creación','d'],['ubicacion_movimiento','Ubicación Movimiento','t'],['fecha_movimiento','Fecha Movimiento','d'],['usuario_movimiento','Usuario Movimiento','t'],['proveedor','PROVEEDOR','t'],['nodo2','NODO2','t'],['cant_pedidos','CANT_PEDIDOS','t']];
 const hrnPorHeader = new Map(HRN_COLS.map(c => [norm(c[1]), c]));
-let hrnFilas = [];
 
 function serialAFecha(n) {
   const d = new Date(Math.round((n - 25569) * 86400) * 1000);
@@ -1597,28 +1592,6 @@ function leerHrn(wb) {
   return null;
 }
 
-$('#hFile').onchange = async e => {
-  const f = e.target.files[0]; if (!f) return;
-  try {
-    await xlsxLib(); const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
-    const filas = leerHrn(wb);
-    if (!filas) return flash($('#hMsg'), 'No encontré la hoja DETALLE con la columna "Pedido Cliente".', 'err');
-    hrnFilas = filas; $('#hMsg').className = 'msg'; pintarResumenHrn();
-  } catch (err) { flash($('#hMsg'), 'No se pudo leer el archivo: ' + err.message, 'err'); }
-};
-function pintarResumenHrn() {
-  const por = new Map();
-  hrnFilas.forEach(r => {
-    const g = por.get(r.nodo) || { peds: new Set(), bultos: 0, rolls: new Set() };
-    g.peds.add(r.pedido_cliente); g.bultos += r.bultos || 0; if (r.roll_contenedor) g.rolls.add(r.roll_contenedor);
-    por.set(r.nodo, g);
-  });
-  const allPeds = new Set(hrnFilas.map(r => r.pedido_cliente));
-  $('#hResumen').textContent = `${hrnFilas.length} filas, ${por.size} nodos, ${allPeds.size} pedidos únicos, ${hrnFilas.reduce((s, r) => s + (r.bultos || 0), 0)} bultos`;
-  $('#hResTabla').innerHTML = '<tr><th>Nodo</th><th>Pedidos únicos</th><th>Bultos</th><th>Rolls</th><th>En Agencias</th></tr>' +
-    [...por].sort().map(([n, g]) => `<tr class="${catalogo.has(norm(n)) ? '' : 'miss'}"><td><b>${esc(n)}</b></td><td class="n">${g.peds.size}</td><td class="n">${g.bultos}</td><td class="n">${g.rolls.size}</td><td>${catalogo.has(norm(n)) ? 'Sí' : 'No'}</td></tr>`).join('');
-  $('#hPrev').classList.remove('hide');
-}
 // acumulable: nunca se borra lo anterior; solo se agregan las filas que aún no están en esa fecha
 async function guardarHrn(fecha, filas) {
   const clave = r => r.lpn ? 'L|' + r.lpn : 'P|' + [r.pedido_cliente, r.nodo, r.roll_contenedor, r.bultos].join('|');
@@ -1632,19 +1605,6 @@ async function guardarHrn(fecha, filas) {
   return { nuevas: nuevas.length, repetidas: filas.length - nuevas.length };
 }
 const hrnTexto = (f, x) => x.nuevas ? `${x.nuevas === 1 ? 'se agregó 1 fila' : 'se agregaron ' + x.nuevas + ' filas'} al ${fdmy(f)}` + (x.repetidas ? `; ${x.repetidas} ya ${x.repetidas === 1 ? 'estaba cargada' : 'estaban cargadas'}` : '') : `no hay filas nuevas: las ${x.repetidas} ya estaban cargadas en el ${fdmy(f)}`;
-$('#hGuardar').onclick = async () => {
-  const fecha = $('#hFecha').value;
-  if (!fecha) return flash($('#hMsg'), 'Elige la fecha del reporte', 'err');
-  $('#hGuardar').disabled = true;
-  try {
-    const x = await guardarHrn(fecha, hrnFilas), t = hrnTexto(fecha, x);
-    flash($('#hMsg'), t.charAt(0).toUpperCase() + t.slice(1) + '.', 'ok');
-    hrnFilas = []; $('#hPrev').classList.add('hide'); $('#hFile').value = '';
-    $('#qDesde').value = fecha; $('#qHasta').value = fecha; buscarHrn();
-  } catch (err) { flash($('#hMsg'), 'Error al guardar: ' + err.message + '. Vuelve a cargar el archivo: las filas que ya entraron no se duplican.', 'err'); }
-  $('#hGuardar').disabled = false;
-};
-
 let hrnCargado = false, hrnVista = [], hrnMostrar = 100;
 const HRN_VIS = ['fecha_reporte', 'pedido_cliente', 'lpn', 'cuenta_procedencia', 'descripcion_cuenta', 'nodo', 'bultos', 'roll_contenedor', 'peso', 'volumen', 'fecha_recepcion'];
 // consulta del Detalle con los filtros de la pantalla (columnas visibles para ver; todas para exportar)
