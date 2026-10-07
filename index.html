@@ -831,7 +831,7 @@
       <label>Fecha del reporte<input type="date" id="hFecha"></label>
       <label>Archivo Excel (hoja ( HRN ))<input type="file" id="hFile" accept=".xlsx,.xls,.csv"></label>
     </div>
-    <p class="hint">Se lee la hoja ( HRN ) con sus 39 columnas, una fila por bulto. Si ya hay datos de esa fecha, se reemplazan.</p>
+    <p class="hint">Se lee la hoja ( HRN ) con sus 39 columnas, una fila por bulto. Los datos se acumulan: lo ya cargado no se borra y las filas repetidas de esa fecha no se duplican.</p>
     <div id="hMsg" class="msg"></div>
   </div>
   <div class="card hide" id="hPrev">
@@ -1479,19 +1479,21 @@ function pintarResumenHrn() {
 $('#hGuardar').onclick = async () => {
   const fecha = $('#hFecha').value;
   if (!fecha) return flash($('#hMsg'), 'Elige la fecha del reporte', 'err');
-  const { count } = await sb.from('hrn_detalle').select('id', { count: 'exact', head: true }).eq('fecha_reporte', fecha);
-  if (count && !await confirmar('Ya hay datos de esta fecha', `Hay ${count} filas del ${fdmy(fecha)}. ¿Reemplazarlas por las ${hrnFilas.length} nuevas?`, 'Reemplazar', true)) return;
   $('#hGuardar').disabled = true;
   try {
-    if (count) { const { error } = await sb.from('hrn_detalle').delete().eq('fecha_reporte', fecha); if (error) throw error; }
-    for (let i = 0; i < hrnFilas.length; i += 400) {
-      const lote = hrnFilas.slice(i, i + 400).map(r => ({ ...r, fecha_reporte: fecha }));
+    // acumulable: nunca se borra lo anterior; solo se agregan las filas que aún no están en esa fecha
+    const clave = r => r.lpn ? 'L|' + r.lpn : 'P|' + [r.pedido_cliente, r.nodo, r.roll_contenedor, r.bultos].join('|');
+    const ya = await traerTodo(() => sb.from('hrn_detalle').select('lpn,pedido_cliente,nodo,roll_contenedor,bultos').eq('fecha_reporte', fecha).order('id'));
+    const existentes = new Set(ya.map(clave)), nuevas = hrnFilas.filter(r => !existentes.has(clave(r)));
+    for (let i = 0; i < nuevas.length; i += 400) {
+      const lote = nuevas.slice(i, i + 400).map(r => ({ ...r, fecha_reporte: fecha }));
       const { error } = await sb.from('hrn_detalle').insert(lote); if (error) throw error;
     }
-    flash($('#hMsg'), `Guardadas ${hrnFilas.length} filas del ${fecha}.`, 'ok');
+    const repetidas = hrnFilas.length - nuevas.length;
+    flash($('#hMsg'), nuevas.length ? `Se ${nuevas.length === 1 ? 'agregó 1 fila' : 'agregaron ' + nuevas.length + ' filas'} al ${fdmy(fecha)}` + (repetidas ? `; ${repetidas} ya ${repetidas === 1 ? 'estaba cargada' : 'estaban cargadas'}.` : '.') : `No hay filas nuevas: las ${repetidas} ya estaban cargadas en el ${fdmy(fecha)}.`, 'ok');
     hrnFilas = []; $('#hPrev').classList.add('hide'); $('#hFile').value = '';
     $('#qDesde').value = fecha; $('#qHasta').value = fecha; buscarHrn();
-  } catch (err) { flash($('#hMsg'), 'Error al guardar: ' + err.message + '. Vuelve a intentar: se reemplazará lo parcial.', 'err'); }
+  } catch (err) { flash($('#hMsg'), 'Error al guardar: ' + err.message + '. Vuelve a cargar el archivo: las filas que ya entraron no se duplican.', 'err'); }
   $('#hGuardar').disabled = false;
 };
 
