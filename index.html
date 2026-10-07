@@ -248,7 +248,7 @@
   :focus-visible { outline:3px solid rgba(0,102,204,.4); outline-offset:2px; border-radius:8px }
   .shell { display:block; min-height:100vh }
   .topbar { position:sticky; top:0; z-index:40; background:rgba(245,245,247,.78); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px); border-bottom:1px solid var(--line) }
-  .topbar .in { max-width:1200px; margin:0 auto; height:52px; padding:0 24px; display:flex; align-items:center; gap:24px }
+  .topbar .in { max-width:1680px; margin:0 auto; height:52px; padding:0 24px; display:flex; align-items:center; gap:24px }
   .tlogo { height:34px; width:auto; display:block; flex:none }
   nav { display:flex; gap:4px; flex:1; min-width:0 }
   nav button { background:none; border:0; padding:6px 13px; border-radius:99px; color:var(--mut); font-size:14px; font-weight:500; cursor:pointer; white-space:nowrap }
@@ -258,7 +258,7 @@
   .busca { width:200px } .busca input { width:100%; padding:6px 12px; border-radius:99px; border:0; background:var(--head); font-size:13px }
   .busca input:focus { background:#fff; outline:3px solid rgba(0,102,204,.4) }
   .lk { background:none; border:0; color:var(--pri); font-size:14px; cursor:pointer; padding:4px 2px } .lk:hover { text-decoration:underline }
-  main { max-width:1200px; margin:0 auto; padding:40px 24px 96px }
+  main { max-width:1680px; margin:0 auto; padding:40px 24px 96px }
   .wrap { max-width:none }
 
   h1 { font-size:40px; line-height:1.1; font-weight:700; letter-spacing:-.03em }
@@ -534,7 +534,6 @@
 
   /* Registros en escritorio: todas las columnas caben (ancho fijo, textos largos con "…") */
   @media (min-width:761px) {
-    main:has(#tab-registros:not(.hide)) { max-width:1680px }
     #tab-registros .tw { overflow-x:auto }
     #rTabla { table-layout:fixed; width:100%; min-width:1210px }
     #rTabla th, #rTabla td { padding-left:6px; padding-right:6px; overflow:hidden; text-overflow:ellipsis }
