@@ -519,7 +519,7 @@
     .dr { width:100vw } .dr .ks { grid-template-columns:1fr 1fr }
     #toasts { right:12px; left:12px; bottom:calc(76px + env(safe-area-inset-bottom)) } .toast { max-width:none }
     /* sin desbordes laterales */
-    html, body { max-width:100%; overflow-x:hidden }
+    html, body { max-width:100% } body { overflow-x:clip }
   }
   @media (max-width:380px) { h1 { font-size:27px } #kpCards .hero b { font-size:40px } .tabbar button { font-size:10px } }
 
@@ -535,8 +535,9 @@
   }
   @media (min-width:761px) { .lqsel { display:none } }
   @media (max-width:760px) { .tcard:has(#lqTabla) { display:flex; flex-direction:column } .tcard:has(#lqTabla) .lqbar { order:-1; border-top:0; border-bottom:1px solid var(--line) } }
-  @media (max-width:760px) { .fb .fg { flex:1 1 100% } .fb .fg:has(#kAgencia), .fb .fg:has(#kZona) { flex:1 1 calc(50% - 7px) } #kgMes input { width:100% } .top .acts { gap:2px 20px } }
+  @media (max-width:760px) { #tab-kpis .fb .fg { flex:1 1 100% } #tab-kpis .fb .fg:has(#kAgencia), #tab-kpis .fb .fg:has(#kZona) { flex:1 1 calc(50% - 7px) } #kgMes input { width:100% } .top .acts { gap:2px 20px } }
   .mfil { display:none !important }
+  .dr:not(.on) { visibility:hidden; transition:transform .25s, visibility 0s .25s } .dr.on { visibility:visible; transition:transform .25s }
   @media (max-width:760px) { .mfil { display:inline-flex !important } #tab-kpis > .card:has(.fb) { display:none } #tab-kpis.fopen > .card:has(.fb) { display:block } }
   @media (max-width:760px) { #kTabla td[data-c=pago] { grid-column:1/-1 } #kTabla .b.sec { color:var(--bad); background:var(--badbg); min-height:40px } }
   @media (max-width:760px) {
@@ -552,6 +553,20 @@
   @media (max-width:760px) { .top:has(> h1) { flex-direction:column; align-items:flex-start; gap:4px } #tab-detalle .row > * { flex:1 1 100% } #tab-detalle .tw { max-height:60vh } }
   @media (max-width:760px) { #dstDlg .fgrid label:nth-child(2), #dstDlg .fgrid label:nth-child(3) { grid-column:1/-1 } }
   @media (max-width:760px) { .ktabs { display:flex; flex-wrap:nowrap; width:100%; overflow-x:auto; scroll-snap-type:x proximity } .ktabs button { flex:0 0 auto; white-space:nowrap } }
+  .lqflot { display:none }
+  @media (max-width:760px) {
+    #tab-liquidaciones .fb .fg:has(input[type=date]) { flex:1 1 calc(50% - 7px); min-width:0 } #tab-liquidaciones .fb .fg { flex:1 1 100% } #tab-liquidaciones .fb > .b { width:100% }
+    #tab-liquidaciones .top { margin-bottom:12px } #tab-liquidaciones { padding-bottom:72px }
+    .lqflot:not([hidden]) { display:flex; position:fixed; left:12px; right:12px; bottom:calc(66px + env(safe-area-inset-bottom)); z-index:55; align-items:center; justify-content:space-between; gap:12px; padding:10px 10px 10px 18px; border-radius:18px; background:rgba(29,29,31,.94); color:#fff; box-shadow:0 8px 28px rgba(0,0,0,.25); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px) }
+    .lqflot b { font-size:16px; margin-right:6px } .lqflot small { display:block; color:#c7c7cc; font-size:13px } .lqflot .b { padding:10px 18px; white-space:nowrap }
+    #tab-liquidaciones:not(.hide) ~ #toasts { bottom:calc(140px + env(safe-area-inset-bottom)) }
+    #lqTabla tr { cursor:pointer } #lqTabla tr:active { background:var(--head) }
+    details.dt > summary { font-size:15px; padding:14px 16px }
+    #lqPendBox { padding:0 } #lqPendBox > summary { padding:16px 18px } #lqPendBox .tw { padding:0 8px 8px }
+    #lqHist tr[data-id]:first-of-type, #lqHist tr[data-id]:nth-child(2) { border-top:0 }
+    #lqHist td:last-child { display:flex !important; gap:10px } #lqHist td:last-child .lnk { flex:1; min-height:44px; border-radius:12px; background:var(--head); text-decoration:none; font-size:15px; color:var(--pri) } #lqHist td:last-child .lnk[data-a=anular] { background:var(--badbg); color:var(--bad) !important }
+    #lqHist td:first-child { font-size:17px }
+  }
 </style>
 </head>
 <body>
@@ -744,6 +759,7 @@
 </section>
 
 <section id="tab-liquidaciones" class="hide">
+  <div class="lqflot" id="lqFlot" hidden><span id="lqFlotT"></span><button class="b" id="lqFlotB">Descargar</button></div>
   <div class="top">
     <div><h1>Liquidaciones</h1><div class="sub">Genera el Excel de rendición y las fotos de las facturas</div></div>
     <div class="acts"><button class="b sec" id="lqPar">Datos del formato</button></div>
@@ -2062,6 +2078,7 @@ function lqPintar() {
     (grupos.length > 1 ? `<div class="lqf">${grupos.map((g, i) => `<span>Archivo ${i + 1}, despacho del ${fdmy(g[0].fecha)}: ${g.length} ${g.length === 1 ? 'registro' : 'registros'}, ${fmt(g.reduce((s, r) => s + Number(r.importe), 0))}</span>`).join('')}</div>` : '') +
     (repetidas.length ? `<div class="lqw">N° de factura repetido: ${repetidas.map(esc).join(', ')}. Revisa que no se pague dos veces.</div>` : '') + (grandes ? `<div class="lqw">${grandes} ${grandes === 1 ? 'registro supera' : 'registros superan'} el máximo y ${grandes === 1 ? 'irá' : 'irán'} solo en su archivo.</div>` : '') : 'Selecciona los registros que irán en la liquidación.';
   $('#lqDescargar').disabled = !elegidos.length;
+  $('#lqFlot').hidden = !elegidos.length; $('#lqFlotT').innerHTML = `<b>${elegidos.length}</b> ${elegidos.length === 1 ? 'registro' : 'registros'}<small>${fmt(total)} en ${grupos.length} ${grupos.length === 1 ? 'archivo' : 'archivos'}</small>`;
   $('#lqPendBox').classList.toggle('hide', !lqPend.length);
   $('#lqPendT').textContent = `${lqPend.length} ${lqPend.length === 1 ? 'registro no se incluye' : 'registros no se incluyen'} porque les falta algo`;
   $('#lqPend').innerHTML = '<tr><th>Fecha</th><th>Transporte</th><th>Nodo</th><th>Falta</th></tr>' + lqPend.map(r => `<tr><td class="mono sm">${fdmy(r.fecha)}</td><td>${tbadge(r.transporte)}</td><td><b>${esc(r.nodo)}</b></td><td>${[Number(r.importe) > 0 ? '' : 'importe', r.factura ? '' : 'N° de factura', r.factura_archivo ? '' : 'foto'].filter(Boolean).join(', ')}</td></tr>`).join('');
@@ -2070,6 +2087,11 @@ $('#lqTabla').addEventListener('change', e => {
   if (e.target.id === 'lqTodos') lqSel = e.target.checked ? new Set(lqLista.map(r => r.id)) : new Set();
   else if (e.target.dataset.id) e.target.checked ? lqSel.add(e.target.dataset.id) : lqSel.delete(e.target.dataset.id);
   lqPintar();
+});
+$('#lqFlotB').onclick = () => $('#lqDescargar').click();
+$('#lqTabla').addEventListener('click', e => {   // tocar la fila marca o desmarca
+  const tr = e.target.closest('tr'), cb = tr && tr.querySelector('input[data-id]');
+  if (cb && e.target !== cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change', { bubbles: true })); }
 });
 $('#lqAll').onclick = () => { lqSel = new Set(lqLista.map(r => r.id)); lqPintar(); };
 $('#lqNone').onclick = () => { lqSel = new Set(); lqPintar(); };
@@ -2125,7 +2147,7 @@ $('#lqDescargar').onclick = async () => {
   const elegidos = lqLista.filter(r => lqSel.has(r.id)); if (!elegidos.length) return;
   const grupos = lqPartir(elegidos), total = elegidos.reduce((s, r) => s + Number(r.importe), 0);
   if (!await confirmar('Descargar liquidación', `${elegidos.length} ${elegidos.length === 1 ? 'registro' : 'registros'} por ${fmt(total)} en ${grupos.length} ${grupos.length === 1 ? 'archivo' : 'archivos'}. Quedarán marcados como enviados.`, 'Descargar')) return;
-  const btn = $('#lqDescargar'); btn.disabled = true; btn.textContent = 'Preparando…';
+  const btn = $('#lqDescargar'), flot = $('#lqFlotB'); btn.disabled = true; flot.disabled = true; btn.textContent = flot.textContent = 'Preparando…';
   const creadas = [];
   try {
     await lqLibs();
@@ -2146,14 +2168,14 @@ $('#lqDescargar').onclick = async () => {
     for (const L of creadas) { await sb.from('envios').update({ liquidacion_id: null }).eq('liquidacion_id', L.id); await sb.from('liquidaciones').delete().eq('id', L.id); }
     toast('No se pudo generar la liquidación: ' + (e.message || e), 'err');
   }
-  btn.textContent = 'Descargar liquidación'; lqBuscar(); lqHistorial();
+  btn.textContent = 'Descargar liquidación'; flot.textContent = 'Descargar'; flot.disabled = false; lqBuscar(); lqHistorial();
 };
 async function lqHistorial() {
   const { data, error } = await sb.from('liquidaciones').select('*').eq('anulada', false).order('numero', { ascending: false }).limit(50);
   if (error) return;
   $('#lqHist').innerHTML = '<tr><th>N°</th><th>Fecha</th><th>Pago</th><th class="num">Registros</th><th class="num">Total</th><th></th></tr>' +
     (data.map(l => `<tr data-id="${l.id}"><td><b>${lqCod(l.numero)}</b></td><td class="mono sm">${fdmy(l.fecha)}</td><td>${l.modo_pago === 'CREDITO' ? 'Crédito' : l.modo_pago === 'CONTADO' ? 'Contado' : 'Contado y crédito'}</td><td class="num">${l.items}</td><td class="num"><b>${fmt(l.total)}</b></td>
-      <td style="text-align:right"><button class="lnk" data-a="bajar">Descargar de nuevo</button>&nbsp;&nbsp;<button class="lnk" data-a="anular" style="color:var(--bad)">Anular</button></td></tr>`).join('') ||
+      <td style="text-align:right"><button class="lnk" data-a="bajar">Descargar</button>&nbsp;&nbsp;<button class="lnk" data-a="anular" style="color:var(--bad)">Anular</button></td></tr>`).join('') ||
     '<tr><td colspan="6"><div class="empty"><b>Aún no hay liquidaciones</b><span>Aquí quedarán las que descargues.</span></div></td></tr>');
 }
 $('#lqHist').addEventListener('click', async e => {
@@ -2174,7 +2196,7 @@ $('#lqHist').addEventListener('click', async e => {
     lqBajar(await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }), cod + '.zip');
     if (fallas) toast(`${fallas} ${fallas === 1 ? 'foto no se pudo incluir' : 'fotos no se pudieron incluir'}`, 'err');
   } catch (err) { toast('No se pudo descargar: ' + (err.message || err), 'err'); }
-  b.disabled = false; b.textContent = 'Descargar de nuevo';
+  b.disabled = false; b.textContent = 'Descargar';
 });
 // datos fijos del formato
 const LP = { liquidador: '#lpLiquidador', area: '#lpArea', moneda: '#lpMoneda', concepto: '#lpConcepto', tipo_doc: '#lpTipo', cuenta: '#lpCuenta', centro: '#lpCentro', denominacion: '#lpDenom', limite: '#lpLimite' };
