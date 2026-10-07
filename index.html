@@ -752,12 +752,14 @@
   <div class="row" style="justify-content:flex-end;margin-top:18px"><button type="button" class="b sec" id="lpX">Cancelar</button><button class="b" id="lpOk">Guardar</button></div>
 </form></dialog>
 <div id="toasts" aria-live="polite"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 <script src="config.js"></script>
 <script src="ocr.js?v=4"></script>
 <script>
 const $ = s => document.querySelector(s);
+// librería de Excel: se descarga solo al importar o exportar
+let xlsxPromesa;
+const xlsxLib = () => window.XLSX ? Promise.resolve() : (xlsxPromesa ||= new Promise((ok, ko) => { const t = document.createElement('script'); t.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; t.onload = ok; t.onerror = () => { xlsxPromesa = null; ko(new Error('No se pudo cargar la librería de Excel. Revisa tu conexión.')); }; document.head.appendChild(t); }));
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
 const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SETIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
@@ -817,7 +819,7 @@ async function mostrarApp(user) {
   $('#cFecha').value = today(); $('#hFecha').value = today(); $('#kHasta').value = today(); $('#kMes').value = today().slice(0, 7); rangoDeMes();
   $('#rDesde').value = today().slice(0, 8) + '01'; $('#rHasta').value = today();
   await cargarCatalogo();
-  buscarRegistros(); buscarHrn();
+  buscarRegistros();
   const h0 = (location.hash || '').slice(1); let t0 = h0.split('?')[0]; if (t0 === 'hrn') t0 = 'detalle'; if (!TITULOS[t0]) { try { t0 = (localStorage.getItem('tab') || '').replace(/^hrn$/, 'detalle'); } catch (e) { t0 = ''; } }
   if (t0 === 'kpis' && h0.includes('?')) { poblarFiltros(); kAplicar(h0.split('?')[1]); }
   if (TITULOS[t0] && t0 !== 'cargar') irA(t0);
@@ -833,6 +835,7 @@ document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   history.replaceState(null, '', '#' + b.dataset.tab); try { localStorage.setItem('tab', b.dataset.tab); } catch (e) {}
   scrollTo(0, 0);
   if (b.dataset.tab === 'liquidaciones') lqAbrir();
+  if (b.dataset.tab === 'detalle' && !hrnCargado) buscarHrn();
 });
 function conexion(ok) { $('#estado').className = 'estado' + (ok ? '' : ' mal'); $('#estado span').textContent = ok ? '' : 'Sin conexión con la base de datos'; }
 
@@ -897,7 +900,8 @@ $('#dstF').onsubmit = async e => {
 };
 
 // ---------- carga ----------
-$('#cPlantilla').onclick = () => {
+$('#cPlantilla').onclick = async () => {
+  await xlsxLib();
   const ws = XLSX.utils.aoa_to_sheet([['NODO','PEDIDOS','BULTO','CAJAS','TRANSPORTE'],['BARRANCA',2,2,2,'ELIAS'],['ABANCAY',12,12,5,'RELUFI']]);
   const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'DESPACHO');
   XLSX.writeFile(wb, 'plantilla_despacho.xlsx');
@@ -928,7 +932,7 @@ function leerTabla(wb) {
 $('#cFile').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
   try {
-    const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
+    await xlsxLib(); const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
     const filas = leerTabla(wb);
     if (!filas) return flash($('#cMsg'), 'No encontré una tabla con encabezados NODO y CAJAS. Usa la plantilla.', 'err');
     setPaso(2);
@@ -1128,14 +1132,16 @@ $('#rPag').addEventListener('click', e => {
 $('#rPag').addEventListener('change', e => { if (e.target.id === 'rSize') { pag.size = Number(e.target.value); pag.n = 1; pintarTablaRegistros(); } });
 
 async function buscarRegistros() {
-  let q = sb.from('envios').select('*').order('fecha', { ascending: false }).order('transporte').order('nodo').limit(2000);
-  if ($('#rDesde').value) q = q.gte('fecha', $('#rDesde').value);
-  if ($('#rHasta').value) q = q.lte('fecha', $('#rHasta').value);
-  if ($('#rTrans').value) q = q.eq('transporte', $('#rTrans').value);
-  if ($('#rPago').value) q = q.eq('modo_pago', $('#rPago').value);
-  if ($('#rNodo').value.trim()) q = q.ilike('nodo', '%' + $('#rNodo').value.trim() + '%');
-  const { data, error } = await q;
-  if (error) { conexion(false); return flash($('#rMsg'), error.message, 'err'); }
+  const crear = () => {
+    let q = sb.from('envios').select('*').order('fecha', { ascending: false }).order('transporte').order('nodo').order('id');
+    if ($('#rDesde').value) q = q.gte('fecha', $('#rDesde').value);
+    if ($('#rHasta').value) q = q.lte('fecha', $('#rHasta').value);
+    if ($('#rTrans').value) q = q.eq('transporte', $('#rTrans').value);
+    if ($('#rPago').value) q = q.eq('modo_pago', $('#rPago').value);
+    if ($('#rNodo').value.trim()) q = q.ilike('nodo', '%' + $('#rNodo').value.trim() + '%');
+    return q;
+  };
+  let data; try { data = await traerTodo(crear); } catch (error) { conexion(false); return flash($('#rMsg'), error.message, 'err'); }
   conexion(true);
   regBase = data;
   const { data: lqs } = await sb.from('liquidaciones').select('id,numero'); lqNumeros = new Map((lqs || []).map(x => [x.id, x.numero]));
@@ -1200,7 +1206,8 @@ $('#rTabla').addEventListener('click', async e => {
   buscarRegistros();
 });
 
-$('#rExport').onclick = () => {
+$('#rExport').onclick = async () => {
+  await xlsxLib();
   const serial = f => Math.round((Date.parse(f + 'T00:00:00Z') - Date.parse('1899-12-30T00:00:00Z')) / 86400000);
   const aoa = [['MES','FECHA','ORIGEN','TRANSPORTE','NODOS','Cant. Bultos','Cant. Pedidos','Cant -CAJAS','PLACAS','AGENCIAS','DETALLE DEL GASTO','MODO DE PAGO','IMPORTE','OBSERVACIÓN','CONC']]
     .concat(registros.map(r => [MESES[Number(r.fecha.slice(5, 7)) - 1], serial(r.fecha), r.origen, r.transporte, r.nodo, r.bultos, r.pedidos, r.cajas,
@@ -1215,7 +1222,7 @@ $('#rExport').onclick = () => {
 // ---------- detalle HRN ----------
 const HRN_COLS = [['pedido_cliente','Pedido Cliente','t'],['nro_doc_referencia','Nro. Doc. Referencia','t'],['tipo_documento','Tipo Documento','t'],['lpn','LPN','t'],['fecha_recepcion','Fecha de Recepcion','d'],['ubicacion_recepcion','Ubicacion Recepción','t'],['cuenta_procedencia','Cuenta Procedencia','t'],['descripcion_cuenta','Descripcion Cuenta','t'],['nodo','NODO','t'],['bultos','BULTOS','n'],['observacion','OBSERVACION','t'],['fecha_ruta','Fecha Ruta','d'],['flag_carga_stage','Flag Carga Stage','n'],['fecha_carga_stage','Fecha Carga Stage','d'],['flag_terminar_carga','Flag Terminar Carga','n'],['fecha_terminar_carga','Fecha Terminar Carga','d'],['fecha_despacho','Fecha Despacho','d'],['flag_reprogramado','Flag Reprogramado','n'],['contador_reprogramado','Contador Reprogramado','n'],['motivo_pedido','Motivo Pedido','t'],['alto','Alto','n'],['ancho','Ancho','n'],['largo','Largo','n'],['volumen','Volumen','n'],['peso','Peso','n'],['roll_contenedor','Roll Contenedor','t'],['codigo_zona','Código Zona','t'],['zona','Zona','t'],['orden_clasificacion','Orden Clasificación','t'],['estado_contenedor','Estado Contenedor','t'],['placa_real','Placa Real','t'],['fecha_pedido','Fecha de Pedido','d'],['fecha_creacion','Fecha de Creación','d'],['ubicacion_movimiento','Ubicación Movimiento','t'],['fecha_movimiento','Fecha Movimiento','d'],['usuario_movimiento','Usuario Movimiento','t'],['proveedor','PROVEEDOR','t'],['nodo2','NODO2','t'],['cant_pedidos','CANT_PEDIDOS','t']];
 const hrnPorHeader = new Map(HRN_COLS.map(c => [norm(c[1]), c]));
-let hrnFilas = [], hrnConsulta = [];
+let hrnFilas = [];
 
 function serialAFecha(n) {
   const d = new Date(Math.round((n - 25569) * 86400) * 1000);
@@ -1252,7 +1259,7 @@ function leerHrn(wb) {
 $('#hFile').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
   try {
-    const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
+    await xlsxLib(); const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
     const filas = leerHrn(wb);
     if (!filas) return flash($('#hMsg'), 'No encontré la hoja ( HRN ) con la columna "Pedido Cliente".', 'err');
     hrnFilas = filas; $('#hMsg').className = 'msg'; pintarResumenHrn();
@@ -1290,24 +1297,37 @@ $('#hGuardar').onclick = async () => {
   $('#hGuardar').disabled = false;
 };
 
-async function buscarHrn() {
-  let q = sb.from('hrn_detalle').select('*', { count: 'exact' }).order('fecha_reporte', { ascending: false }).order('nodo').order('id').limit(1000);
+let hrnCargado = false, hrnVista = [], hrnMostrar = 100;
+const HRN_VIS = ['fecha_reporte', 'pedido_cliente', 'lpn', 'cuenta_procedencia', 'descripcion_cuenta', 'nodo', 'bultos', 'roll_contenedor', 'peso', 'volumen', 'fecha_recepcion'];
+// consulta del Detalle con los filtros de la pantalla (columnas visibles para ver; todas para exportar)
+function hrnConsultaQ(cols, conteo) {
+  let q = sb.from('hrn_detalle').select(cols, conteo ? { count: 'exact' } : undefined).order('fecha_reporte', { ascending: false }).order('nodo').order('id');
   if ($('#qDesde').value) q = q.gte('fecha_reporte', $('#qDesde').value);
   if ($('#qHasta').value) q = q.lte('fecha_reporte', $('#qHasta').value);
   if ($('#qNodo').value.trim()) q = q.ilike('nodo', '%' + $('#qNodo').value.trim() + '%');
   const t = $('#qPed').value.trim().replace(/[,()]/g, '');
   if (t) q = q.or(`pedido_cliente.ilike.%${t}%,lpn.ilike.%${t}%`);
-  const { data, error, count } = await q;
-  if (error) return flash($('#hMsg'), error.message, 'err');
-  hrnConsulta = data;
-  $('#qInfo').textContent = `${count} filas` + (count > data.length ? ` (se muestran las primeras ${data.length}; afina los filtros)` : '');
-  const vis = ['fecha_reporte','pedido_cliente','lpn','cuenta_procedencia','descripcion_cuenta','nodo','bultos','roll_contenedor','peso','volumen','fecha_recepcion'];
-  $('#qTabla').innerHTML = '<tr>' + ['Fecha reporte','Pedido','LPN','Cuenta','Descripción cuenta','Nodo','Bultos','Roll','Peso','Volumen','Recepción'].map(h => `<th>${h}</th>`).join('') + '</tr>' +
-    data.map(r => '<tr>' + vis.map(c => `<td>${esc(c === 'fecha_reporte' ? fdmy(r[c]) : c === 'fecha_recepcion' ? fdt(r[c]) : r[c])}</td>`).join('') + '</tr>').join('');
+  return q;
 }
+async function buscarHrn() {
+  hrnCargado = true;
+  const { data, error, count } = await hrnConsultaQ(HRN_VIS.join(','), true).limit(1000);
+  if (error) return flash($('#hMsg'), error.message, 'err');
+  hrnVista = data; hrnMostrar = 100;
+  $('#qInfo').textContent = `${count} filas` + (count > data.length ? ` (se muestran las primeras ${data.length}; afina los filtros. Al exportar salen todas)` : '');
+  pintarHrn();
+}
+function pintarHrn() {
+  const vis = hrnVista.slice(0, hrnMostrar);
+  $('#qTabla').innerHTML = '<tr>' + ['Fecha reporte', 'Pedido', 'LPN', 'Cuenta', 'Descripción cuenta', 'Nodo', 'Bultos', 'Roll', 'Peso', 'Volumen', 'Recepción'].map(h => `<th>${h}</th>`).join('') + '</tr>' +
+    vis.map(r => '<tr>' + HRN_VIS.map(c => `<td>${esc(c === 'fecha_reporte' ? fdmy(r[c]) : c === 'fecha_recepcion' ? fdt(r[c]) : r[c])}</td>`).join('') + '</tr>').join('') +
+    (hrnVista.length > vis.length ? `<tr><td colspan="11" style="text-align:center"><button class="lnk" id="qMas">Mostrar más (${vis.length} de ${hrnVista.length})</button></td></tr>` : '');
+}
+$('#qTabla').addEventListener('click', e => { if (e.target.id === 'qMas') { hrnMostrar += 200; pintarHrn(); } });
 $('#qBuscar').onclick = buscarHrn;
-$('#qExport').onclick = () => {
-  const aoa = [['Fecha reporte', ...HRN_COLS.map(c => c[1])]].concat(hrnConsulta.map(r => [r.fecha_reporte, ...HRN_COLS.map(c => r[c[0]])]));
+$('#qExport').onclick = async () => {
+  await xlsxLib(); let todo; try { todo = await traerTodo(() => hrnConsultaQ('*', false)); } catch (e) { return flash($('#hMsg'), e.message, 'err'); }
+  const aoa = [['Fecha reporte', ...HRN_COLS.map(c => c[1])]].concat(todo.map(r => [r.fecha_reporte, ...HRN_COLS.map(c => r[c[0]])]));
   const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'HRN');
   XLSX.writeFile(wb, `hrn_${$('#qDesde').value || 'inicio'}_${$('#qHasta').value || 'hoy'}.xlsx`);
 };
@@ -1843,8 +1863,8 @@ async function calcularKpis() {
   if (mi === kSeq) $('#kRefrescar').disabled = false;
 }
 document.querySelector('nav [data-tab="kpis"]').addEventListener('click', calcularKpis);
-$('#kExport').onclick = () => {
-  if (!kpiResultado) return;
+$('#kExport').onclick = async () => {
+  if (!kpiResultado) return; await xlsxLib();
   const wb = XLSX.utils.book_new(), r2 = n => Math.round(n * 100) / 100;
   const aoaD = [['Fecha','Registros','Pedidos','Bultos','Cajas','Costo contado','Costo crédito','Costo total','Costo por pedido','Registros sin importe']]
     .concat(diasResultado.map(d => [d.fecha, d.registros, d.pedidos, d.bultos, d.cajas, r2(d.contado), r2(d.credito), r2(d.costo), d.pedConImporte ? r2(d.costo / d.pedConImporte) : null, d.sinImporte]));
@@ -1880,13 +1900,15 @@ async function lqAbrir() {
 }
 const lqLimite = () => Number(lqPar.limite) || 1500;
 async function lqBuscar() {
-  let q = sb.from('envios').select('*').is('liquidacion_id', null).order('fecha').order('transporte').order('nodo').limit(2000);
-  if ($('#lqDesde').value) q = q.gte('fecha', $('#lqDesde').value);
-  if ($('#lqHasta').value) q = q.lte('fecha', $('#lqHasta').value);
-  if ($('#lqTrans').value) q = q.eq('transporte', $('#lqTrans').value);
-  if (lqPago) q = q.eq('modo_pago', lqPago);
-  const { data, error } = await q;
-  if (error) return flash($('#lqMsg'), error.message, 'err');
+  const crear = () => {
+    let q = sb.from('envios').select('*').is('liquidacion_id', null).order('fecha').order('transporte').order('nodo').order('id');
+    if ($('#lqDesde').value) q = q.gte('fecha', $('#lqDesde').value);
+    if ($('#lqHasta').value) q = q.lte('fecha', $('#lqHasta').value);
+    if ($('#lqTrans').value) q = q.eq('transporte', $('#lqTrans').value);
+    if (lqPago) q = q.eq('modo_pago', lqPago);
+    return q;
+  };
+  let data; try { data = await traerTodo(crear); } catch (error) { return flash($('#lqMsg'), error.message, 'err'); }
   const sel = $('#lqTrans').value;
   if (!sel) $('#lqTrans').innerHTML = '<option value="">Todos</option>' + [...new Set(data.map(r => r.transporte).filter(Boolean))].sort().map(t => `<option>${esc(t)}</option>`).join('');
   lqLista = data.filter(regListo); lqPend = data.filter(r => !regListo(r));
