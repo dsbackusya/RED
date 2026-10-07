@@ -213,7 +213,6 @@
   /* ===== KPIs fase 1: hallazgos, calidad, detalle ===== */
   #dotCal.dotw { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--amb); margin-left:5px; vertical-align:1px }
   .rk7 { grid-template-columns:22px minmax(110px,190px) 1fr 88px 54px 56px 100px }
-  [data-det] { cursor:pointer } tr[data-det]:hover td { background:color-mix(in srgb, var(--pri) 8%, transparent) } .rk[data-det]:hover { background:var(--head) }
   .ins { display:grid; grid-template-columns:repeat(auto-fit, minmax(270px, 1fr)); gap:10px; margin:0 0 14px } .ins:empty { display:none }
   .hl { display:flex; gap:10px; padding:11px 12px; border-radius:11px; border:1px solid var(--line); background:var(--card); font-size:12px; cursor:pointer; transition:box-shadow .15s } .hl:hover { box-shadow:0 4px 14px rgba(15,23,42,.08) }
   .hl i { flex:none; width:30px; height:30px; border-radius:9px; display:grid; place-items:center; font-style:normal; font-size:15px } .hl.w i { background:#fffbeb } .hl.r i { background:#fef2f2 } .hl.b i { background:#eff6ff } .hl.g i { background:var(--okbg) }
@@ -223,12 +222,6 @@
   .cq-i { display:flex; align-items:center; gap:12px; padding:12px 0; border-top:1px solid var(--line); flex-wrap:wrap } .cq-i:first-child { border-top:0 }
   .cq-i .ic { width:34px; height:34px; border-radius:10px; display:grid; place-items:center; flex:none; font-size:16px } .cq-i .tx { flex:1; min-width:180px } .cq-i .tx b { display:block; font-size:13px } .cq-i .tx span { color:var(--mut); font-size:11px }
   .cq-i .mt { width:150px } .cq-i .mt .tr { height:7px; background:var(--line); border-radius:99px; overflow:hidden } .cq-i .mt .tr i { display:block; height:100%; border-radius:99px } .cq-i .mt small { display:block; text-align:right; font-size:11px; color:var(--mut); margin-top:3px }
-  .ov { position:fixed; inset:0; background:rgba(11,25,44,.45); z-index:150; opacity:0; pointer-events:none; transition:opacity .2s } .ov.on { opacity:1; pointer-events:auto }
-  .dr { position:fixed; top:0; right:0; bottom:0; width:min(480px, 94vw); background:var(--card); z-index:160; transform:translateX(105%); transition:transform .25s; box-shadow:-10px 0 40px rgba(15,23,42,.2); display:flex; flex-direction:column }
-  .dr.on { transform:none } .dr header { padding:16px 18px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:flex-start; gap:10px }
-  .dr header small { color:var(--mut); font-size:11px; text-transform:uppercase; letter-spacing:.05em; font-weight:700 } .dr header h2 { margin:2px 0 0; font-size:18px } .dr .bd { padding:16px 18px; overflow:auto; flex:1 }
-  .dr .ks { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px } .dr .ks div { border:1px solid var(--line); border-radius:10px; padding:10px 12px } .dr .ks span { font-size:10px; color:#94a3b8; font-weight:700; text-transform:uppercase; letter-spacing:.05em } .dr .ks b { display:block; font-size:18px; margin-top:2px; font-variant-numeric:tabular-nums }
-  .dr .x2 { background:none; border:0; font-size:24px; line-height:1; cursor:pointer; color:var(--mut) }
 
   /* ===== KPIs fase 2: meta, resumen, calendario ===== */
   .hero .goal { margin-top:10px } .hero .goal .tr { height:7px; border-radius:99px; background:rgba(255,255,255,.18); overflow:hidden } .hero .goal .tr i { display:block; height:100%; border-radius:99px }
@@ -236,7 +229,7 @@
   .hero .goal small { color:#b6c4dc; font-size:11px } .hero .link { color:#93c5fd; padding:0 }
   .cal { display:grid; grid-template-columns:repeat(7, 1fr); gap:6px } .cal .dw { font-size:10px; font-weight:700; color:#94a3b8; text-align:center; text-transform:uppercase }
   .cal .d { min-height:48px; border-radius:8px; padding:5px 7px; font-size:11px; display:flex; flex-direction:column; justify-content:space-between; border:1px solid var(--line); background:var(--card) }
-  .cal .d b { font-size:11px; font-variant-numeric:tabular-nums } .cal .d.z { background:var(--head); color:#cbd5e1 } .cal .d[data-det]:hover { outline:2px solid var(--pri) } .cal .e { border:0 }
+  .cal .d b { font-size:11px; font-variant-numeric:tabular-nums } .cal .d.z { background:var(--head); color:#cbd5e1 } .cal .e { border:0 }
   .ramp { display:flex; align-items:center; gap:6px; font-size:10px; color:var(--mut); margin-top:8px } .ramp i { display:block; width:34px; height:8px; border-radius:3px }
   #metaDlg { width:min(380px, 92vw) } #metaDlg .in { padding:20px }
   @media (max-width:900px) { .cal { gap:3px } .cal .d { min-height:40px; padding:3px 4px } .cal .d b { font-size:9px } }
@@ -390,9 +383,6 @@
   dialog { border-radius:20px; box-shadow:0 24px 70px rgba(0,0,0,.28) } dialog::backdrop { background:rgba(0,0,0,.32); backdrop-filter:blur(6px) }
   .fd-img { background:#1d1d1f }
   .aviso { border-radius:12px; font-size:13px } .okbox { border-radius:12px; font-size:13px }
-  .ov { background:rgba(0,0,0,.28) } .dr { box-shadow:-12px 0 48px rgba(0,0,0,.14) }
-  .dr header small { text-transform:none; letter-spacing:0; font-size:13px; font-weight:500 } .dr header h2 { font-size:22px; letter-spacing:-.02em }
-  .dr .ks div { border:0; background:var(--head); border-radius:12px } .dr .ks span { text-transform:none; letter-spacing:0; font-size:12px; font-weight:500; color:var(--mut) }
   .toast { background:rgba(29,29,31,.94); border-radius:14px; font-size:14px } .toast i { display:none } .toast.err { background:var(--bad) }
   .msg { border-radius:12px; font-size:14px } .msg.err { background:var(--badbg) }
   .empty { padding:48px 16px; font-size:14px } .empty b { font-size:17px }
@@ -504,7 +494,6 @@
     dialog { width:100% !important; max-width:100% !important; margin:auto 0 0 0 !important; max-height:92vh; border-radius:22px 22px 0 0 !important; padding-bottom:env(safe-area-inset-bottom) } dialog[open] { animation:subir .28s ease-out }
     #cfDlg .in, #dstDlg .in, #lqParDlg .in, #metaDlg .in { padding:22px 20px 20px } #cfDlg .row .b, #dstDlg .row .b, #lqParDlg .row .b, #metaDlg .row .b { flex:1; justify-content:center }
     .fd { grid-template-columns:1fr; max-height:92vh } .fd-img { max-height:32vh } .fgrid { grid-template-columns:1fr 1fr }
-    .dr { width:100vw } .dr .ks { grid-template-columns:1fr 1fr }
     #toasts { right:12px; left:12px; bottom:calc(76px + env(safe-area-inset-bottom)) } .toast { max-width:none }
     /* sin desbordes laterales */
     html, body { max-width:100% } body { overflow-x:clip }
@@ -523,7 +512,6 @@
   @media (max-width:760px) { .tcard:has(#lqTabla) { display:flex; flex-direction:column } .tcard:has(#lqTabla) .lqbar { order:-1; border-top:0; border-bottom:1px solid var(--line) } }
   @media (max-width:760px) { #tab-kpis .fb .fg { flex:1 1 100% } #tab-kpis .fb .fg:has(#kAgencia), #tab-kpis .fb .fg:has(#kZona) { flex:1 1 calc(50% - 7px) } #kgMes input { width:100% } .top .acts { gap:2px 20px } }
   .mfil { display:none !important }
-  .dr:not(.on) { visibility:hidden; transition:transform .25s, visibility 0s .25s } .dr.on { visibility:visible; transition:transform .25s }
   @media (max-width:760px) { .mfil { display:inline-flex !important } #tab-kpis > .card:has(.fb) { display:none } #tab-kpis.fopen > .card:has(.fb) { display:block } }
   @media (max-width:760px) { #kTabla td[data-c=pago] { grid-column:1/-1 } #kTabla .b.sec { color:var(--bad); background:var(--badbg); min-height:40px } }
   @media (max-width:760px) { .top:has(> h1) { flex-direction:column; align-items:flex-start; gap:4px } #tab-detalle .row > * { flex:1 1 100% } #tab-detalle .tw { max-height:60vh } }
@@ -667,7 +655,7 @@
     .cbarra .in { gap:8px } .cbarra .res span { display:none } .cbarra .res b { font-size:14px } .cbarra .b { padding:10px 14px } #cCancelar { display:none }
     #tab-cargar.conbarra { padding-bottom:150px }
   }
-  .ico { width:1.1em; height:1.1em; vertical-align:-.2em; flex:none } .ar { display:inline-block; vertical-align:0; margin-left:2px } .nb .x svg, .x2 svg, .x2 { display:grid; place-items:center }
+  .ico { width:1.1em; height:1.1em; vertical-align:-.2em; flex:none } .ar { display:inline-block; vertical-align:0; margin-left:2px } .nb .x svg { display:grid; place-items:center }
   .pag button .ico { width:14px; height:14px; vertical-align:-2px }
 </style>
 </head>
@@ -964,8 +952,6 @@
   </div>
   <div class="rm-f"><span class="sp" id="rmHint"></span><button type="button" class="b sec" id="rmCancel">Cancelar</button><button type="button" class="b sec" id="rmSig">Guardar y siguiente</button><button class="b" id="rmOk">Guardar</button></div>
 </form></dialog>
-<div class="ov" id="ov"></div>
-<aside class="dr" id="dr" aria-label="Detalle"><header><div><small id="drT"></small><h2 id="drN"></h2></div><button class="x2" id="drX" aria-label="Cerrar"></button></header><div class="bd" id="drB"></div></aside>
 <dialog id="metaDlg"><div class="in">
   <h3 id="metaT" style="margin:0 0 4px">Meta mensual</h3><p class="hint" id="metaS" style="margin:0 0 12px"></p>
   <label>Meta de costo del mes (S/)<input id="metaV" type="number" step="0.01" min="0" inputmode="decimal"></label>
@@ -1809,7 +1795,7 @@ function calcularKpi(envios, hrn, base) {
 function tablaKpi(el, titulo, mapa, tipo) {
   const filas = [...mapa].sort((a, b) => b[1].costo - a[1].costo);
   el.innerHTML = `<tr><th>${titulo}</th><th class="num">Costo</th><th class="num">Pedidos</th><th class="num">Cajas</th><th class="num">Costo por pedido</th><th class="num">Tarifa por caja</th></tr>` +
-    filas.map(([k, v]) => `<tr${tipo ? ` data-det="${tipo}|${esc(k)}"` : ''}><td><b>${esc(k)}</b></td><td class="num">${fmt(v.costo)}</td><td class="num">${fmtN(v.pedidos)}</td><td class="num">${fmtN(v.cajas)}</td><td class="num">${v.pedidos ? fmt(v.costo / v.pedidos) : '-'}</td><td class="num">${v.cajas ? fmt(v.costo / v.cajas) : '-'}</td></tr>`).join('');
+    filas.map(([k, v]) => `<tr><td><b>${esc(k)}</b></td><td class="num">${fmt(v.costo)}</td><td class="num">${fmtN(v.pedidos)}</td><td class="num">${fmtN(v.cajas)}</td><td class="num">${v.pedidos ? fmt(v.costo / v.pedidos) : '-'}</td><td class="num">${v.cajas ? fmt(v.costo / v.cajas) : '-'}</td></tr>`).join('');
 }
 let diasResultado = [];
 function agruparDias(envios) {
@@ -1831,7 +1817,7 @@ function pintarDias(dias) {
   const max = Math.max(1, ...dias.map(d => d.costo));
   const dia = f => new Date(f + 'T00:00:00').toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: '2-digit' });
   $('#kpDias').innerHTML = '<tr><th>Día</th><th class="num">Registros</th><th class="num">Pedidos</th><th class="num">Bultos</th><th class="num">Cajas</th><th class="num">Contado</th><th class="num">Crédito</th><th class="num">Costo total</th><th class="num">Costo por pedido</th><th class="num">Sin importe</th></tr>' +
-    dias.map(d => `<tr data-d="${d.fecha}" data-det="dia|${d.fecha}"><td><b>${esc(dia(d.fecha))}</b></td><td class="num">${d.registros}</td><td class="num">${fmtN(d.pedidos)}</td><td class="num">${fmtN(d.bultos)}</td><td class="num">${fmtN(d.cajas)}</td>
+    dias.map(d => `<tr data-d="${d.fecha}"><td><b>${esc(dia(d.fecha))}</b></td><td class="num">${d.registros}</td><td class="num">${fmtN(d.pedidos)}</td><td class="num">${fmtN(d.bultos)}</td><td class="num">${fmtN(d.cajas)}</td>
       <td class="num">${fmt(d.contado)}</td><td class="num">${fmt(d.credito)}</td>
       <td class="num"><b>${fmt(d.costo)}</b></td>
       <td class="num">${d.pedConImporte ? fmt(d.costo / d.pedConImporte) : '-'}</td><td class="num">${d.sinImporte || ''}</td></tr>`).join('') +
@@ -1857,7 +1843,7 @@ function pintarCuentas() {
   const lim = Number($('#ctaTop').value), vis = d.slice(0, lim), max = Math.max(...d.map(x => x.costo), 1);
   $('#ctaBarras').innerHTML = '<div class="rk h"><span></span><span>Cuenta</span><span>Costo</span><span style="text-align:right">Monto</span><span style="text-align:right">% total</span><span style="text-align:center">Costo x pedido</span></div>' +
     (vis.map((x, i) => { const c = ctaClase(x.cpp, prom);
-      return `<div class="rk" data-det="cta|${esc(x.nombre)}"><span class="n">${i + 1}</span><span class="nm" title="${esc(x.nombre)}">${esc(x.nombre)}</span><span class="bar"><i style="width:${x.costo / max * 100}%;background:${ctaVAR[c]}"></i></span><span class="v">${fmt(x.costo)}</span><span class="p">${(x.costo / T * 100).toFixed(1)}%</span><span><span class="cz ${c}">${x.pedidos ? fmt(x.cpp) + ' ' + flecha(x.cpp > prom) : '-'}</span></span></div>`; }).join('') || '<p class="hint">Sin resultados.</p>') +
+      return `<div class="rk"><span class="n">${i + 1}</span><span class="nm" title="${esc(x.nombre)}">${esc(x.nombre)}</span><span class="bar"><i style="width:${x.costo / max * 100}%;background:${ctaVAR[c]}"></i></span><span class="v">${fmt(x.costo)}</span><span class="p">${(x.costo / T * 100).toFixed(1)}%</span><span><span class="cz ${c}">${x.pedidos ? fmt(x.cpp) + ' ' + flecha(x.cpp > prom) : '-'}</span></span></div>`; }).join('') || '<p class="hint">Sin resultados.</p>') +
     (d.length > vis.length ? `<div class="cutl">+ ${d.length - vis.length} cuentas más: ${fmt(d.slice(lim).reduce((s, x) => s + x.costo, 0))}</div>` : '');
   $('#ctaTabla').innerHTML = '<table><tr><th>Cuenta</th><th class="num">Costo</th><th class="num">% total</th><th class="num">Pedidos</th><th class="num">Bultos</th><th class="num">Costo por pedido</th><th class="num">Costo por bulto</th></tr>' +
     vis.map(x => `<tr><td><b>${esc(x.nombre)}</b></td><td class="num">${fmt(x.costo)}</td><td class="num">${(x.costo / T * 100).toFixed(1)}%</td><td class="num">${fmtN(x.pedidos)}</td><td class="num">${fmtN(x.bultos)}</td><td class="num">${x.pedidos ? fmt(x.cpp) : '-'}</td><td class="num">${x.bultos ? fmt(x.costo / x.bultos) : '-'}</td></tr>`).join('') +
@@ -1905,7 +1891,7 @@ function rankingCajas(lista, tipo, T, cont, vacio) {
   const med = mediana(lista.filter(x => x.cajas).map(x => x.tar)), max = Math.max(...lista.map(x => x.costo), 1);
   $(cont).innerHTML = lista.length ? '<div class="rk rk7 h"><span></span><span>Nombre</span><span>Costo</span><span style="text-align:right">Monto</span><span style="text-align:right">% total</span><span style="text-align:right">Cajas</span><span style="text-align:center">Tarifa / caja</span></div>' +
     lista.map((x, i) => { const c = x.sin ? 'a' : ctaClase(x.tar, med);
-      return `<div class="rk rk7" data-det="${tipo}|${esc(x.nombre)}"><span class="n">${i + 1}</span><span class="nm" title="${esc(x.nombre)}">${esc(x.nombre)}</span><span class="bar"><i style="width:${x.costo / max * 100}%;background:${ctaVAR[c]}"></i></span><span class="v">${fmt(x.costo)}</span><span class="p">${T ? (x.costo / T * 100).toFixed(1) : 0}%</span><span class="q">${fmtN(x.cajas)}</span><span><span class="cz ${c}">${x.cajas ? fmt(x.tar) + ' ' + flecha(x.tar > med) : '-'}</span></span></div>`; }).join('') : `<p class="hint">${vacio || 'Sin datos en este rango.'}</p>`;
+      return `<div class="rk rk7"><span class="n">${i + 1}</span><span class="nm" title="${esc(x.nombre)}">${esc(x.nombre)}</span><span class="bar"><i style="width:${x.costo / max * 100}%;background:${ctaVAR[c]}"></i></span><span class="v">${fmt(x.costo)}</span><span class="p">${T ? (x.costo / T * 100).toFixed(1) : 0}%</span><span class="q">${fmtN(x.cajas)}</span><span><span class="cz ${c}">${x.cajas ? fmt(x.tar) + ' ' + flecha(x.tar > med) : '-'}</span></span></div>`; }).join('') : `<p class="hint">${vacio || 'Sin datos en este rango.'}</p>`;
   return med;
 }
 const listaDe = mapa => [...mapa].map(([nombre, v]) => ({ nombre, ...v, tar: v.cajas ? v.costo / v.cajas : 0, sin: nombre.startsWith('(') })).sort((a, b) => b.costo - a.costo);
@@ -2051,38 +2037,9 @@ function calidadKpi(R, envios) {
     `<div class="cq-i"><div class="tx"><b>Importe repartido entre cuentas</b><span>${R.sinHrn ? `${fmt(R.sinHrn)} sin cuenta: falta el detalle de ${R.sinHrnNodos.size} ${R.sinHrnNodos.size === 1 ? 'nodo' : 'nodos'}.` : 'Todo el costo está asignado a una cuenta.'}</span></div><div class="mt"><div class="tr"><i style="width:${hrnPc}%;background:${hrnPc >= 95 ? 'var(--grn)' : 'var(--amb)'}"></i></div><small>${hrnPc.toFixed(0)}% asignado</small></div><button class="b sec" data-go="detalle">Cargar detalle</button></div>`;
   $('#dotCal').className = (sinImp.length || sinFac.length || sinAdj.length || sinAg.length || sinZona.length || R.sinHrn) ? 'dotw' : '';
 }
-// ---------- detalle lateral ----------
-function abrirDetalle(tipo, k) {
-  const env = kpEnvios, R = kpiResultado; if (!R) return;
-  const pos = e => Number(e.importe) > 0; let titulo = '', sel = [], kpis = '', extra = '', nodoReg = null;
-  if (tipo === 'cta') {
-    const c = R.cuentas.get(k); if (!c) return; titulo = 'Cuenta';
-    const nm = [...(R.cuentaNodos.get(k) || [])].sort((a, b) => b[1] - a[1]), prom = R.pedidos ? R.total / R.pedidos : 0;
-    kpis = `<div><span>Costo asignado</span><b>${fmt(c.costo)}</b></div><div><span>% del total</span><b>${R.total ? (c.costo / R.total * 100).toFixed(1) : 0}%</b></div><div><span>Pedidos</span><b>${fmtN(c.pedidos)}</b></div><div><span>Costo por pedido</span><b>${c.pedidos ? fmt(c.costo / c.pedidos) : '-'}</b></div>`;
-    extra = `<div class="hint">${c.pedidos && prom ? `Comparado con el promedio (${fmt(prom)}): <b>${(c.costo / c.pedidos / prom).toFixed(1)}×</b>. ` : ''}El costo se reparte desde cada nodo por <b>bultos</b> entre las cuentas del detalle.</div><div class="hint" style="margin-top:12px">Nodos donde aparece</div><div class="tw"><table><tr><th>Nodo</th><th class="num">Costo asignado</th><th class="num">% de la cuenta</th></tr>${nm.map(([n, v]) => `<tr><td>${esc(n)}</td><td class="num">${fmt(v)}</td><td class="num">${c.costo ? (v / c.costo * 100).toFixed(0) : 0}%</td></tr>`).join('')}</table></div>`;
-  } else {
-    if (tipo === 'nodo') { sel = env.filter(e => e.nodo === k); titulo = 'Nodo'; nodoReg = k; }
-    else if (tipo === 'age') { sel = env.filter(e => (e.agencia || '(sin agencia)') === k); titulo = 'Agencia'; }
-    else if (tipo === 'zona') { sel = env.filter(e => zonaDe(e.nodo) === k); titulo = 'Zona'; }
-    else if (tipo === 'tra') { sel = env.filter(e => (e.transporte || '(SIN TRANSPORTE)') === k); titulo = 'Transporte'; }
-    else if (tipo === 'dia') { sel = env.filter(e => e.fecha === k); titulo = 'Día'; k = fdmy(k); }
-    const ok = sel.filter(pos), T = ok.reduce((s, e) => s + Number(e.importe), 0), P = ok.reduce((s, e) => s + (Number(e.pedidos) || 0), 0), C = ok.reduce((s, e) => s + (Number(e.cajas) || 0), 0);
-    kpis = `<div><span>Costo</span><b>${fmt(T)}</b></div><div><span>Registros</span><b>${sel.length}</b></div><div><span>Costo por pedido</span><b>${P ? fmt(T / P) : '-'}</b></div><div><span>Tarifa por caja</span><b>${C ? fmt(T / C) : '-'}</b></div>`;
-    extra = `<div class="hint">Registros relacionados</div><div class="tw"><table><tr><th>Fecha</th><th>Nodo</th><th class="num">Cajas</th><th class="num">Importe</th><th>Pago</th><th>Factura</th></tr>${sel.map(e => `<tr><td>${fdmy(e.fecha).slice(0, 5)}</td><td>${esc(e.nodo)}</td><td class="num">${e.cajas ?? ''}</td><td class="num">${pos(e) ? fmt(Number(e.importe)) : '<span style="color:var(--amb)">sin importe</span>'}</td><td>${e.modo_pago === 'CONTADO' ? 'Contado' : 'Crédito'}</td><td>${e.factura ? esc(e.factura) : '<span style="color:var(--amb)">falta</span>'}</td></tr>`).join('')}</table></div>
-      <button class="b" id="drReg" style="margin-top:12px">Abrir en Registros</button>`;
-  }
-  $('#drT').textContent = titulo; $('#drN').textContent = k; $('#drB').innerHTML = `<div class="ks">${kpis}</div>${extra}`;
-  const br = $('#drReg'); if (br) br.onclick = () => { $('#rNodo').value = nodoReg || ''; $('#rDesde').value = $('#kDesde').value; $('#rHasta').value = $('#kHasta').value; cerrarDetalle(); irA('registros'); buscarRegistros(); };
-  $('#dr').classList.add('on'); $('#ov').classList.add('on');
-}
-const cerrarDetalle = () => { $('#dr').classList.remove('on'); $('#ov').classList.remove('on'); };
-$('#drX').innerHTML = ICO.x;
-$('#drX').onclick = $('#ov').onclick = cerrarDetalle;
-document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarDetalle(); });
 document.addEventListener('click', e => {
   const kt = e.target.closest('#tab-kpis [data-kt]'); if (kt) return kTab(kt.dataset.kt);
   const g = e.target.closest('#kp-cal [data-go]'); if (g) return irA(g.dataset.go);
-  const d = e.target.closest('#tab-kpis [data-det]'); if (d) { const i = d.dataset.det.indexOf('|'); abrirDetalle(d.dataset.det.slice(0, i), d.dataset.det.slice(i + 1)); }
 });
 $('#kAgencia').onchange = $('#kZona').onchange = () => { kSync(); kAuto(); };
 let kpEnvios = [];
@@ -2169,12 +2126,12 @@ function resumenKpi(R, dias) {
   const W = 900, H = 250, m = { l: 44, r: 12, t: 12, b: 26 }, vals = cost.map(d => d.costo), mx = Math.max(...vals) * 1.1, bw = (W - m.l - m.r) / vals.length, Y = v => H - m.b - v / mx * (H - m.t - m.b);
   let g = ''; for (let i = 0; i <= 4; i++) { const v = mx * i / 4; g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${m.l - 6}" y="${Y(v) + 3}" text-anchor="end">${v.toFixed(0)}</text>`; }
   const paso = Math.ceil(vals.length / 16);
-  g += vals.map((v, i) => `<rect x="${m.l + i * bw + 2}" y="${Y(v)}" width="${Math.max(2, bw - 4)}" height="${H - m.b - Y(v)}" rx="3" fill="#bfdbfe" data-det="dia|${cost[i].fecha}"><title>${fdmy(cost[i].fecha)}, ${fmt(v)}</title></rect>${i % paso === 0 ? `<text x="${m.l + i * bw + bw / 2}" y="${H - 8}" text-anchor="middle">${cost[i].fecha.slice(8)}</text>` : ''}`).join('');
+  g += vals.map((v, i) => `<rect x="${m.l + i * bw + 2}" y="${Y(v)}" width="${Math.max(2, bw - 4)}" height="${H - m.b - Y(v)}" rx="3" fill="#bfdbfe"><title>${fdmy(cost[i].fecha)}, ${fmt(v)}</title></rect>${i % paso === 0 ? `<text x="${m.l + i * bw + bw / 2}" y="${H - 8}" text-anchor="middle">${cost[i].fecha.slice(8)}</text>` : ''}`).join('');
   if (vals.length > 1) { const ma = vals.map((_, i) => { const w = vals.slice(Math.max(0, i - 6), i + 1); return w.reduce((a, b) => a + b, 0) / w.length; });
     g += `<path d="${ma.map((v, i) => (i ? 'L' : 'M') + (m.l + i * bw + bw / 2).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ')}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round"/>`; }
   $('#resLine').innerHTML = g;
   const top = (mapa, tipo, ver) => { const L = [...mapa].filter(([k]) => k !== SIN_HRN && !k.startsWith('(')).sort((a, b) => b[1].costo - a[1].costo).slice(0, 5), mxv = Math.max(...L.map(x => x[1].costo), 1);
-    return L.length ? L.map(([k, v]) => `<div class="rk" style="grid-template-columns:minmax(80px,150px) 1fr 82px;padding:5px 4px" data-det="${tipo}|${esc(k)}"><span class="nm" title="${esc(k)}">${esc(k)}</span><span class="bar"><i style="width:${v.costo / mxv * 100}%;background:var(--pri)"></i></span><span class="v">${fmt(v.costo)}</span></div>`).join('') : '<p class="hint">Sin datos.</p>'; };
+    return L.length ? L.map(([k, v]) => `<div class="rk" style="grid-template-columns:minmax(80px,150px) 1fr 82px;padding:5px 4px"><span class="nm" title="${esc(k)}">${esc(k)}</span><span class="bar"><i style="width:${v.costo / mxv * 100}%;background:var(--pri)"></i></span><span class="v">${fmt(v.costo)}</span></div>`).join('') : '<p class="hint">Sin datos.</p>'; };
   const blk = (t, mapa, tipo, ver) => `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#6e6e73;text-transform:none;letter-spacing:0;margin-bottom:2px"><span>${t}</span><button class="link" style="padding:0" data-kt="${ver}">Ver todo</button></div>${top(mapa, tipo)}</div>`;
   $('#resTops').innerHTML = blk('Cuentas', R.cuentas, 'cta', 'cuenta') + blk('Nodos', R.nodos, 'nodo', 'nodo') + blk('Agencias', R.agencias, 'age', 'age');
 }
@@ -2184,7 +2141,7 @@ function calendarioKpi(dias) {
   else {
     const mxv = Math.max(...cost.map(d => d.costo), 1), off = (d0.getDay() + 6) % 7; let h = ['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(x => `<div class="dw">${x}</div>`).join('') + '<div class="e"></div>'.repeat(off);
     for (const d = new Date(d0); d <= d1; d.setDate(d.getDate() + 1)) { const f = isoLocal(d), x = mapa.get(f);
-      h += x && x.costo > 0 ? `<div class="d" data-det="dia|${f}" style="background:rgba(37,99,235,${(0.08 + x.costo / mxv * 0.55).toFixed(2)})" title="${fdmy(f)}, ${fmt(x.costo)}"><span>${d.getDate()}</span><b>${fmt(x.costo).replace('S/ ', '')}</b></div>` : `<div class="d z"><span>${d.getDate()}</span></div>`; }
+      h += x && x.costo > 0 ? `<div class="d" style="background:rgba(37,99,235,${(0.08 + x.costo / mxv * 0.55).toFixed(2)})" title="${fdmy(f)}, ${fmt(x.costo)}"><span>${d.getDate()}</span><b>${fmt(x.costo).replace('S/ ', '')}</b></div>` : `<div class="d z"><span>${d.getDate()}</span></div>`; }
     $('#calGrid').innerHTML = h;
     $('#calRamp').innerHTML = 'Menos <i style="background:rgba(37,99,235,.1)"></i><i style="background:rgba(37,99,235,.25)"></i><i style="background:rgba(37,99,235,.4)"></i><i style="background:rgba(37,99,235,.6)"></i> Más';
   }
