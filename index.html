@@ -910,15 +910,17 @@
 </section>
 
 <section id="tab-catalogo" class="hide">
-  <div class="top"><h1>Agencias</h1><div class="sub">Destino, agencia, transporte, zona y modo de pago</div></div>
+  <div class="top"><h1>Agencias</h1><div class="sub">Datos de cada destino para despachos y recojos</div></div>
   <div class="card">
-    <div class="row">
+    <div class="row" style="align-items:center;justify-content:space-between">
+      <div class="pseg" id="kSeg"><button data-m="DESPACHO" class="on">Despacho <small id="nAgD"></small></button><button data-m="RECOJO">Recojo <small id="nAgR"></small></button></div>
       <button class="b" id="kNuevo">Agregar destino</button>
     </div>
     <div id="kMsg" class="msg"></div>
-    <p class="hint">Es la fuente de agencia, transporte, zona, observación (modo de pago) y detalle del gasto para cada destino. Los cambios se guardan al salir de la celda.</p>
+    <p class="hint" id="kHint"></p>
   </div>
-  <div class="tw"><table id="kTabla"></table></div>
+  <div class="card empty hide" id="kVacio"><b></b><span></span><button type="button" class="b" id="kCopiar">Copiar los destinos de Despacho</button></div>
+  <div class="tw" id="kTw"><table id="kTabla"></table></div>
 </section>
 
 </div></main>
@@ -1048,7 +1050,11 @@ const cfg = window.APP_CONFIG || {};
 if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY) { $('#setup').classList.remove('hide'); throw new Error('config'); }
 const sb = supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
 
-let catalogo = new Map();   // nodo normalizado -> fila
+let catalogo = new Map();   // despachos: nodo normalizado -> fila
+let catalogoRec = new Map();   // recojos
+let catRows = [], agMot = 'DESPACHO';
+const catDe = m => m === 'RECOJO' ? catalogoRec : catalogo;
+const zonaEnv = e => ((catDe(e.motivo).get(norm(e.nodo)) || catalogo.get(norm(e.nodo)) || {}).zona) || '(sin zona)';
 let previa = [];            // filas de la carga en curso
 let hrnCarga = null;        // detalle HRN encontrado en el mismo Excel
 let registros = [];
@@ -1106,14 +1112,22 @@ async function cargarCatalogo() {
   const [{ data, error }, { data: lista }] = await Promise.all([
     sb.from('agencias').select('*').order('destino'), sb.from('lista_agencias').select('agencia')]);
   if (error) return flash($('#kMsg'), error.message, 'err');
-  catalogo = new Map(data.map(r => [norm(r.destino), r]));
+  catalogo = new Map(data.filter(r => r.motivo !== 'RECOJO').map(r => [norm(r.destino), r]));
+  catalogoRec = new Map(data.filter(r => r.motivo === 'RECOJO').map(r => [norm(r.destino), r]));
+  catRows = data;
   const nombres = [...new Set([...(lista || []).map(x => x.agencia), ...data.map(r => r.agencia).filter(Boolean)])].sort();
   $('#dlAgencias').innerHTML = nombres.map(n => `<option value="${esc(n)}">`).join('');
   pintarCatalogo(data);
 }
 function pintarCatalogo(rows) {
-  $('#kTabla').innerHTML = '<tr><th>Destino</th><th>Agencia</th><th>Transporte</th><th>Zona</th><th>Observación</th><th>Concatenar</th><th></th></tr>' +
-    rows.map(r => `<tr data-n="${esc(r.destino)}">
+  const des = rows.filter(r => r.motivo !== 'RECOJO'), rec = rows.filter(r => r.motivo === 'RECOJO'), vis = agMot === 'RECOJO' ? rec : des;
+  $('#nAgD').textContent = des.length; $('#nAgR').textContent = rec.length;
+  document.querySelectorAll('#kSeg button').forEach(b => b.classList.toggle('on', b.dataset.m === agMot));
+  $('#kHint').textContent = agMot === 'RECOJO' ? 'Estos datos completan los nodos de la hoja RECOJOS al cargar. Los cambios se guardan al salir de la celda.' : 'Estos datos completan los nodos de la hoja DESPACHO al cargar. Los cambios se guardan al salir de la celda.';
+  const vacio = !vis.length; $('#kVacio').classList.toggle('hide', !vacio); $('#kTw').classList.toggle('hide', vacio);
+  if (vacio) { $('#kVacio b').textContent = agMot === 'RECOJO' ? 'Aún no hay destinos de recojo' : 'Aún no hay destinos de despacho'; $('#kVacio span').textContent = agMot === 'RECOJO' ? 'Agrégalos uno por uno, o copia los de Despacho y ajusta lo que cambie.' : 'Agrega el primer destino.'; $('#kCopiar').classList.toggle('hide', agMot !== 'RECOJO' || !des.length); }
+  $('#kTabla').innerHTML = '<tr><th>Destino</th><th>Agencia</th><th>Transporte</th><th>Zona</th><th>Observación</th><th>Detalle del gasto</th><th></th></tr>' +
+    vis.map(r => `<tr data-n="${esc(r.destino)}">
       <td data-c="destino"><b>${esc(r.destino)}</b></td>
       <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" title="${esc(r.agencia)}" value="${esc(r.agencia)}"></td>
       <td data-c="trans" data-l="Transporte"><input data-f="transporte" value="${esc(r.transporte)}"></td>
@@ -1122,23 +1136,30 @@ function pintarCatalogo(rows) {
       <td data-c="concat" data-l="Detalle del gasto"><input data-f="concatenar" style="min-width:260px" value="${esc(r.concatenar)}"></td>
       <td data-c="del"><button class="b sec" data-del="1">Eliminar</button></td></tr>`).join('');
 }
+$('#kSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; agMot = b.dataset.m; pintarCatalogo(catRows); };
+$('#kCopiar').onclick = async () => {
+  const filas = catRows.filter(r => r.motivo !== 'RECOJO').map(r => ({ ...r, motivo: 'RECOJO', concatenar: String(r.concatenar || '').replace(/^ENVIO\b/i, 'RECOJO') }));
+  if (!filas.length || !await confirmar('¿Copiar los destinos de Despacho?', `Se crearán ${filas.length} destinos de recojo con los mismos datos. Después puedes cambiar lo que sea distinto.`, 'Copiar')) return;
+  const { error } = await sb.from('agencias').insert(filas);
+  error ? flash($('#kMsg'), /motivo/.test(error.message) ? 'Falta ejecutar supabase_agencias_motivo.sql en Supabase.' : error.message, 'err') : (toast(`${filas.length} destinos copiados a Recojo`), cargarCatalogo());
+};
 $('#kTabla').addEventListener('change', async e => {
   const tr = e.target.closest('tr'); if (!tr || !e.target.dataset.f) return;
-  const { error } = await sb.from('agencias').update({ [e.target.dataset.f]: e.target.value.trim() }).eq('destino', tr.dataset.n);
+  const { error } = await sb.from('agencias').update({ [e.target.dataset.f]: e.target.value.trim() }).eq('destino', tr.dataset.n).eq('motivo', agMot);
   error ? flash($('#kMsg'), error.message, 'err') : (flash($('#kMsg'), 'Guardado', 'ok'), cargarCatalogo());
 });
 $('#kTabla').addEventListener('click', async e => {
   if (!e.target.dataset.del) return;
   const n = e.target.closest('tr').dataset.n;
-  if (!await confirmar('¿Eliminar ' + n + '?', 'Se quitará de Agencias. Los registros ya cargados no cambian.', 'Eliminar', true)) return;
-  const { error } = await sb.from('agencias').delete().eq('destino', n);
+  if (!await confirmar('¿Eliminar ' + n + '?', `Se quitará de la lista de ${agMot === 'RECOJO' ? 'recojo' : 'despacho'}. Los registros ya cargados no cambian.`, 'Eliminar', true)) return;
+  const { error } = await sb.from('agencias').delete().eq('destino', n).eq('motivo', agMot);
   error ? flash($('#kMsg'), error.message, 'err') : cargarCatalogo();
 });
 $('#kNuevo').onclick = () => {
-  const unicos = k => [...new Set([...catalogo.values()].map(r => r[k]).filter(Boolean))].sort();
+  const unicos = k => [...new Set([...catalogo.values(), ...catalogoRec.values()].map(r => r[k]).filter(Boolean))].sort();
   const ags = [...new Set([...$('#dlAgencias').options].map(o => o.value).concat(unicos('agencia')))].sort();
   combo('#dstA', ags); combo('#dstT', unicos('transporte')); combo('#dstZ', unicos('zona'));
-  $('#dstF').reset(); $('#dstE').className = 'msg'; $('#dstOk').disabled = false; $('#dstDlg').showModal(); $('#dstN').focus();
+  $('#dstDlg h3').textContent = 'Nuevo destino de ' + (agMot === 'RECOJO' ? 'recojo' : 'despacho'); $('#dstF').reset(); $('#dstE').className = 'msg'; $('#dstOk').disabled = false; $('#dstDlg').showModal(); $('#dstN').focus();
 };
 // lista con las opciones existentes y "Agregar nueva…", que muestra un campo para escribir
 function combo(sel, valores) {
@@ -1152,12 +1173,12 @@ $('#dstX').onclick = () => $('#dstDlg').close();
 $('#dstF').onsubmit = async e => {
   e.preventDefault();
   const n = norm($('#dstN').value); if (!n) return;
-  if (catalogo.has(n)) { $('#dstE').textContent = n + ' ya está en Agencias.'; $('#dstE').className = 'msg err'; return; }
+  if (catDe(agMot).has(n)) { $('#dstE').textContent = n + ' ya está en la lista de ' + (agMot === 'RECOJO' ? 'recojo' : 'despacho') + '.'; $('#dstE').className = 'msg err'; return; }
   const v = id => $(id).value.trim(); $('#dstOk').disabled = true;
-  const { error } = await sb.from('agencias').insert({ destino: n, agencia: comboVal('#dstA') || null, transporte: comboVal('#dstT') || null, zona: comboVal('#dstZ') || null, observacion: $('#dstP').value, concatenar: 'ENVIO DE PEDIDOS ' + n });
+  const { error } = await sb.from('agencias').insert({ destino: n, agencia: comboVal('#dstA') || null, transporte: comboVal('#dstT') || null, zona: comboVal('#dstZ') || null, observacion: $('#dstP').value, concatenar: (agMot === 'RECOJO' ? 'RECOJO' : 'ENVIO') + ' DE PEDIDOS ' + n, motivo: agMot });
   $('#dstOk').disabled = false;
-  if (error) { $('#dstE').textContent = error.message; $('#dstE').className = 'msg err'; return; }
-  $('#dstDlg').close(); toast(n + ' agregado a Agencias'); cargarCatalogo();
+  if (error) { $('#dstE').textContent = /motivo/.test(error.message) ? 'Falta ejecutar supabase_agencias_motivo.sql en Supabase.' : error.message; $('#dstE').className = 'msg err'; return; }
+  $('#dstDlg').close(); toast(n + ' agregado a ' + (agMot === 'RECOJO' ? 'recojo' : 'despacho')); cargarCatalogo();
 };
 
 // ---------- carga ----------
@@ -1203,7 +1224,7 @@ function leerTabla(wb) {
 }
 // "ENVIO DE PEDIDOS X" del catálogo pasa a "RECOJO DE PEDIDOS X" cuando el motivo es recojo
 function detalleGasto(r, c) {
-  const d = (c && c.concatenar) || 'ENVIO DE PEDIDOS ' + r.nodo;
+  const d = (c && c.concatenar) || (r.motivo === 'RECOJO' ? 'RECOJO' : 'ENVIO') + ' DE PEDIDOS ' + r.nodo;
   return r.motivo === 'RECOJO' ? d.replace(/^ENVIO\b/i, 'RECOJO') : d;
 }
 
@@ -1225,7 +1246,7 @@ async function leerArchivo(f) {
     const filas = leerTabla(wb); hrnCarga = leerHrn(wb);
     if (!filas && !hrnCarga) return flash($('#cMsg'), 'No encontré filas en las hojas DESPACHO, RECOJOS o DETALLE. Descarga la plantilla y completa esas hojas.', 'err');
     previa = (filas || []).map(r => {
-      const c = catalogo.get(norm(r.nodo));
+      const c = catDe(r.motivo).get(norm(r.nodo));
       return { ...r, transporte: r.transporte || norm(c?.transporte), placa: '', agencia: c?.agencia || '',
                modo_pago: c ? (norm(c.observacion).includes('CONTADO') ? 'CONTADO' : 'CREDITO') : 'CONTADO', en_catalogo: !!c,
                detalle_gasto: detalleGasto(r, c) };
@@ -1250,7 +1271,7 @@ const ALERTA = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="current
 function cAlertar() {
   const sin = previa.filter(r => !r.agencia).length, a = $('#cAlerta');
   a.classList.toggle('hide', !sin);
-  a.innerHTML = sin ? `${ALERTA}<span><b>${sin} ${sin === 1 ? 'nodo sin agencia' : 'nodos sin agencia'}.</b> Complétala aquí o agrega el nodo después en Agencias.</span>${cFiltro === 'falta' ? '<button type="button" data-f="">Ver todos</button>' : '<button type="button" data-f="falta">Ver solo esos</button>'}` : '';
+  a.innerHTML = sin ? `${ALERTA}<span><b>${sin} ${sin === 1 ? 'nodo sin agencia' : 'nodos sin agencia'}.</b> Complétala aquí o agrega el nodo en Agencias, en la lista que corresponda.</span>${cFiltro === 'falta' ? '<button type="button" data-f="">Ver todos</button>' : '<button type="button" data-f="falta">Ver solo esos</button>'}` : '';
 }
 function pintarPrevia() {
   $('#cDrop').classList.add('hide'); $('#cArch').classList.remove('hide'); $('#cPlantilla').classList.add('hide'); $('#cHow').classList.add('hide');
@@ -1388,7 +1409,7 @@ async function revisarFactura(file, r) {
   $('#fGuardar').disabled = true;
   $('#factDlg').showModal();
   try {
-    const R = await OCR.leer(file, { ref: r.fecha, nodos: [...catalogo.values()].map(c => norm(c.destino)),
+    const R = await OCR.leer(file, { ref: r.fecha, nodos: [...catalogo.values(), ...catalogoRec.values()].map(c => norm(c.destino)),
       progreso: (t, p) => { est.textContent = 'Leyendo la factura… ' + (p ? Math.round(p * 100) + '%' : t); } });
     const pon = (id, v) => { if (v !== '' && v != null) $('#' + id).value = v; };
     pon('fFactura', R.factura); pon('fImporte', R.importe); pon('fFecha', R.fecha); pon('fRuc', R.ruc);
@@ -1778,7 +1799,7 @@ function calcularKpi(envios, hrn, base) {
     ext(R.nodos, e.nodo, e, imp, ped, bul);
     ext(R.transportes, e.transporte || '(SIN TRANSPORTE)', e, imp, ped, bul);
     ext(R.agencias, e.agencia || '(sin agencia)', e, imp, ped, bul);
-    ext(R.zonas, zonaDe(e.nodo), e, imp, ped, bul);
+    ext(R.zonas, zonaEnv(e), e, imp, ped, bul);
     if (e.motivo === 'RECOJO') { R.recojo += imp; suma(R.cuentas, RECOJO_CTA, imp, ped, bul); porNodo(RECOJO_CTA, e.nodo, imp); return; }   // los recojos no tienen detalle por cuenta
     const g = grupos.get(e.fecha + '|' + norm(e.nodo));
     if (!g) { R.sinHrn += imp; R.sinHrnNodos.add(e.fecha + '|' + norm(e.nodo)); R.sinHrnFechas.add(e.fecha); suma(R.cuentas, SIN_HRN, imp, ped, bul); porNodo(SIN_HRN, e.nodo, imp); return; }
@@ -1908,7 +1929,7 @@ function agenciasKpi(R) {
 function zonasKpi(R, envios) {
   rankingCajas(listaDe(R.zonas), 'zona', R.total, '#zonaBarras');
   const trs = [...R.transportes.keys()].sort(), zs = [...R.zonas.keys()].sort((a, b) => (a.startsWith('(') ? 1 : 0) - (b.startsWith('(') ? 1 : 0) || a.localeCompare(b));
-  const cell = (t, z) => { const r = envios.filter(e => (e.transporte || '(SIN TRANSPORTE)') === t && zonaDe(e.nodo) === z && Number(e.importe) > 0), c = r.reduce((s, e) => s + (Number(e.cajas) || 0), 0); return r.length && c ? r.reduce((s, e) => s + Number(e.importe), 0) / c : null; };
+  const cell = (t, z) => { const r = envios.filter(e => (e.transporte || '(SIN TRANSPORTE)') === t && zonaEnv(e) === z && Number(e.importe) > 0), c = r.reduce((s, e) => s + (Number(e.cajas) || 0), 0); return r.length && c ? r.reduce((s, e) => s + Number(e.importe), 0) / c : null; };
   const vals = trs.flatMap(t => zs.map(z => cell(t, z))).filter(v => v != null), lo = Math.min(...vals), hi = Math.max(...vals);
   $('#zonaMx').innerHTML = vals.length ? `<tr><th>Transporte</th>${zs.map(z => `<th>${esc(z)}</th>`).join('')}</tr>` + trs.map(t => `<tr><td><b>${esc(t)}</b></td>${zs.map(z => { const v = cell(t, z); if (v == null) return '<td class="z">—</td>'; const q = (v - lo) / (hi - lo || 1); return `<td style="background:rgba(220,38,38,${(0.08 + q * 0.42).toFixed(2)});color:${q > 0.6 ? '#7f1d1d' : 'var(--ink)'}">${fmt(v)}</td>`; }).join('')}</tr>`).join('') : '<tr><td>Sin datos en este rango.</td></tr>';
 }
@@ -1965,16 +1986,15 @@ function pintarTransSeg(lista) {
   $('#kTrans').innerHTML = '<option value="">Todos</option>' + lista.map(t => `<option>${esc(t)}</option>`).join(''); $('#kTrans').value = sel;
   $('#kTransSeg').innerHTML = ['', ...lista].map(t => `<button data-t="${esc(t)}">${t ? esc(t) : 'Todos'}</button>`).join(''); kSync();
 }
-const zonaDe = n => (catalogo.get(norm(n)) || {}).zona || '(sin zona)';
 function kPasa(e) {
   const ag = $('#kAgencia').value, zo = $('#kZona').value;
   if (kst.m && (e.motivo || 'DESPACHO') !== kst.m) return false;
   if (ag && (ag === '(sin agencia)' ? e.agencia : e.agencia !== ag)) return false;
-  if (zo && zonaDe(e.nodo) !== zo) return false;
+  if (zo && zonaEnv(e) !== zo) return false;
   return true;
 }
 function poblarFiltros() {
-  const ags = [...new Set([...catalogo.values()].map(c => c.agencia).filter(Boolean))].sort(), zs = [...new Set([...catalogo.values()].map(c => c.zona).filter(Boolean))].sort();
+  const todos = [...catalogo.values(), ...catalogoRec.values()], ags = [...new Set(todos.map(c => c.agencia).filter(Boolean))].sort(), zs = [...new Set(todos.map(c => c.zona).filter(Boolean))].sort();
   const ag = $('#kAgencia').value, zo = $('#kZona').value;
   $('#kAgencia').innerHTML = '<option value="">Todas</option>' + ags.map(a => `<option>${esc(a)}</option>`).join('') + '<option>(sin agencia)</option>'; $('#kAgencia').value = ag;
   $('#kZona').innerHTML = '<option value="">Todas</option>' + zs.map(a => `<option>${esc(a)}</option>`).join('') + '<option>(sin zona)</option>'; $('#kZona').value = zo;
@@ -2024,7 +2044,7 @@ function hallazgosKpi(R, envios) {
 }
 function calidadKpi(R, envios) {
   const n = envios.length; if (!n) { $('#calList').innerHTML = '<div class="empty"><b>Sin registros en este rango</b></div>'; $('#dotCal').className = ''; return; }
-  const sinImp = envios.filter(e => !(Number(e.importe) > 0)), sinFac = envios.filter(e => !e.factura), sinAdj = envios.filter(e => !e.factura_archivo), sinAg = envios.filter(e => !e.agencia), sinZona = envios.filter(e => zonaDe(e.nodo) === '(sin zona)');
+  const sinImp = envios.filter(e => !(Number(e.importe) > 0)), sinFac = envios.filter(e => !e.factura), sinAdj = envios.filter(e => !e.factura_archivo), sinAg = envios.filter(e => !e.agencia), sinZona = envios.filter(e => zonaEnv(e) === '(sin zona)');
   const item = (ic, bg, t, d, malos, go, btn) => { const pc = (1 - malos / n) * 100, col = pc >= 95 ? 'var(--grn)' : pc >= 50 ? 'var(--amb)' : 'var(--red)';
     return `<div class="cq-i"><div class="tx"><b>${t}</b><span>${d}</span></div><div class="mt"><div class="tr"><i style="width:${pc}%;background:${col}"></i></div><small>${n - malos} de ${n} completos</small></div><button class="b sec" data-go="${go}">${btn}</button></div>`; };
   const hrnPc = R.total - R.recojo > 0 ? (1 - R.sinHrn / (R.total - R.recojo)) * 100 : 100;
