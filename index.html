@@ -448,6 +448,7 @@
   .tb.env { background:var(--okbg); color:var(--ok) } .tb.pen { background:var(--warnbg); color:var(--warn) }
   #lqParDlg { width:min(560px, 92vw) } #lqParDlg .in { padding:24px; margin:0 } #lqParDlg .fgrid input { width:100%; min-width:0 } #lqParDlg .fgrid label { min-width:0 }
   @media (max-width:900px) { .lqbar { flex-direction:column; align-items:stretch } }
+  td input:disabled, td select:disabled { opacity:.55; cursor:not-allowed } button.del:disabled { opacity:.4; cursor:not-allowed }
 </style>
 </head>
 <body>
@@ -573,11 +574,11 @@
   <div class="card">
     <div class="fb">
       <div class="fg"><span>Período</span><div class="pseg" id="kPer"><button data-p="mes" class="on">Mes</button><button data-p="30">Últimos 30 días</button><button data-p="per">Personalizado</button></div></div>
-      <div class="fg" id="kgMes"><span>Mes</span><input type="month" id="kMes"></div>
-      <div class="fg hide" id="kgRango"><span>Rango</span><div class="rg"><input type="date" id="kDesde"><i>a</i><input type="date" id="kHasta"></div></div>
-      <div class="fg"><span>Transporte</span><div class="pseg" id="kTransSeg"><button data-t="" class="on">Todos</button></div><select id="kTrans" class="hide"><option value="">Todos</option></select></div>
-      <div class="fg"><span>Agencia</span><select id="kAgencia"><option value="">Todas</option></select></div>
-      <div class="fg"><span>Zona</span><select id="kZona"><option value="">Todas</option></select></div>
+      <div class="fg" id="kgMes"><span>Mes</span><input type="month" id="kMes" aria-label="Mes"></div>
+      <div class="fg hide" id="kgRango"><span>Rango</span><div class="rg"><input type="date" id="kDesde" aria-label="Desde"><i>a</i><input type="date" id="kHasta" aria-label="Hasta"></div></div>
+      <div class="fg"><span>Transporte</span><div class="pseg" id="kTransSeg"><button data-t="" class="on">Todos</button></div><select id="kTrans" aria-label="Transporte" class="hide"><option value="">Todos</option></select></div>
+      <div class="fg"><span>Agencia</span><select id="kAgencia" aria-label="Agencia"><option value="">Todas</option></select></div>
+      <div class="fg"><span>Zona</span><select id="kZona" aria-label="Zona"><option value="">Todas</option></select></div>
     </div>
     <div class="active" id="kAct"></div>
     <div id="kpMsg" class="msg"></div>
@@ -990,9 +991,10 @@ const MAX_ADJUNTO = 20 * 1024;   // todo adjunto se guarda con 20 KB o menos
 const urlAdjunto = path => sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 const esImagen = path => /\.(png|jpe?g|gif|webp|bmp|heic)$/i.test(path);
 function adjuntoHtml(r) {
+  const fijo = regEnviado(r);
   if (!r.factura_archivo) return '<button class="b sec" data-act="adjuntar">📎 Adjuntar</button>';
   const u = esc(urlAdjunto(r.factura_archivo));
-  return `<a href="${u}" target="_blank" rel="noopener">${esImagen(r.factura_archivo) ? `<img class="thumb" src="${u}" alt="Factura">` : '📄'} Ver</a>&nbsp;&nbsp;<button class="lnk" data-act="adjuntar">Cambiar</button> · <button class="lnk" data-act="quitar">Quitar</button>`;
+  return `<a href="${u}" target="_blank" rel="noopener">${esImagen(r.factura_archivo) ? `<img class="thumb" src="${u}" alt="Factura">` : '📄'} Ver</a>${fijo ? '' : '&nbsp;&nbsp;<button class="lnk" data-act="adjuntar">Cambiar</button>&nbsp;&nbsp;<button class="lnk" data-act="quitar">Quitar</button>'}`;
 }
 let adjId = null;
 $('#adjFile').onchange = async e => {
@@ -1104,17 +1106,18 @@ function estadoTag(r) {
   return regListo(r) ? '<span class="tb">Terminado</span>' : '<span class="tb pen">Pendiente</span>';
 }
 function filaRegistro(r) {
+  const L = regEnviado(r) ? ' disabled title="Está en una liquidación. Anúlala para editarlo."' : '';
   return `<tr data-id="${r.id}">
       <td class="mono sm">${fdmy(r.fecha)}</td><td>${estadoTag(r)}</td><td>${tbadge(r.transporte)}</td><td><span class="nodo">${PIN}${esc(r.nodo)}</span></td>
       <td class="c">${r.bultos ?? ''}</td><td class="c">${r.pedidos ?? ''}</td><td class="c">${r.cajas ?? ''}</td>
       <td><input class="chip mono" data-f="placa" value="${esc(r.placa)}" placeholder="placa"></td>
       <td><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}" placeholder="Sin agencia asignada"></td>
       <td><input data-f="detalle_gasto" value="${esc(r.detalle_gasto)}"></td>
-      <td class="c"><select data-f="modo_pago" data-v="${r.modo_pago}">${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
-      <td class="n"><input class="mono imp" data-f="importe" type="number" step="0.01" value="${r.importe == null ? '' : Number(r.importe).toFixed(2)}" placeholder="0.00"></td>
-      <td><input class="mono" data-f="factura" value="${esc(r.factura)}" placeholder="F001-0000"></td>
+      <td class="c"><select data-f="modo_pago" data-v="${r.modo_pago}"${L}>${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
+      <td class="n"><input class="mono imp" data-f="importe" type="number" step="0.01" value="${r.importe == null ? '' : Number(r.importe).toFixed(2)}" placeholder="0.00"${L}></td>
+      <td><input class="mono" data-f="factura" value="${esc(r.factura)}" placeholder="F001-0000"${L}></td>
       <td class="adj">${adjuntoHtml(r)}</td>
-      <td class="c"><button class="del" data-del="1">${TRASH} Eliminar</button></td></tr>`;
+      <td class="c"><button class="del" data-del="1"${L}>${TRASH} Eliminar</button></td></tr>`;
 }
 function pintarTablaRegistros() {
   const N = registros.length, paginas = Math.max(1, Math.ceil(N / pag.size));
@@ -1122,7 +1125,7 @@ function pintarTablaRegistros() {
   const ini = (pag.n - 1) * pag.size, vista = registros.slice(ini, ini + pag.size);
   $('#rTabla').innerHTML = '<tr><th>Fecha</th><th>Estado</th><th>Transporte</th><th>Nodo</th><th class="c">Bultos</th><th class="c">Pedidos</th><th class="c">Cajas</th><th>Placa</th><th>Agencia</th><th>Detalle del gasto</th><th class="c">Pago</th><th class="num">Importe</th><th>Factura</th><th>Adjunto</th><th class="c">Acciones</th></tr>' + (vista.map(filaRegistro).join('') || '<tr><td colspan="14"><div class="empty"><b>Sin registros en este rango</b><span>Ajusta las fechas o sube un despacho en «Cargar despacho».</span></div></td></tr>');
   const nums = []; for (let i = 1; i <= paginas; i++) if (i === 1 || i === paginas || Math.abs(i - pag.n) <= 1) nums.push(i); else if (nums[nums.length - 1] !== '…') nums.push('…');
-  $('#rPag').innerHTML = `<div class="l"><span>Filas por página:</span><select id="rSize">${[15, 25, 50, 100].map(v => `<option${v === pag.size ? ' selected' : ''}>${v}</option>`).join('')}</select><span>Mostrando <b>${N ? ini + 1 : 0}-${Math.min(N, ini + pag.size)}</b> de <b>${N}</b> registros</span></div>
+  $('#rPag').innerHTML = `<div class="l"><span>Filas por página:</span><select id="rSize" aria-label="Filas por página">${[15, 25, 50, 100].map(v => `<option${v === pag.size ? ' selected' : ''}>${v}</option>`).join('')}</select><span>Mostrando <b>${N ? ini + 1 : 0}-${Math.min(N, ini + pag.size)}</b> de <b>${N}</b> registros</span></div>
     <div class="r"><button data-p="prev"${pag.n <= 1 ? ' disabled' : ''}>‹</button>${nums.map(n => n === '…' ? '<span>…</span>' : `<button data-p="${n}" class="${n === pag.n ? 'on' : ''}">${n}</button>`).join('')}<button data-p="next"${pag.n >= paginas ? ' disabled' : ''}>›</button></div>`;
 }
 $('#rPag').addEventListener('click', e => {
@@ -1197,7 +1200,7 @@ $('#rTabla').addEventListener('click', async e => {
     }
     return;
   }
-  if (!e.target.dataset.del) return;
+  if (!e.target.dataset.del || e.target.disabled) return;
   if (!await confirmar('¿Eliminar este registro?', 'No se puede deshacer.', 'Eliminar', true)) return;
   const id = e.target.closest('tr').dataset.id, r = registros.find(x => x.id === id);
   const { error } = await sb.from('envios').delete().eq('id', id);
@@ -1585,12 +1588,6 @@ async function periodoPrevio(desde, hasta, trans) {
   return r;
 }
 const kDelta = (a, b) => { if (!b || !a) return ''; const d = (a - b) / b * 100, c = Math.abs(d) < 0.5 ? 'eq' : d > 0 ? 'up' : 'dn'; return `<span class="dl ${c}">${c === 'eq' ? '=' : d > 0 ? '▲' : '▼'} ${Math.abs(d).toFixed(1)}%</span>`; };
-function kSpark(vals) {
-  if (vals.length < 2) return '';
-  const W = 300, H = 44, mx = Math.max(...vals, 1), pts = vals.map((v, i) => [i / (vals.length - 1) * W, H - 4 - v / mx * (H - 10)]);
-  const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="kg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34d399" stop-opacity=".45"/><stop offset="1" stop-color="#34d399" stop-opacity="0"/></linearGradient></defs><path d="${d} L${W},${H} L0,${H} Z" fill="url(#kg)"/><path d="${d}" fill="none" stroke="#34d399" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
-}
 function pintarResumen(R, dias, prev, envios) {
   const cpp = R.pedidos ? R.total / R.pedidos : 0, cpc = R.cajas ? R.total / R.cajas : 0, pcpp = prev.pedidos ? prev.total / prev.pedidos : 0, pcpc = prev.cajas ? prev.total / prev.cajas : 0;
   const conta = dias.reduce((x, d) => x + d.contado, 0), cred = dias.reduce((x, d) => x + d.credito, 0), sumaCD = conta + cred, pc = sumaCD ? Math.round(conta / sumaCD * 100) : 0;
@@ -1835,9 +1832,10 @@ $('#kpAlertas').addEventListener('click', e => {
 
 async function calcularKpis() {
   const desde = $('#kDesde').value, hasta = $('#kHasta').value, trans = $('#kTrans').value, mi = ++kSeq;
+  if (desde && hasta && desde > hasta) { $('#kpCards').innerHTML = '<div class="card empty" style="grid-column:1/-1"><b>La fecha inicial es posterior a la final</b><span>Corrige el rango para ver los costos.</span></div>'; $('#kpHall').innerHTML = ''; $('#kpAlertas').innerHTML = ''; return; }
   $('#kRefrescar').disabled = true;
   poblarFiltros(); pintarActivos();
-  $('#kpCards').innerHTML = Array(6).fill('<div class="kpi sk"><span></span><b></b><small></small></div>').join('');
+  $('#kpCards').innerHTML = Array(4).fill('<div class="kpi sk"><span></span><b></b><small></small></div>').join('');
   try {
     let envios = await traerTodo(() => {
       let q = sb.from('envios').select('id,fecha,nodo,transporte,agencia,pedidos,bultos,cajas,importe,modo_pago,factura,factura_archivo').order('id');
@@ -1918,12 +1916,12 @@ async function lqBuscar() {
 // Reparte los registros en archivos: cada archivo es de UNA sola fecha de despacho y no supera el monto máximo ni las filas del formato.
 // Dentro de una fecha se llena cada archivo lo más posible (primero los montos grandes, en el primer archivo donde quepan).
 function lqPartir(list) {
-  const lim = lqLimite(), porFecha = new Map(), grupos = [];
+  const lim = Math.round(lqLimite() * 100), cts = e => Math.round(Number(e.importe) * 100), porFecha = new Map(), grupos = [];
   list.forEach(e => { const f = String(e.fecha).slice(0, 10); if (!porFecha.has(f)) porFecha.set(f, []); porFecha.get(f).push(e); });
   [...porFecha.keys()].sort().forEach(f => {
     const cajas = [];   // { filas, suma }
-    [...porFecha.get(f)].sort((a, b) => Number(b.importe) - Number(a.importe)).forEach(e => {
-      const imp = Number(e.importe), c = cajas.find(x => x.suma + imp <= lim && x.filas.length < LQ_FILAS);
+    [...porFecha.get(f)].sort((a, b) => cts(b) - cts(a)).forEach(e => {
+      const imp = cts(e), c = cajas.find(x => x.suma + imp <= lim && x.filas.length < LQ_FILAS);
       if (c) { c.filas.push(e); c.suma += imp; } else cajas.push({ filas: [e], suma: imp });
     });
     cajas.forEach(c => grupos.push(c.filas.sort((a, b) => list.indexOf(a) - list.indexOf(b))));
@@ -1936,10 +1934,12 @@ function lqPintar() {
     (lqLista.map(r => `<tr><td><input type="checkbox" data-id="${r.id}" ${lqSel.has(r.id) ? 'checked' : ''}></td><td class="mono sm">${fdmy(r.fecha)}</td><td>${tbadge(r.transporte)}</td><td><b>${esc(r.nodo)}</b></td><td>${r.modo_pago === 'CREDITO' ? 'Crédito' : 'Contado'}</td><td class="mono">${esc(r.factura)}</td><td class="num"><b>${fmt(r.importe)}</b></td></tr>`).join('') ||
     '<tr><td colspan="7"><div class="empty"><b>No hay registros listos para liquidar</b><span>Un registro está listo cuando tiene importe, N° de factura y foto, y aún no fue enviado.</span></div></td></tr>');
   const elegidos = lqLista.filter(r => lqSel.has(r.id)), total = elegidos.reduce((s, r) => s + Number(r.importe), 0), grupos = lqPartir(elegidos), lim = lqLimite();
-  const grandes = elegidos.filter(r => Number(r.importe) > lim).length;
+  const grandes = elegidos.filter(r => Number(r.importe) > lim).length, cuenta = {};
+  elegidos.forEach(r => { const k = norm(r.factura); cuenta[k] = (cuenta[k] || 0) + 1; });
+  const repetidas = Object.keys(cuenta).filter(k => cuenta[k] > 1);
   $('#lqResumen').innerHTML = elegidos.length ? `<b>${elegidos.length}</b> ${elegidos.length === 1 ? 'registro' : 'registros'} por <b>${fmt(total)}</b> en <b>${grupos.length}</b> ${grupos.length === 1 ? 'archivo' : 'archivos'}. Máximo ${fmt(lim)} por archivo.` +
     (grupos.length > 1 ? `<div class="lqf">${grupos.map((g, i) => `<span>Archivo ${i + 1}, despacho del ${fdmy(g[0].fecha)}: ${g.length} ${g.length === 1 ? 'registro' : 'registros'}, ${fmt(g.reduce((s, r) => s + Number(r.importe), 0))}</span>`).join('')}</div>` : '') +
-    (grandes ? `<div class="lqw">${grandes} ${grandes === 1 ? 'registro supera' : 'registros superan'} el máximo y ${grandes === 1 ? 'irá' : 'irán'} solo en su archivo.</div>` : '') : 'Selecciona los registros que irán en la liquidación.';
+    (repetidas.length ? `<div class="lqw">N° de factura repetido: ${repetidas.map(esc).join(', ')}. Revisa que no se pague dos veces.</div>` : '') + (grandes ? `<div class="lqw">${grandes} ${grandes === 1 ? 'registro supera' : 'registros superan'} el máximo y ${grandes === 1 ? 'irá' : 'irán'} solo en su archivo.</div>` : '') : 'Selecciona los registros que irán en la liquidación.';
   $('#lqDescargar').disabled = !elegidos.length;
   $('#lqPendBox').classList.toggle('hide', !lqPend.length);
   $('#lqPendT').textContent = `${lqPend.length} ${lqPend.length === 1 ? 'registro no se incluye' : 'registros no se incluyen'} porque les falta algo`;
@@ -2009,12 +2009,13 @@ $('#lqDescargar').onclick = async () => {
     const zip = new JSZip(); let fallas = 0;
     for (const g of grupos) {
       const modos = [...new Set(g.map(r => r.modo_pago))];
-      const { data, error } = await sb.from('liquidaciones').insert({ fecha: today(), modo_pago: modos.length === 1 ? modos[0] : 'TODOS', total: g.reduce((s, r) => s + Number(r.importe), 0), items: g.length }).select().single();
+      const { data, error } = await sb.from('liquidaciones').insert({ fecha: today(), modo_pago: modos.length === 1 ? modos[0] : 'TODOS', total: Math.round(g.reduce((s, r) => s + Number(r.importe) * 100, 0)) / 100, items: g.length }).select().single();
       if (error) throw error; creadas.push(data);
       fallas += await lqCarpeta(zip, g, data);
     }
     for (let i = 0; i < grupos.length; i++) {
-      const { error } = await sb.from('envios').update({ liquidacion_id: creadas[i].id }).in('id', grupos[i].map(r => r.id)); if (error) throw error;
+      const ids = grupos[i].map(r => r.id), { data: marcados, error } = await sb.from('envios').update({ liquidacion_id: creadas[i].id }).in('id', ids).is('liquidacion_id', null).select('id'); if (error) throw error;
+      if (marcados.length !== ids.length) throw new Error('Algunos registros ya están en otra liquidación. Vuelve a buscar.');
     }
     lqBajar(await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }), `Liquidaciones ${fdmy(today()).replace(/\//g, '-')}.zip`);
     toast(`${grupos.length} ${grupos.length === 1 ? 'liquidación descargada' : 'liquidaciones descargadas'}` + (fallas ? `. ${fallas} ${fallas === 1 ? 'foto no se pudo incluir' : 'fotos no se pudieron incluir'}` : ''), fallas ? 'err' : undefined);
