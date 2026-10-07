@@ -1893,15 +1893,19 @@ async function lqBuscar() {
   lqSel = new Set(lqLista.map(r => r.id));
   lqPintar();
 }
-// reparte los registros en archivos que no superen el monto máximo ni las filas del formato
+// Reparte los registros en archivos: cada archivo es de UNA sola fecha de despacho y no supera el monto máximo ni las filas del formato.
+// Dentro de una fecha se llena cada archivo lo más posible (primero los montos grandes, en el primer archivo donde quepan).
 function lqPartir(list) {
-  const lim = lqLimite(), grupos = []; let cur = [], suma = 0;
-  list.forEach(e => {
-    const imp = Number(e.importe);
-    if (cur.length && (suma + imp > lim || cur.length >= LQ_FILAS)) { grupos.push(cur); cur = []; suma = 0; }
-    cur.push(e); suma += imp;
+  const lim = lqLimite(), porFecha = new Map(), grupos = [];
+  list.forEach(e => { const f = String(e.fecha).slice(0, 10); if (!porFecha.has(f)) porFecha.set(f, []); porFecha.get(f).push(e); });
+  [...porFecha.keys()].sort().forEach(f => {
+    const cajas = [];   // { filas, suma }
+    [...porFecha.get(f)].sort((a, b) => Number(b.importe) - Number(a.importe)).forEach(e => {
+      const imp = Number(e.importe), c = cajas.find(x => x.suma + imp <= lim && x.filas.length < LQ_FILAS);
+      if (c) { c.filas.push(e); c.suma += imp; } else cajas.push({ filas: [e], suma: imp });
+    });
+    cajas.forEach(c => grupos.push(c.filas.sort((a, b) => list.indexOf(a) - list.indexOf(b))));
   });
-  if (cur.length) grupos.push(cur);
   return grupos;
 }
 function lqPintar() {
@@ -1912,7 +1916,7 @@ function lqPintar() {
   const elegidos = lqLista.filter(r => lqSel.has(r.id)), total = elegidos.reduce((s, r) => s + Number(r.importe), 0), grupos = lqPartir(elegidos), lim = lqLimite();
   const grandes = elegidos.filter(r => Number(r.importe) > lim).length;
   $('#lqResumen').innerHTML = elegidos.length ? `<b>${elegidos.length}</b> ${elegidos.length === 1 ? 'registro' : 'registros'} por <b>${fmt(total)}</b> en <b>${grupos.length}</b> ${grupos.length === 1 ? 'archivo' : 'archivos'}. Máximo ${fmt(lim)} por archivo.` +
-    (grupos.length > 1 ? `<div class="lqf">${grupos.map((g, i) => `<span>Archivo ${i + 1}: ${g.length} ${g.length === 1 ? 'registro' : 'registros'}, ${fmt(g.reduce((s, r) => s + Number(r.importe), 0))}</span>`).join('')}</div>` : '') +
+    (grupos.length > 1 ? `<div class="lqf">${grupos.map((g, i) => `<span>Archivo ${i + 1}, despacho del ${fdmy(g[0].fecha)}: ${g.length} ${g.length === 1 ? 'registro' : 'registros'}, ${fmt(g.reduce((s, r) => s + Number(r.importe), 0))}</span>`).join('')}</div>` : '') +
     (grandes ? `<div class="lqw">${grandes} ${grandes === 1 ? 'registro supera' : 'registros superan'} el máximo y ${grandes === 1 ? 'irá' : 'irán'} solo en su archivo.</div>` : '') : 'Selecciona los registros que irán en la liquidación.';
   $('#lqDescargar').disabled = !elegidos.length;
   $('#lqPendBox').classList.toggle('hide', !lqPend.length);
