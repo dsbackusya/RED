@@ -439,6 +439,15 @@
   #cfDlg, #dstDlg { width:min(440px, 92vw) } #cfDlg .in, #dstDlg .in { padding:24px; margin:0 }
   button.b.red { background:var(--bad) } button.b.red:hover { background:#b80012 }
   #dstDlg select.cb + input { margin-top:6px } #dstDlg .fgrid { grid-template-columns:minmax(0,1fr) minmax(0,1fr) } #dstDlg .fgrid select, #dstDlg .fgrid input { width:100%; min-width:0 } #dstDlg .fgrid label { min-width:0 } #dstDlg { overflow-x:hidden }
+
+  /* Liquidaciones */
+  .lqbar { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:16px 20px; border-top:1px solid var(--line); font-size:14px }
+  .lqbar b { font-weight:600 } .lqf { display:flex; flex-wrap:wrap; gap:4px 18px; margin-top:4px; color:var(--mut); font-size:13px } .lqw { margin-top:4px; color:var(--warn); font-size:13px }
+  .sec2 { margin:36px 0 14px } .sec2 h2 { margin:0; font-size:24px; letter-spacing:-.02em }
+  #tab-liquidaciones td input[type=checkbox], #tab-liquidaciones th input[type=checkbox] { width:16px; height:16px; min-width:0; padding:0; accent-color:var(--pri) }
+  .tb.env { background:var(--okbg); color:var(--ok) } .tb.pen { background:var(--warnbg); color:var(--warn) }
+  #lqParDlg { width:min(560px, 92vw) } #lqParDlg .in { padding:24px; margin:0 } #lqParDlg .fgrid input { width:100%; min-width:0 } #lqParDlg .fgrid label { min-width:0 }
+  @media (max-width:900px) { .lqbar { flex-direction:column; align-items:stretch } }
 </style>
 </head>
 <body>
@@ -493,6 +502,7 @@
   <nav aria-label="Secciones">
     <button data-tab="cargar" class="on">Cargar</button>
     <button data-tab="registros">Registros</button>
+    <button data-tab="liquidaciones">Liquidaciones</button>
     <button data-tab="kpis">Costos</button>
     <button data-tab="detalle">Detalle</button>
     <button data-tab="catalogo">Agencias</button>
@@ -540,7 +550,7 @@
       <label>Desde<input type="date" id="rDesde"></label>
       <label>Hasta<input type="date" id="rHasta"></label>
       <label>Transporte<select id="rTrans"><option value="">Todos</option></select></label>
-      <div class="fg" style="gap:4px"><span style="font-size:13px;font-weight:500;color:var(--mut)">Estado</span><div class="pseg" id="rEstado"><button data-e="" class="on">Todos</button><button data-e="pend">Pendientes <small id="nPend"></small></button><button data-e="term">Terminados <small id="nTerm"></small></button></div></div>
+      <div class="fg" style="gap:4px"><span style="font-size:13px;font-weight:500;color:var(--mut)">Estado</span><div class="pseg" id="rEstado"><button data-e="" class="on">Todos</button><button data-e="pend">Pendientes <small id="nPend"></small></button><button data-e="term">Terminados <small id="nTerm"></small></button><button data-e="env">Enviados <small id="nEnv"></small></button></div></div>
       <label>Modo de pago<select id="rPago"><option value="">Todos</option><option>CONTADO</option><option>CREDITO</option></select></label>
       <label>Nodo / destino<input id="rNodo" placeholder="Buscar nodo…"></label>
       <button class="b g" id="rBuscar">Buscar</button>
@@ -629,6 +639,33 @@
   <div id="kp-cal" class="hide"><div class="card"><h3>Calidad de datos</h3><p class="hint">Los KPIs son confiables en la medida en que los registros estén completos. Cada punto lleva a la pantalla donde se corrige.</p><div id="calList"></div></div></div>
 </section>
 
+<section id="tab-liquidaciones" class="hide">
+  <div class="top">
+    <div><h1>Liquidaciones</h1><div class="sub">Genera el Excel de rendición y las fotos de las facturas</div></div>
+    <div class="acts"><button class="b sec" id="lqPar">Datos del formato</button></div>
+  </div>
+  <div id="lqSetup" class="card hide"><h3>Falta un paso en Supabase</h3><p class="hint">Ejecuta el archivo <b>supabase_liquidacion.sql</b> en el SQL Editor de Supabase y recarga la página.</p></div>
+  <div id="lqMain">
+    <div class="card">
+      <div class="fb">
+        <div class="fg"><span>Desde</span><input type="date" id="lqDesde"></div>
+        <div class="fg"><span>Hasta</span><input type="date" id="lqHasta"></div>
+        <div class="fg"><span>Transporte</span><select id="lqTrans"><option value="">Todos</option></select></div>
+        <div class="fg"><span>Pago</span><div class="pseg" id="lqPago"><button data-g="" class="on">Todos</button><button data-g="CONTADO">Contado</button><button data-g="CREDITO">Crédito</button></div></div>
+        <button class="b" id="lqBuscar">Buscar</button>
+      </div>
+      <div id="lqMsg" class="msg"></div>
+    </div>
+    <div class="card tcard">
+      <div class="tw" style="max-height:52vh"><table id="lqTabla"></table></div>
+      <div class="lqbar"><div id="lqResumen"></div><button class="b" id="lqDescargar" disabled>Descargar liquidación</button></div>
+    </div>
+    <details class="dt card hide" id="lqPendBox"><summary id="lqPendT"></summary><div class="tw"><table id="lqPend"></table></div></details>
+    <div class="sec2"><h2>Liquidaciones anteriores</h2></div>
+    <div class="card tcard"><div class="tw" style="max-height:none"><table id="lqHist"></table></div></div>
+  </div>
+</section>
+
 <section id="tab-detalle" class="hide">
   <div class="top"><h1>Detalle</h1><div class="sub">Una fila por bulto</div></div>
   <div class="card">
@@ -697,6 +734,22 @@
   </div>
   <div id="dstE" class="msg"></div>
   <div class="row" style="justify-content:flex-end;margin-top:18px"><button type="button" class="b sec" id="dstX">Cancelar</button><button class="b" id="dstOk">Agregar destino</button></div>
+</form></dialog>
+<dialog id="lqParDlg"><form class="in" id="lqParF" autocomplete="off">
+  <h3 style="margin:0 0 4px">Datos del formato</h3><p class="hint" style="margin:0 0 14px">Se escriben en cada Excel de liquidación.</p>
+  <div class="fgrid">
+    <label style="grid-column:1/-1">Nombre del liquidador<input id="lpLiquidador" required></label>
+    <label>Área<input id="lpArea"></label>
+    <label>Moneda<input id="lpMoneda"></label>
+    <label style="grid-column:1/-1">Concepto del gasto<input id="lpConcepto"></label>
+    <label>Tipo de documento<input id="lpTipo"></label>
+    <label>Cuenta contable<input id="lpCuenta"></label>
+    <label>Centro de costo<input id="lpCentro"></label>
+    <label>Denominación del centro<input id="lpDenom"></label>
+    <label style="grid-column:1/-1">Monto máximo por archivo (S/)<input id="lpLimite" type="number" min="1" step="0.01" required></label>
+  </div>
+  <div id="lpE" class="msg"></div>
+  <div class="row" style="justify-content:flex-end;margin-top:18px"><button type="button" class="b sec" id="lpX">Cancelar</button><button class="b" id="lpOk">Guardar</button></div>
 </form></dialog>
 <div id="toasts" aria-live="polite"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -771,14 +824,15 @@ async function mostrarApp(user) {
 }
 window.addEventListener('hashchange', () => { const t = location.hash.slice(1).split('?')[0].replace(/^hrn$/, 'detalle'); if (TITULOS[t]) irA(t); });
 
-const TITULOS = { cargar: 'Cargar despacho', registros: 'Registros', kpis: 'Costos', detalle: 'Detalle', catalogo: 'Agencias' };
+const TITULOS = { cargar: 'Cargar despacho', registros: 'Registros', kpis: 'Costos', liquidaciones: 'Liquidaciones', detalle: 'Detalle', catalogo: 'Agencias' };
 const irA = tab => document.querySelector(`nav button[data-tab="${tab}"]`).click();
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
-  ['cargar','registros','kpis','detalle','catalogo'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
+  ['cargar','registros','liquidaciones','kpis','detalle','catalogo'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
   document.title = TITULOS[b.dataset.tab] + ' – Red Troncal';
   history.replaceState(null, '', '#' + b.dataset.tab); try { localStorage.setItem('tab', b.dataset.tab); } catch (e) {}
   scrollTo(0, 0);
+  if (b.dataset.tab === 'liquidaciones') lqAbrir();
 });
 function conexion(ok) { $('#estado').className = 'estado' + (ok ? '' : ' mal'); $('#estado span').textContent = ok ? '' : 'Sin conexión con la base de datos'; }
 
@@ -1040,9 +1094,14 @@ function pintarResumenRegistros() {
   ].map(([t, v, n, ic, c]) => `<div class="kpi"><div><span>${t}</span><b>${v}</b><small>${esc(n)}</small></div>${tile(ic, c)}</div>`).join('');
   $('#rTotal').innerHTML = `<b>${d.length}</b> registros encontrados, Importe total <b>${fmt(tot)}</b>`;
 }
+const lqCod = n => 'LIQ-' + String(n).padStart(4, '0');
+function estadoTag(r) {
+  if (regEnviado(r)) return `<span class="tb env" title="Incluido en ${lqNumeros.has(r.liquidacion_id) ? lqCod(lqNumeros.get(r.liquidacion_id)) : 'una liquidación'}">Enviado${lqNumeros.has(r.liquidacion_id) ? ' ' + lqCod(lqNumeros.get(r.liquidacion_id)).slice(4) : ''}</span>`;
+  return regListo(r) ? '<span class="tb">Terminado</span>' : '<span class="tb pen">Pendiente</span>';
+}
 function filaRegistro(r) {
   return `<tr data-id="${r.id}">
-      <td class="mono sm">${fdmy(r.fecha)}</td><td>${tbadge(r.transporte)}</td><td><span class="nodo">${PIN}${esc(r.nodo)}</span></td>
+      <td class="mono sm">${fdmy(r.fecha)}</td><td>${estadoTag(r)}</td><td>${tbadge(r.transporte)}</td><td><span class="nodo">${PIN}${esc(r.nodo)}</span></td>
       <td class="c">${r.bultos ?? ''}</td><td class="c">${r.pedidos ?? ''}</td><td class="c">${r.cajas ?? ''}</td>
       <td><input class="chip mono" data-f="placa" value="${esc(r.placa)}" placeholder="placa"></td>
       <td><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}" placeholder="Sin agencia asignada"></td>
@@ -1057,7 +1116,7 @@ function pintarTablaRegistros() {
   const N = registros.length, paginas = Math.max(1, Math.ceil(N / pag.size));
   pag.n = Math.min(Math.max(1, pag.n), paginas);
   const ini = (pag.n - 1) * pag.size, vista = registros.slice(ini, ini + pag.size);
-  $('#rTabla').innerHTML = '<tr><th>Fecha</th><th>Transporte</th><th>Nodo</th><th class="c">Bultos</th><th class="c">Pedidos</th><th class="c">Cajas</th><th>Placa</th><th>Agencia</th><th>Detalle del gasto</th><th class="c">Pago</th><th class="num">Importe</th><th>Factura</th><th>Adjunto</th><th class="c">Acciones</th></tr>' + (vista.map(filaRegistro).join('') || '<tr><td colspan="14"><div class="empty"><b>Sin registros en este rango</b><span>Ajusta las fechas o sube un despacho en «Cargar despacho».</span></div></td></tr>');
+  $('#rTabla').innerHTML = '<tr><th>Fecha</th><th>Estado</th><th>Transporte</th><th>Nodo</th><th class="c">Bultos</th><th class="c">Pedidos</th><th class="c">Cajas</th><th>Placa</th><th>Agencia</th><th>Detalle del gasto</th><th class="c">Pago</th><th class="num">Importe</th><th>Factura</th><th>Adjunto</th><th class="c">Acciones</th></tr>' + (vista.map(filaRegistro).join('') || '<tr><td colspan="14"><div class="empty"><b>Sin registros en este rango</b><span>Ajusta las fechas o sube un despacho en «Cargar despacho».</span></div></td></tr>');
   const nums = []; for (let i = 1; i <= paginas; i++) if (i === 1 || i === paginas || Math.abs(i - pag.n) <= 1) nums.push(i); else if (nums[nums.length - 1] !== '…') nums.push('…');
   $('#rPag').innerHTML = `<div class="l"><span>Filas por página:</span><select id="rSize">${[15, 25, 50, 100].map(v => `<option${v === pag.size ? ' selected' : ''}>${v}</option>`).join('')}</select><span>Mostrando <b>${N ? ini + 1 : 0}-${Math.min(N, ini + pag.size)}</b> de <b>${N}</b> registros</span></div>
     <div class="r"><button data-p="prev"${pag.n <= 1 ? ' disabled' : ''}>‹</button>${nums.map(n => n === '…' ? '<span>…</span>' : `<button data-p="${n}" class="${n === pag.n ? 'on' : ''}">${n}</button>`).join('')}<button data-p="next"${pag.n >= paginas ? ' disabled' : ''}>›</button></div>`;
@@ -1079,17 +1138,21 @@ async function buscarRegistros() {
   if (error) { conexion(false); return flash($('#rMsg'), error.message, 'err'); }
   conexion(true);
   regBase = data;
+  const { data: lqs } = await sb.from('liquidaciones').select('id,numero'); lqNumeros = new Map((lqs || []).map(x => [x.id, x.numero]));
   const ts = [...new Set(data.map(r => r.transporte).filter(Boolean))].sort(), sel = $('#rTrans').value;
   if (!sel) $('#rTrans').innerHTML = '<option value="">Todos</option>' + ts.map(t => `<option>${esc(t)}</option>`).join('');
   aplicarEstado();
 }
 // Un registro está terminado cuando tiene importe, N° de factura y la factura adjunta
 let regBase = [], estadoReg = '';
-const regTerminado = r => Number(r.importe) > 0 && !!r.factura && !!r.factura_archivo;
+const regEnviado = r => !!r.liquidacion_id;
+const regListo = r => Number(r.importe) > 0 && !!r.factura && !!r.factura_archivo;
+const regTerminado = r => regListo(r) && !regEnviado(r);
+let lqNumeros = new Map();
 function aplicarEstado() {
-  const nT = regBase.filter(regTerminado).length;
-  $('#nPend').textContent = regBase.length - nT; $('#nTerm').textContent = nT;
-  registros = estadoReg === 'term' ? regBase.filter(regTerminado) : estadoReg === 'pend' ? regBase.filter(r => !regTerminado(r)) : regBase;
+  const nT = regBase.filter(regTerminado).length, nE = regBase.filter(regEnviado).length;
+  $('#nPend').textContent = regBase.length - nT - nE; $('#nTerm').textContent = nT; $('#nEnv').textContent = nE;
+  registros = estadoReg === 'term' ? regBase.filter(regTerminado) : estadoReg === 'env' ? regBase.filter(regEnviado) : estadoReg === 'pend' ? regBase.filter(r => !regListo(r) && !regEnviado(r)) : regBase;
   pintarResumenRegistros(); pintarTablaRegistros();
 }
 $('#rEstado').addEventListener('click', e => {
@@ -1795,6 +1858,182 @@ $('#kExport').onclick = () => {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), hoja);
   });
   XLSX.writeFile(wb, `kpis_${$('#kDesde').value || 'inicio'}_${$('#kHasta').value || 'hoy'}.xlsx`);
+};
+
+// ---------- liquidaciones ----------
+const LQ_DEF = { liquidador: 'BENITES VEGA LUIS MIGUEL', area: 'ECOMMERCE', moneda: 'SOLES', concepto: 'Flete interprovincial', tipo_doc: 'FACTURA', cuenta: '63111002', centro: '8003825', denominacion: 'Distribución Red Troncal', limite: '1500' };
+const LQ_FILAS = 47;   // filas que tiene el formato (14 a 60)
+let lqPar = { ...LQ_DEF }, lqLista = [], lqPend = [], lqSel = new Set(), lqPago = '', lqListo = false;
+const lqScript = src => new Promise((ok, ko) => { const t = document.createElement('script'); t.src = src; t.onload = ok; t.onerror = () => ko(new Error('No se pudo cargar una librería. Revisa tu conexión.')); document.head.appendChild(t); });
+async function lqLibs() {
+  if (!window.ExcelJS) await lqScript('https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js');
+  if (!window.JSZip) await lqScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+}
+async function lqAbrir() {
+  const { data, error } = await sb.from('parametros').select('clave,valor');
+  const falta = !!error || !!(await sb.from('envios').select('liquidacion_id').limit(1)).error;
+  $('#lqSetup').classList.toggle('hide', !falta); $('#lqMain').classList.toggle('hide', falta); $('#lqPar').classList.toggle('hide', falta);
+  if (falta) return;
+  (data || []).forEach(r => { const k = r.clave.replace(/^lq_/, ''); if (k in LQ_DEF) lqPar[k] = r.valor; });
+  if (!lqListo) { const h = new Date(); $('#lqHasta').value = today(); $('#lqDesde').value = `${h.getMonth() ? h.getFullYear() : h.getFullYear() - 1}-${String(h.getMonth() || 12).padStart(2, '0')}-01`; lqListo = true; }
+  lqBuscar(); lqHistorial();
+}
+const lqLimite = () => Number(lqPar.limite) || 1500;
+async function lqBuscar() {
+  let q = sb.from('envios').select('*').is('liquidacion_id', null).order('fecha').order('transporte').order('nodo').limit(2000);
+  if ($('#lqDesde').value) q = q.gte('fecha', $('#lqDesde').value);
+  if ($('#lqHasta').value) q = q.lte('fecha', $('#lqHasta').value);
+  if ($('#lqTrans').value) q = q.eq('transporte', $('#lqTrans').value);
+  if (lqPago) q = q.eq('modo_pago', lqPago);
+  const { data, error } = await q;
+  if (error) return flash($('#lqMsg'), error.message, 'err');
+  const sel = $('#lqTrans').value;
+  if (!sel) $('#lqTrans').innerHTML = '<option value="">Todos</option>' + [...new Set(data.map(r => r.transporte).filter(Boolean))].sort().map(t => `<option>${esc(t)}</option>`).join('');
+  lqLista = data.filter(regListo); lqPend = data.filter(r => !regListo(r));
+  lqSel = new Set(lqLista.map(r => r.id));
+  lqPintar();
+}
+// reparte los registros en archivos que no superen el monto máximo ni las filas del formato
+function lqPartir(list) {
+  const lim = lqLimite(), grupos = []; let cur = [], suma = 0;
+  list.forEach(e => {
+    const imp = Number(e.importe);
+    if (cur.length && (suma + imp > lim || cur.length >= LQ_FILAS)) { grupos.push(cur); cur = []; suma = 0; }
+    cur.push(e); suma += imp;
+  });
+  if (cur.length) grupos.push(cur);
+  return grupos;
+}
+function lqPintar() {
+  const marca = lqLista.length && lqLista.every(r => lqSel.has(r.id));
+  $('#lqTabla').innerHTML = `<tr><th style="width:36px"><input type="checkbox" id="lqTodos" ${marca ? 'checked' : ''} aria-label="Seleccionar todos"></th><th>Fecha</th><th>Transporte</th><th>Nodo</th><th>Pago</th><th>Factura</th><th class="num">Importe</th></tr>` +
+    (lqLista.map(r => `<tr><td><input type="checkbox" data-id="${r.id}" ${lqSel.has(r.id) ? 'checked' : ''}></td><td class="mono sm">${fdmy(r.fecha)}</td><td>${tbadge(r.transporte)}</td><td><b>${esc(r.nodo)}</b></td><td>${r.modo_pago === 'CREDITO' ? 'Crédito' : 'Contado'}</td><td class="mono">${esc(r.factura)}</td><td class="num"><b>${fmt(r.importe)}</b></td></tr>`).join('') ||
+    '<tr><td colspan="7"><div class="empty"><b>No hay registros listos para liquidar</b><span>Un registro está listo cuando tiene importe, N° de factura y foto, y aún no fue enviado.</span></div></td></tr>');
+  const elegidos = lqLista.filter(r => lqSel.has(r.id)), total = elegidos.reduce((s, r) => s + Number(r.importe), 0), grupos = lqPartir(elegidos), lim = lqLimite();
+  const grandes = elegidos.filter(r => Number(r.importe) > lim).length;
+  $('#lqResumen').innerHTML = elegidos.length ? `<b>${elegidos.length}</b> ${elegidos.length === 1 ? 'registro' : 'registros'} por <b>${fmt(total)}</b> en <b>${grupos.length}</b> ${grupos.length === 1 ? 'archivo' : 'archivos'}. Máximo ${fmt(lim)} por archivo.` +
+    (grupos.length > 1 ? `<div class="lqf">${grupos.map((g, i) => `<span>Archivo ${i + 1}: ${g.length} ${g.length === 1 ? 'registro' : 'registros'}, ${fmt(g.reduce((s, r) => s + Number(r.importe), 0))}</span>`).join('')}</div>` : '') +
+    (grandes ? `<div class="lqw">${grandes} ${grandes === 1 ? 'registro supera' : 'registros superan'} el máximo y ${grandes === 1 ? 'irá' : 'irán'} solo en su archivo.</div>` : '') : 'Selecciona los registros que irán en la liquidación.';
+  $('#lqDescargar').disabled = !elegidos.length;
+  $('#lqPendBox').classList.toggle('hide', !lqPend.length);
+  $('#lqPendT').textContent = `${lqPend.length} ${lqPend.length === 1 ? 'registro no se incluye' : 'registros no se incluyen'} porque les falta algo`;
+  $('#lqPend').innerHTML = '<tr><th>Fecha</th><th>Transporte</th><th>Nodo</th><th>Falta</th></tr>' + lqPend.map(r => `<tr><td class="mono sm">${fdmy(r.fecha)}</td><td>${tbadge(r.transporte)}</td><td><b>${esc(r.nodo)}</b></td><td>${[Number(r.importe) > 0 ? '' : 'importe', r.factura ? '' : 'N° de factura', r.factura_archivo ? '' : 'foto'].filter(Boolean).join(', ')}</td></tr>`).join('');
+}
+$('#lqTabla').addEventListener('change', e => {
+  if (e.target.id === 'lqTodos') lqSel = e.target.checked ? new Set(lqLista.map(r => r.id)) : new Set();
+  else if (e.target.dataset.id) e.target.checked ? lqSel.add(e.target.dataset.id) : lqSel.delete(e.target.dataset.id);
+  lqPintar();
+});
+$('#lqPago').onclick = e => { const b = e.target.closest('button'); if (!b) return; lqPago = b.dataset.g; document.querySelectorAll('#lqPago button').forEach(x => x.classList.toggle('on', x === b)); lqBuscar(); };
+$('#lqBuscar').onclick = lqBuscar;
+['lqTrans', 'lqDesde', 'lqHasta'].forEach(id => $('#' + id).addEventListener('change', lqBuscar));
+
+const lqNombreFoto = (r, usados) => {
+  const ext = (String(r.factura_archivo).split('.').pop() || 'jpg').toLowerCase(), dm = fdmy(r.fecha).slice(0, 5).replace('/', '-');
+  const base = `${r.factura} ${r.transporte || ''} ${dm}`.replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim();
+  let n = base, i = 2; while (usados.has(n.toLowerCase())) n = `${base} (${i++})`; usados.add(n.toLowerCase());
+  return `${n}.${ext}`;
+};
+// Excel en el formato de la empresa, a partir de la plantilla
+async function lqExcel(filas, L) {
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(await (await fetch('plantilla_liquidacion.xlsx?v=1')).arrayBuffer());
+  const vacia = wb.worksheets.find(w => w.name === 'Hoja1'); if (vacia) wb.removeWorksheet(vacia.id);
+  const ws = wb.worksheets[0], dia = f => { const [y, m, d] = String(f).slice(0, 10).split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+  ws.getCell('F5').value = lqPar.liquidador; ws.getCell('F6').value = lqPar.area; ws.getCell('F8').value = lqPar.moneda;
+  ws.getCell('F7').value = dia(L.fecha); ws.getCell('F7').numFmt = 'dd/mm/yyyy';
+  for (let i = 0; i < LQ_FILAS; i++) {
+    const f = 14 + i, r = filas[i], c = col => ws.getCell(col + f);
+    if (!r) { 'ABCDEFGHIJK'.split('').forEach(k => { c(k).value = null; }); continue; }
+    c('A').value = i + 1; c('B').value = dia(r.fecha); c('B').numFmt = 'dd/mm/yyyy'; c('C').value = r.transporte || ''; c('D').value = lqPar.concepto; c('E').value = r.nodo;
+    c('F').value = lqPar.tipo_doc; c('G').value = Number(r.importe); c('H').value = r.factura;
+    c('I').value = /^\d+$/.test(lqPar.centro) ? Number(lqPar.centro) : lqPar.centro; c('J').value = lqPar.denominacion; c('K').value = /^\d+$/.test(lqPar.cuenta) ? Number(lqPar.cuenta) : lqPar.cuenta;
+  }
+  ws.getCell('G61').value = { formula: 'SUM(G14:G60)', result: filas.reduce((x, r) => x + Number(r.importe), 0) };
+  return wb.xlsx.writeBuffer();
+}
+// carpeta de una liquidación: Excel + fotos de las facturas
+async function lqCarpeta(zip, filas, L) {
+  const cod = lqCod(L.numero), dir = zip.folder(cod), fotos = dir.folder('facturas'), usados = new Set();
+  dir.file(cod + '.xlsx', await lqExcel(filas, L));
+  const cola = [...filas]; let falla = 0;
+  await Promise.all(Array.from({ length: 5 }, async () => {
+    while (cola.length) {
+      const r = cola.shift(), { data, error } = await sb.storage.from(BUCKET).download(r.factura_archivo);
+      if (error || !data) { falla++; continue; }
+      fotos.file(lqNombreFoto(r, usados), data);
+    }
+  }));
+  return falla;
+}
+function lqBajar(blob, nombre) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+$('#lqDescargar').onclick = async () => {
+  const elegidos = lqLista.filter(r => lqSel.has(r.id)); if (!elegidos.length) return;
+  const grupos = lqPartir(elegidos), total = elegidos.reduce((s, r) => s + Number(r.importe), 0);
+  if (!await confirmar('Descargar liquidación', `${elegidos.length} ${elegidos.length === 1 ? 'registro' : 'registros'} por ${fmt(total)} en ${grupos.length} ${grupos.length === 1 ? 'archivo' : 'archivos'}. Quedarán marcados como enviados.`, 'Descargar')) return;
+  const btn = $('#lqDescargar'); btn.disabled = true; btn.textContent = 'Preparando…';
+  const creadas = [];
+  try {
+    await lqLibs();
+    const zip = new JSZip(); let fallas = 0;
+    for (const g of grupos) {
+      const modos = [...new Set(g.map(r => r.modo_pago))];
+      const { data, error } = await sb.from('liquidaciones').insert({ fecha: today(), modo_pago: modos.length === 1 ? modos[0] : 'TODOS', total: g.reduce((s, r) => s + Number(r.importe), 0), items: g.length }).select().single();
+      if (error) throw error; creadas.push(data);
+      fallas += await lqCarpeta(zip, g, data);
+    }
+    for (let i = 0; i < grupos.length; i++) {
+      const { error } = await sb.from('envios').update({ liquidacion_id: creadas[i].id }).in('id', grupos[i].map(r => r.id)); if (error) throw error;
+    }
+    lqBajar(await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }), `Liquidaciones ${fdmy(today()).replace(/\//g, '-')}.zip`);
+    toast(`${grupos.length} ${grupos.length === 1 ? 'liquidación descargada' : 'liquidaciones descargadas'}` + (fallas ? `. ${fallas} ${fallas === 1 ? 'foto no se pudo incluir' : 'fotos no se pudieron incluir'}` : ''), fallas ? 'err' : undefined);
+  } catch (e) {
+    for (const L of creadas) { await sb.from('envios').update({ liquidacion_id: null }).eq('liquidacion_id', L.id); await sb.from('liquidaciones').delete().eq('id', L.id); }
+    toast('No se pudo generar la liquidación: ' + (e.message || e), 'err');
+  }
+  btn.textContent = 'Descargar liquidación'; lqBuscar(); lqHistorial();
+};
+async function lqHistorial() {
+  const { data, error } = await sb.from('liquidaciones').select('*').eq('anulada', false).order('numero', { ascending: false }).limit(50);
+  if (error) return;
+  $('#lqHist').innerHTML = '<tr><th>N°</th><th>Fecha</th><th>Pago</th><th class="num">Registros</th><th class="num">Total</th><th></th></tr>' +
+    (data.map(l => `<tr data-id="${l.id}"><td><b>${lqCod(l.numero)}</b></td><td class="mono sm">${fdmy(l.fecha)}</td><td>${l.modo_pago === 'CREDITO' ? 'Crédito' : l.modo_pago === 'CONTADO' ? 'Contado' : 'Contado y crédito'}</td><td class="num">${l.items}</td><td class="num"><b>${fmt(l.total)}</b></td>
+      <td style="text-align:right"><button class="lnk" data-a="bajar">Descargar de nuevo</button>&nbsp;&nbsp;<button class="lnk" data-a="anular" style="color:var(--bad)">Anular</button></td></tr>`).join('') ||
+    '<tr><td colspan="6"><div class="empty"><b>Aún no hay liquidaciones</b><span>Aquí quedarán las que descargues.</span></div></td></tr>');
+}
+$('#lqHist').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-a]'); if (!b) return;
+  const id = b.closest('tr').dataset.id, cod = b.closest('tr').querySelector('b').textContent;
+  if (b.dataset.a === 'anular') {
+    if (!await confirmar(`¿Anular ${cod}?`, 'Sus registros vuelven a estar disponibles para una nueva liquidación.', 'Anular', true)) return;
+    const r1 = await sb.from('envios').update({ liquidacion_id: null }).eq('liquidacion_id', id); if (r1.error) return toast(r1.error.message, 'err');
+    const r2 = await sb.from('liquidaciones').update({ anulada: true }).eq('id', id); if (r2.error) return toast(r2.error.message, 'err');
+    toast(cod + ' anulada'); lqBuscar(); lqHistorial(); return;
+  }
+  b.disabled = true; b.textContent = 'Preparando…';
+  try {
+    await lqLibs();
+    const { data: L } = await sb.from('liquidaciones').select('*').eq('id', id).single();
+    const { data: filas, error } = await sb.from('envios').select('*').eq('liquidacion_id', id).order('fecha').order('transporte').order('nodo'); if (error) throw error;
+    const zip = new JSZip(), fallas = await lqCarpeta(zip, filas, L);
+    lqBajar(await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }), cod + '.zip');
+    if (fallas) toast(`${fallas} ${fallas === 1 ? 'foto no se pudo incluir' : 'fotos no se pudieron incluir'}`, 'err');
+  } catch (err) { toast('No se pudo descargar: ' + (err.message || err), 'err'); }
+  b.disabled = false; b.textContent = 'Descargar de nuevo';
+});
+// datos fijos del formato
+const LP = { liquidador: '#lpLiquidador', area: '#lpArea', moneda: '#lpMoneda', concepto: '#lpConcepto', tipo_doc: '#lpTipo', cuenta: '#lpCuenta', centro: '#lpCentro', denominacion: '#lpDenom', limite: '#lpLimite' };
+$('#lqPar').onclick = () => { for (const k in LP) $(LP[k]).value = lqPar[k]; $('#lpE').className = 'msg'; $('#lpOk').disabled = false; $('#lqParDlg').showModal(); };
+$('#lpX').onclick = () => $('#lqParDlg').close();
+$('#lqParF').onsubmit = async e => {
+  e.preventDefault(); $('#lpOk').disabled = true;
+  const nuevo = {}; for (const k in LP) nuevo[k] = $(LP[k]).value.trim();
+  const { error } = await sb.from('parametros').upsert(Object.entries(nuevo).map(([k, v]) => ({ clave: 'lq_' + k, valor: v, updated_at: new Date().toISOString() })));
+  $('#lpOk').disabled = false;
+  if (error) { $('#lpE').textContent = error.message; $('#lpE').className = 'msg err'; return; }
+  lqPar = { ...lqPar, ...nuevo }; $('#lqParDlg').close(); toast('Datos del formato guardados'); lqPintar();
 };
 
 {
