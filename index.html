@@ -385,7 +385,6 @@
 
   /* Cargar */
   .steps { display:none }
-  #cPrev .row b { font-size:17px; font-weight:600 }
 
   /* Ventanas y panel lateral */
   dialog { border-radius:20px; box-shadow:0 24px 70px rgba(0,0,0,.28) } dialog::backdrop { background:rgba(0,0,0,.32); backdrop-filter:blur(6px) }
@@ -527,16 +526,6 @@
   .dr:not(.on) { visibility:hidden; transition:transform .25s, visibility 0s .25s } .dr.on { visibility:visible; transition:transform .25s }
   @media (max-width:760px) { .mfil { display:inline-flex !important } #tab-kpis > .card:has(.fb) { display:none } #tab-kpis.fopen > .card:has(.fb) { display:block } }
   @media (max-width:760px) { #kTabla td[data-c=pago] { grid-column:1/-1 } #kTabla .b.sec { color:var(--bad); background:var(--badbg); min-height:40px } }
-  @media (max-width:760px) {
-    #tab-cargar .row > * { flex:1 1 100% } #tab-cargar input[type=file] { width:100%; padding:18px 12px; border-radius:16px } #tab-cargar .row .b { width:100%; justify-content:center }
-    .tw:has(#cTabla) { max-height:none !important; overflow:visible; border:0; background:none } #cTabla, #cTabla tbody { display:block; background:none } #cTabla tr:has(th) { display:none }
-    #cTabla tr[data-i] { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px 12px; background:var(--card); border-radius:18px; padding:16px; margin-bottom:12px } #cTabla tr.miss { box-shadow:inset 0 0 0 2px var(--amb) } #cTabla tr.miss td { background:none !important }
-    #cTabla td { display:block; padding:0; border:0; white-space:normal; min-width:0; background:none !important } #cTabla td[data-l]::before { content:attr(data-l); display:block; margin-bottom:4px; font-size:12px; color:var(--mut); font-weight:500 }
-    #cTabla td input, #cTabla td select { width:100% !important; min-width:0 !important; background:var(--head); border:0; text-align:left; padding:10px 12px; font-size:16px }
-    #cTabla td[data-c=nodo] { grid-column:1/-1; font-size:19px } #cTabla td[data-c=motivo] { grid-column:span 3 } #cTabla td[data-c=trans], #cTabla td[data-c=placa] { grid-column:span 3 } #cTabla td[data-c=agencia], #cTabla td[data-c=pago], #cTabla td[data-c=detalle] { grid-column:1/-1 }
-    #cPrev .row { flex-direction:column; align-items:stretch } #cGuardar { width:100% }
-  }
-  @media (max-width:760px) { #cPrev { background:none; padding:0 } #cPrev .row { background:var(--card); border-radius:18px; padding:16px; margin-bottom:12px } #cPrev .row b { font-size:16px } #cPrev .tw { margin-top:0 !important } }
   @media (max-width:760px) { .top:has(> h1) { flex-direction:column; align-items:flex-start; gap:4px } #tab-detalle .row > * { flex:1 1 100% } #tab-detalle .tw { max-height:60vh } }
   @media (max-width:760px) { #dstDlg .fgrid label:nth-child(2), #dstDlg .fgrid label:nth-child(3) { grid-column:1/-1 } }
   @media (max-width:760px) { .ktabs { display:flex; flex-wrap:nowrap; width:100%; overflow-x:auto; scroll-snap-type:x proximity } .ktabs button { flex:0 0 auto; white-space:nowrap } }
@@ -627,6 +616,57 @@
     #regDlg .rm-foto { flex-wrap:wrap } #regDlg .rm-ac { width:100%; justify-content:flex-start }
     #regDlg .rm-f { position:sticky; bottom:0; background:var(--card); border-top:1px solid var(--line) } #regDlg .rm-f .sp { display:none } #regDlg .rm-f .b { flex:1; justify-content:center; padding:12px; font-size:15px }
   }
+
+  /* Cargar despacho */
+  #tab-cargar.conbarra { padding-bottom:120px }
+  .cps { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--mut) }
+  .cps .ps { display:flex; align-items:center; gap:8px } .cps .pn { width:24px; height:24px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:600; background:var(--head); color:var(--mut) }
+  .cps .pn .ico { width:13px; height:13px; stroke-width:3 }
+  .cps .ps.on { color:var(--ink); font-weight:600 } .cps .ps.on .pn { background:var(--pri); color:#fff } .cps .ps.hecho { color:var(--ink) } .cps .ps.hecho .pn { background:var(--ok); color:#fff }
+  .cps .ln { width:28px; height:2px; background:#d2d2d7; border-radius:2px } .cps .ln.hecho { background:var(--ok) }
+  .csube { display:grid; grid-template-columns:230px 1fr; gap:20px; align-items:stretch }
+  .csube label { display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--mut); font-weight:500 }
+  .csube input[type=date] { font-size:16px; padding:12px 14px; border:0; border-radius:12px; background:var(--head) }
+  .cdrop { border:1.5px dashed #c7c7cc; border-radius:16px; background:#fafafc; display:flex; align-items:center; gap:18px; padding:22px 24px; cursor:pointer; transition:.15s; min-height:104px; height:100% }
+  .cdrop:hover, .cdrop.on { border-color:var(--pri); background:#f0f6fd } .cdrop:focus-visible { outline:2px solid rgba(0,102,204,.45) }
+  .cdrop .ic, .carch .ic { width:52px; height:52px; border-radius:14px; background:#e8f1fc; color:var(--pri); display:grid; place-items:center; flex:none } .cdrop .ic .ico, .carch .ic .ico { width:26px; height:26px }
+  .cdrop b, .carch b { display:block; font-size:16px } .cdrop span, .carch span { color:var(--mut); font-size:13px } .cdrop .b, .carch .b { margin-left:auto }
+  .carch { display:flex; align-items:center; gap:14px; border-radius:16px; background:var(--okbg); padding:18px 20px; min-height:104px; height:100% } .carch .ic { background:#fff; color:var(--ok); width:46px; height:46px } .carch b { font-size:15px; word-break:break-all } .carch span { color:#3d6b4a }
+  .cayuda { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:16px; color:var(--mut); font-size:13px } .cayuda .sp { flex:1 }
+  .chip { display:inline-flex; align-items:center; gap:5px; padding:4px 11px; border-radius:99px; background:var(--head); color:var(--mut); font-size:12.5px; font-weight:500 }
+  .chip.si { background:var(--okbg); color:var(--ok) } .chip.no { color:#98989d; text-decoration:line-through } .chip .ico { width:12px; height:12px; stroke-width:3 }
+  details.how { margin-top:12px; font-size:13px; color:var(--mut) } details.how summary { cursor:pointer; color:var(--pri); width:max-content; list-style:none } details.how summary::-webkit-details-marker { display:none }
+  details.how[open] summary { margin-bottom:8px } details.how ul { margin:0; padding-left:18px; display:grid; gap:4px }
+  .ctiles { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:16px }
+  .ctile { background:var(--card); border-radius:20px; padding:18px 20px; display:flex; flex-direction:column; gap:2px }
+  .ctile .t { color:var(--mut); font-size:13px; display:flex; align-items:center; gap:8px } .ctile .dot { width:8px; height:8px; border-radius:50%; background:var(--ok) }
+  .ctile b { font-size:30px; letter-spacing:-.03em; line-height:1.15 } .ctile small { color:var(--mut); font-size:13px } .ctile.vacio b { color:#c7c7cc } .ctile.vacio .dot { background:#c7c7cc }
+  .calerta { display:flex; gap:12px; align-items:center; background:var(--warnbg); color:var(--warn); border-radius:16px; padding:12px 16px; margin-bottom:16px; font-size:13.5px } .calerta .ico { width:18px; height:18px; flex:none }
+  .calerta button { margin-left:auto; font:inherit; font-size:13px; font-weight:600; border:0; background:none; color:var(--warn); cursor:pointer; text-decoration:underline; white-space:nowrap }
+  .ccab { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding:16px 20px 12px } .ccab h3 { margin:0; font-size:17px; letter-spacing:-.01em }
+  #cTabla { min-width:860px } #cTabla th:first-child, #cTabla td:first-child { padding-left:20px } #cTabla th:last-child, #cTabla td:last-child { padding-right:20px }
+  #cTabla td { padding-top:8px; padding-bottom:8px } #cTabla td input, #cTabla td select { width:100%; min-width:0; font-size:13px; padding:8px 10px; border-radius:10px }
+  #cTabla td[data-c=n] { width:76px } #cTabla td[data-c=n] input { text-align:center; padding-left:4px; padding-right:4px }
+  #cTabla td input.vacia { background:var(--warnbg) } #cTabla .nodo { font-weight:700; font-size:14.5px }
+  .cfalta { display:inline-block; margin-top:2px; font-size:11.5px; color:var(--warn); font-weight:600; background:var(--warnbg); padding:1px 8px; border-radius:99px }
+  .cbarra { position:fixed; left:0; right:0; bottom:0; z-index:30; background:rgba(249,249,251,.88); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px); border-top:1px solid var(--line); padding:14px 28px }
+  .cbarra[hidden] { display:none } .cbarra .in { max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:16px }
+  .cbarra .res { flex:1; min-width:0 } .cbarra .res b { font-size:15px } .cbarra .res span { display:block; color:var(--mut); font-size:13px }
+  .cok { text-align:center; padding:44px 20px } .cok .big { width:64px; height:64px; border-radius:50%; background:var(--okbg); color:var(--ok); display:grid; place-items:center; margin:0 auto 16px } .cok .big .ico { width:30px; height:30px; stroke-width:2.6 }
+  .cok h2 { margin:0 0 6px; font-size:24px; letter-spacing:-.02em } .cok p { margin:0 auto 20px; color:var(--mut); max-width:460px } .cok .acc { display:flex; gap:10px; justify-content:center; flex-wrap:wrap }
+  @media (max-width:900px) { .csube { grid-template-columns:1fr } .ctiles { grid-template-columns:1fr } .cps .pt { display:none } .cdrop { flex-wrap:wrap } .cdrop .b { margin-left:0; width:100%; justify-content:center } }
+  @media (max-width:760px) {
+    .tw:has(#cTabla) { max-height:none !important; overflow:visible } .tcard:has(#cTabla) { overflow:hidden }
+    #cTabla, #cTabla tbody { display:block; min-width:0 } #cTabla tr:has(th) { display:none }
+    #cTabla tr[data-i] { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px 12px; padding:16px 18px; border-top:1px solid var(--line) } #cTabla tr[data-i]:first-of-type { border-top:0 }
+    #cTabla td { display:block; padding:0 !important; border:0; white-space:normal; min-width:0 } #cTabla td[data-l]::before { content:attr(data-l); display:block; margin-bottom:4px; font-size:12px; color:var(--mut); font-weight:500 }
+    #cTabla td input, #cTabla td select { width:100% !important; font-size:16px; padding:11px 12px }
+    #cTabla td[data-c=nodo] { grid-column:1/3; font-size:19px } #cTabla td[data-c=motivo] { grid-column:3; text-align:right } #cTabla td[data-c=trans], #cTabla td[data-c=placa], #cTabla td[data-c=agencia], #cTabla td[data-c=pago] { grid-column:1/-1 }
+    #cTabla td[data-c=n] { width:auto } #cTabla td[data-c=n] input { text-align:center; font-weight:600 }
+    .cbarra { left:12px; right:12px; bottom:calc(80px + env(safe-area-inset-bottom)); border:0; border-radius:18px; padding:10px 10px 10px 16px; background:rgba(255,255,255,.96); box-shadow:0 8px 28px rgba(0,0,0,.22) }
+    .cbarra .in { gap:8px } .cbarra .res span { display:none } .cbarra .res b { font-size:14px } .cbarra .b { padding:10px 14px } #cCancelar { display:none }
+    #tab-cargar.conbarra { padding-bottom:150px }
+  }
   .ico { width:1.1em; height:1.1em; vertical-align:-.2em; flex:none } .ar { display:inline-block; vertical-align:0; margin-left:2px } .nb .x svg, .x2 svg, .x2 { display:grid; place-items:center }
   .pag button .ico { width:14px; height:14px; vertical-align:-2px }
 </style>
@@ -696,29 +736,41 @@
 <div class="wrap">
 
 <section id="tab-cargar">
-  <div class="top"><h1>Cargar despacho</h1><div class="sub">Sube el resumen del día, revisa y guarda</div></div>
-  <div class="steps" id="cSteps">
-    <div class="step on"><i>1</i><div><b>Archivo</b><small>Elige fecha y Excel</small></div></div>
-    <div class="step"><i>2</i><div><b>Revisar</b><small>Completa placa y agencia</small></div></div>
-    <div class="step"><i>3</i><div><b>Guardar</b><small>Importes se completan después</small></div></div>
-  </div>
-  <div class="card">
-    <div class="row">
-      <label>Fecha del despacho<input type="date" id="cFecha"></label>
-      <label>Archivo Excel del día<input type="file" id="cFile" accept=".xlsx,.xls,.csv"></label>
-      <button class="b sec" id="cPlantilla">Descargar plantilla</button>
+  <div class="top"><div><h1>Cargar despacho</h1><div class="sub">Sube el Excel del día y revisa antes de guardar</div></div><div class="cps" id="cPasos"></div></div>
+  <div id="cS1">
+    <div class="card">
+      <div class="csube">
+        <label>Fecha del despacho<input type="date" id="cFecha"></label>
+        <div>
+          <div class="cdrop" id="cDrop" role="button" tabindex="0" aria-label="Elegir el Excel del día"><div class="ic" id="cIcSube"></div><div><b>Arrastra el Excel aquí</b><span>o elige un archivo de tu equipo</span></div><button type="button" class="b" id="cElegir">Elegir archivo</button></div>
+          <div class="carch hide" id="cArch"><div class="ic" id="cIcDoc"></div><div><b id="cArchN"></b><span id="cArchS"></span></div><button type="button" class="b sec" id="cCambiar">Cambiar</button></div>
+        </div>
+      </div>
+      <div class="cayuda"><span>El Excel puede traer</span><span class="chip" data-h="despacho">Despacho</span><span class="chip" data-h="recojos">Recojos</span><span class="chip" data-h="detalle">Detalle</span><span class="sp"></span><button type="button" class="lnk" id="cPlantilla">Descargar plantilla</button></div>
+      <details class="how" id="cHow"><summary>¿Cómo debe ser el Excel?</summary>
+        <ul>
+          <li>Hojas <b>DESPACHO</b> y <b>RECOJOS</b>: columnas NODO, PEDIDOS, BULTO, CAJAS y TRANSPORTE.</li>
+          <li>Hoja <b>DETALLE</b>: una fila por bulto del despacho.</li>
+          <li>Puedes subir solo las hojas que necesites. Agencia, pago y detalle del gasto se completan desde Agencias.</li>
+        </ul>
+      </details>
+      <div id="cMsg" class="msg"></div>
     </div>
-    <p class="hint">Un solo Excel con tres hojas: DESPACHO y RECOJOS (con NODO, PEDIDOS, BULTO, CAJAS y TRANSPORTE) y DETALLE (una fila por bulto del despacho). Puede traer solo las que necesites. Agencia, modo de pago y detalle del gasto se completan desde Agencias. Las filas amarillas no están en esa hoja.</p>
-    <div id="cMsg" class="msg"></div>
   </div>
-  <div class="card hide" id="cPrev">
-    <div class="row" style="justify-content:space-between">
-      <b id="cResumen"></b>
-      <button class="b" id="cGuardar">Guardar en registros</button>
-    </div>
-    <p class="hint" id="cHrn" style="margin:8px 0 0"></p>
-    <div class="tw" style="margin-top:8px"><table id="cTabla"></table></div>
+  <div id="cPrev" class="hide">
+    <div class="ctiles" id="cTiles"></div>
+    <div class="calerta hide" id="cAlerta"></div>
+    <div class="card tcard" id="cTarjeta"><div class="ccab"><h3>Revisa antes de guardar</h3><div class="pseg" id="cSeg"></div></div><div class="tw"><table id="cTabla"></table></div></div>
   </div>
+  <div id="cOk" class="card cok hide">
+    <div class="big" id="cOkIc"></div><h2 id="cOkT"></h2><p id="cOkP"></p>
+    <div class="acc"><button type="button" class="b" id="cOkIr"></button><button type="button" class="b sec" id="cOtro">Cargar otro archivo</button></div>
+  </div>
+  <div class="cbarra" id="cBarra" hidden><div class="in">
+    <div class="res"><b id="cBarT"></b><span id="cBarS"></span></div>
+    <button type="button" class="b sec" id="cCancelar">Cancelar</button><button type="button" class="b" id="cGuardar">Guardar en registros</button>
+  </div></div>
+  <input type="file" id="cFile" accept=".xlsx,.xls,.csv" class="hide">
 </section>
 
 <section id="tab-registros" class="hide">
@@ -992,7 +1044,8 @@ function confirmar(titulo, mensaje, ok = 'Aceptar', peligro = false) {
 }
 document.addEventListener('change', e => { if (e.target.dataset && 'v' in e.target.dataset) e.target.dataset.v = e.target.value; });
 function setPaso(n) {
-  document.querySelectorAll('#cSteps .step').forEach((el, i) => { el.className = 'step' + (i + 1 < n ? ' done' : i + 1 === n ? ' on' : ''); el.querySelector('i').innerHTML = i + 1 < n ? ICO.check : i + 1; });
+  $('#cPasos').innerHTML = ['Archivo', 'Revisar', 'Listo'].map((t, i) => { const k = i + 1, c = k < n ? 'hecho' : k === n ? 'on' : '';
+    return (i ? `<span class="ln${k <= n ? ' hecho' : ''}"></span>` : '') + `<span class="ps ${c}"><span class="pn">${k < n ? ICO.check : k}</span><span class="pt">${t}</span></span>`; }).join('');
 }
 function toast(text, type) {
   const t = document.createElement('div'); t.className = 'toast ' + (type === 'err' ? 'err' : 'ok');
@@ -1168,60 +1221,111 @@ function detalleGasto(r, c) {
   return r.motivo === 'RECOJO' ? d.replace(/^ENVIO\b/i, 'RECOJO') : d;
 }
 
-$('#cFile').onchange = async e => {
-  const f = e.target.files[0]; if (!f) return;
+let cArchivo = null, cFiltro = '';
+const cHojas = () => ({ despacho: previa.some(r => r.motivo === 'DESPACHO'), recojos: previa.some(r => r.motivo === 'RECOJO'), detalle: !!hrnCarga });
+function cChips() {
+  const h = cArchivo ? cHojas() : null;
+  document.querySelectorAll('.chip[data-h]').forEach(c => { const si = h && h[c.dataset.h]; c.className = 'chip' + (h ? (si ? ' si' : ' no') : ''); c.innerHTML = (si ? ICO.check : '') + c.dataset.t; });
+}
+document.querySelectorAll('.chip[data-h]').forEach(c => c.dataset.t = c.textContent);
+function cReiniciar() {
+  previa = []; hrnCarga = null; cArchivo = null; cFiltro = ''; $('#cFile').value = ''; $('#cMsg').className = 'msg';
+  ['#cPrev', '#cOk', '#cArch'].forEach(q => $(q).classList.add('hide')); ['#cS1', '#cDrop', '#cPlantilla', '#cHow'].forEach(q => $(q).classList.remove('hide'));
+  $('#cBarra').hidden = true; $('#tab-cargar').classList.remove('conbarra'); cChips(); setPaso(1);
+}
+async function leerArchivo(f) {
   try {
     hrnCarga = null; await xlsxLib(); const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
-    const filas = leerTabla(wb);
-    hrnCarga = leerHrn(wb);
+    const filas = leerTabla(wb); hrnCarga = leerHrn(wb);
     if (!filas && !hrnCarga) return flash($('#cMsg'), 'No encontré filas en las hojas DESPACHO, RECOJOS o DETALLE. Descarga la plantilla y completa esas hojas.', 'err');
-    setPaso(2);
     previa = (filas || []).map(r => {
       const c = catalogo.get(norm(r.nodo));
       return { ...r, transporte: r.transporte || norm(c?.transporte), placa: '', agencia: c?.agencia || '',
                modo_pago: c ? (norm(c.observacion).includes('CONTADO') ? 'CONTADO' : 'CREDITO') : 'CONTADO', en_catalogo: !!c,
                detalle_gasto: detalleGasto(r, c) };
     });
-    $('#cMsg').className = 'msg';
-    pintarPrevia();
+    cArchivo = { nombre: f.name, kb: Math.max(1, Math.round(f.size / 1024)) }; cFiltro = '';
+    $('#cMsg').className = 'msg'; setPaso(2); pintarPrevia();
   } catch (err) { flash($('#cMsg'), 'No se pudo leer el archivo: ' + err.message, 'err'); }
-};
-
-function pintarPrevia() {
-  if (!previa.length) {   // el archivo solo trae la hoja DETALLE
-    $('#cResumen').textContent = `Solo detalle: ${hrnCarga.length} filas, ${new Set(hrnCarga.map(r => r.nodo)).size} nodos`; $('#cTabla').innerHTML = '';
-    $('#cHrn').textContent = 'Se agregará al detalle de la fecha elegida, sin borrar lo anterior ni duplicar filas repetidas.'; $('#cPrev').classList.remove('hide'); return;
-  }
-  const faltan = previa.filter(r => !r.en_catalogo).length;
-  const nRec = previa.filter(r => r.motivo === 'RECOJO').length;
-  $('#cResumen').textContent = `${previa.length - nRec} ${previa.length - nRec === 1 ? 'despacho' : 'despachos'}` + (nRec ? ` y ${nRec} ${nRec === 1 ? 'recojo' : 'recojos'}` : '') + `, ${previa.length} nodos, ${previa.reduce((s, r) => s + (r.pedidos || 0), 0)} pedidos, ${previa.reduce((s, r) => s + (r.bultos || 0), 0)} bultos, ${previa.reduce((s, r) => s + (r.cajas || 0), 0)} cajas` + (faltan ? `, ${faltan} sin catálogo` : '');
-  $('#cTabla').innerHTML = '<tr><th>Nodo</th><th>Motivo</th><th>Transporte</th><th>Pedidos</th><th>Bultos</th><th>Cajas</th><th>Placa</th><th>Agencia</th><th>Modo de pago</th><th>Detalle del gasto</th></tr>' +
-    previa.map((r, i) => `<tr class="${r.en_catalogo ? '' : 'miss'}" data-i="${i}">
-      <td data-c="nodo"><b>${esc(r.nodo)}</b></td>
-      <td data-c="motivo" data-l="Motivo"><select data-f="motivo">${MOTIVOS.map(m => `<option value="${m}"${m === r.motivo ? ' selected' : ''}>${m === 'RECOJO' ? 'Recojo' : 'Despacho'}</option>`).join('')}</select></td>
-      <td data-c="trans" data-l="Transporte"><input data-f="transporte" value="${esc(r.transporte)}"></td>
-      <td class="n" data-c="n" data-l="Pedidos"><input data-f="pedidos" type="number" value="${r.pedidos ?? ''}"></td>
-      <td class="n" data-c="n" data-l="Bultos"><input data-f="bultos" type="number" value="${r.bultos ?? ''}"></td>
-      <td class="n" data-c="n" data-l="Cajas"><input data-f="cajas" type="number" value="${r.cajas ?? ''}"></td>
-      <td data-c="placa" data-l="Placa"><input data-f="placa" value="${esc(r.placa)}"></td>
-      <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}"></td>
-      <td data-c="pago" data-l="Modo de pago"><select data-f="modo_pago" data-v="${r.modo_pago}">${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
-      <td data-c="detalle" data-l="Detalle del gasto"><input data-f="detalle_gasto" value="${esc(r.detalle_gasto)}"></td></tr>`).join('');
-  $('#cHrn').textContent = hrnCarga ? `Detalle en el mismo archivo: ${hrnCarga.length} filas, ${new Set(hrnCarga.map(r => r.nodo)).size} nodos. Se guardará junto con el despacho, sin borrar lo anterior.` : 'Este archivo no trae la hoja DETALLE: solo se guardará el despacho.';
-  $('#cPrev').classList.remove('hide');
 }
+$('#cFile').onchange = e => { const f = e.target.files[0]; if (f) leerArchivo(f); };
+{
+  const dz = $('#cDrop');
+  dz.onclick = () => $('#cFile').click(); dz.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#cFile').click(); } };
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('on'); }; dz.ondragleave = () => dz.classList.remove('on');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('on'); const f = e.dataTransfer.files[0]; if (f) leerArchivo(f); };
+  $('#cElegir').onclick = e => e.stopPropagation(); $('#cElegir').addEventListener('click', e => { e.stopPropagation(); $('#cFile').click(); });
+  $('#cCambiar').onclick = cReiniciar; $('#cCancelar').onclick = cReiniciar; $('#cOtro').onclick = cReiniciar;
+  $('#cIcSube').innerHTML = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 10l5-5 5 5M5 19h14"/></svg>';
+  $('#cIcDoc').innerHTML = ICO.file; $('#cOkIc').innerHTML = ICO.check;
+  $('#cOkIr').onclick = e => irA(e.currentTarget.dataset.go);
+}
+const ALERTA = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>';
+function cAlertar() {
+  const sin = previa.filter(r => !r.agencia).length, a = $('#cAlerta');
+  a.classList.toggle('hide', !sin);
+  a.innerHTML = sin ? `${ALERTA}<span><b>${sin} ${sin === 1 ? 'nodo sin agencia' : 'nodos sin agencia'}.</b> Complétala aquí o agrega el nodo después en Agencias.</span>${cFiltro === 'falta' ? '<button type="button" data-f="">Ver todos</button>' : '<button type="button" data-f="falta">Ver solo esos</button>'}` : '';
+}
+function pintarPrevia() {
+  $('#cDrop').classList.add('hide'); $('#cArch').classList.remove('hide'); $('#cPlantilla').classList.add('hide'); $('#cHow').classList.add('hide');
+  $('#cArchN').textContent = cArchivo.nombre; $('#cArchS').textContent = `${cArchivo.kb} KB`; cChips();
+  const des = previa.filter(r => r.motivo === 'DESPACHO'), rec = previa.filter(r => r.motivo === 'RECOJO'), suma = (a, k) => a.reduce((x, r) => x + (r[k] || 0), 0);
+  const cant = a => `${fmtN(suma(a, 'pedidos'))} pedidos, ${fmtN(suma(a, 'bultos'))} bultos, ${fmtN(suma(a, 'cajas'))} cajas`;
+  const nodosDet = hrnCarga ? new Set(hrnCarga.map(r => r.nodo)).size : 0;
+  $('#cTiles').innerHTML = `
+    <div class="ctile${des.length ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Despachos</span><b>${des.length}</b><small>${des.length ? cant(des) : 'Sin filas en este archivo'}</small></div>
+    <div class="ctile${rec.length ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Recojos</span><b>${rec.length}</b><small>${rec.length ? cant(rec) : 'Sin filas en este archivo'}</small></div>
+    <div class="ctile${hrnCarga ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Detalle</span><b>${hrnCarga ? fmtN(hrnCarga.length) : 0}</b><small>${hrnCarga ? `filas de ${nodosDet} ${nodosDet === 1 ? 'nodo' : 'nodos'}, se suman a las que ya hay` : 'Sin filas en este archivo'}</small></div>`;
+  cAlertar();
+  $('#cTarjeta').classList.toggle('hide', !previa.length);
+  const hayAmbos = des.length && rec.length;
+  $('#cSeg').classList.toggle('hide', !hayAmbos && cFiltro !== 'falta');
+  $('#cSeg').innerHTML = [['', 'Todos', previa.length], ['DESPACHO', 'Despachos', des.length], ['RECOJO', 'Recojos', rec.length]].map(([v, t, n]) => `<button data-f="${v}" class="${cFiltro === v ? 'on' : ''}">${t} <small>${n}</small></button>`).join('');
+  const vis = previa.map((r, i) => [r, i]).filter(([r]) => cFiltro === 'falta' ? !r.agencia : !cFiltro || r.motivo === cFiltro);
+  $('#cTabla').innerHTML = '<tr><th>Nodo</th><th>Motivo</th><th>Transporte</th><th class="c">Pedidos</th><th class="c">Bultos</th><th class="c">Cajas</th><th>Placa</th><th>Agencia</th><th>Pago</th></tr>' +
+    vis.map(([r, i]) => `<tr data-i="${i}">
+      <td data-c="nodo"><span class="nodo">${esc(r.nodo)}</span>${r.agencia ? '' : '<br><span class="cfalta">Sin agencia</span>'}</td>
+      <td data-c="motivo">${motTag(r.motivo)}</td>
+      <td data-c="trans" data-l="Transporte"><input data-f="transporte" value="${esc(r.transporte)}"></td>
+      <td data-c="n" data-l="Pedidos"><input data-f="pedidos" type="number" value="${r.pedidos ?? ''}"></td>
+      <td data-c="n" data-l="Bultos"><input data-f="bultos" type="number" value="${r.bultos ?? ''}"></td>
+      <td data-c="n" data-l="Cajas"><input data-f="cajas" type="number" value="${r.cajas ?? ''}"></td>
+      <td data-c="placa" data-l="Placa"><input data-f="placa" value="${esc(r.placa)}" placeholder="ABC-123"></td>
+      <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" class="${r.agencia ? '' : 'vacia'}" value="${esc(r.agencia)}" placeholder="Escribe la agencia"></td>
+      <td data-c="pago" data-l="Pago"><select data-f="modo_pago" data-v="${r.modo_pago}">${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td></tr>`).join('');
+  $('#cPrev').classList.remove('hide');
+  $('#cBarT').textContent = [des.length && `${des.length} ${des.length === 1 ? 'despacho' : 'despachos'}`, rec.length && `${rec.length} ${rec.length === 1 ? 'recojo' : 'recojos'}`, hrnCarga && `${fmtN(hrnCarga.length)} filas de detalle`].filter(Boolean).join(', ');
+  $('#cBarS').textContent = `Se guardarán con fecha ${fdmy($('#cFecha').value)}`;
+  $('#cBarra').hidden = false; $('#tab-cargar').classList.add('conbarra');
+}
+$('#cFecha').addEventListener('change', () => { if (cArchivo) $('#cBarS').textContent = `Se guardarán con fecha ${fdmy($('#cFecha').value)}`; });
+$('#cSeg').onclick = e => { const b = e.target.closest('button'); if (b) { cFiltro = b.dataset.f; pintarPrevia(); } };
+$('#cAlerta').onclick = e => { const b = e.target.closest('button'); if (b) { cFiltro = b.dataset.f; pintarPrevia(); } };
 $('#cTabla').addEventListener('change', e => {
   const tr = e.target.closest('tr'); if (!tr || !e.target.dataset.f) return;
-  const f = e.target.dataset.f, v = e.target.value;
-  previa[tr.dataset.i][f] = ['pedidos','bultos','cajas'].includes(f) ? num(v) : (f === 'modo_pago' || f === 'motivo' ? v : v.trim());
+  const f = e.target.dataset.f, v = e.target.value, r = previa[tr.dataset.i];
+  r[f] = ['pedidos', 'bultos', 'cajas'].includes(f) ? num(v) : (f === 'modo_pago' ? v : v.trim());
+  if (f === 'agencia') {   // la marca de "sin agencia" y el aviso se actualizan sin recargar la tabla
+    e.target.classList.toggle('vacia', !r.agencia);
+    const td = tr.querySelector('td[data-c=nodo]'), tag = td.querySelector('.cfalta');
+    if (r.agencia && tag) { tag.previousElementSibling?.remove(); tag.remove(); } else if (!r.agencia && !tag) td.insertAdjacentHTML('beforeend', '<br><span class="cfalta">Sin agencia</span>');
+    cAlertar();
+  }
 });
+function cMostrarOk(titulo, texto, soloDetalle) {
+  setPaso(3); ['#cS1', '#cPrev'].forEach(q => $(q).classList.add('hide')); $('#cBarra').hidden = true; $('#tab-cargar').classList.remove('conbarra');
+  $('#cOkT').textContent = titulo; $('#cOkP').textContent = texto;
+  $('#cOkIr').textContent = soloDetalle ? 'Ver el detalle' : 'Completar importes en Registros'; $('#cOkIr').dataset.go = soloDetalle ? 'detalle' : 'registros';
+  $('#cOk').classList.remove('hide'); scrollTo(0, 0);
+}
+const mayus = t => t.charAt(0).toUpperCase() + t.slice(1);
 
 $('#cGuardar').onclick = async () => {
   const fecha = $('#cFecha').value;
   if (!fecha) return flash($('#cMsg'), 'Elige la fecha del despacho', 'err');
   if (!previa.length) {   // solo detalle
     $('#cGuardar').disabled = true;
-    try { const t = hrnTexto(fecha, await guardarHrn(fecha, hrnCarga)); flash($('#cMsg'), 'Detalle: ' + t + '.', 'ok'); hrnCarga = null; $('#cPrev').classList.add('hide'); $('#cFile').value = ''; setPaso(1); }
+    try { cMostrarOk('Detalle guardado', mayus(hrnTexto(fecha, await guardarHrn(fecha, hrnCarga))) + '.', true); previa = []; hrnCarga = null; $('#cFile').value = ''; }
     catch (err) { flash($('#cMsg'), 'No se pudo guardar el detalle: ' + err.message + '. Vuelve a subir el archivo: las filas que ya entraron no se duplican.', 'err'); }
     $('#cGuardar').disabled = false; return;
   }
@@ -1239,15 +1343,16 @@ $('#cGuardar').onclick = async () => {
   const { error } = await sb.from('envios').upsert(filas, { onConflict: 'fecha,nodo,motivo' });
   $('#cGuardar').disabled = false;
   if (error) return flash($('#cMsg'), /motivo/.test(error.message) ? 'Falta ejecutar supabase_motivo.sql en Supabase.' : error.message, 'err');
-  let extra = '';
-  if (hrnCarga) {
-    try { extra = ' Detalle: ' + hrnTexto(fecha, await guardarHrn(fecha, hrnCarga)) + '.'; }
-    catch (err) { previa = []; $('#cPrev').classList.add('hide'); $('#cFile').value = ''; setPaso(1); $('#rDesde').value = fecha; $('#rHasta').value = fecha; buscarRegistros(); return flash($('#cMsg'), `El despacho se guardó, pero el detalle no: ${err.message}. Vuelve a subir el mismo archivo: las filas del detalle que ya entraron no se duplican.`, 'err'); }
-  }
-  flash($('#cMsg'), `Guardados ${filas.length} ${filas.length === 1 ? 'nodo' : 'nodos'} del ${fdmy(fecha)}.${extra} Completa importe y factura en Registros.`, 'ok');
-  previa = []; hrnCarga = null; $('#cPrev').classList.add('hide'); $('#cFile').value = ''; setPaso(1);
   $('#rDesde').value = fecha; $('#rHasta').value = fecha; buscarRegistros();
+  let detalle = '';
+  if (hrnCarga) {
+    try { detalle = ` Detalle: ${hrnTexto(fecha, await guardarHrn(fecha, hrnCarga))}.`; }
+    catch (err) { cReiniciar(); return flash($('#cMsg'), `El despacho se guardó, pero el detalle no: ${err.message}. Vuelve a subir el mismo archivo: las filas del detalle que ya entraron no se duplican.`, 'err'); }
+  }
+  cMostrarOk('Despacho guardado', `${filas.length} ${filas.length === 1 ? 'nodo' : 'nodos'} del ${fdmy(fecha)}.${detalle} Falta completar importe y factura de cada registro.`, false);
+  previa = []; hrnCarga = null; $('#cFile').value = '';
 };
+cChips(); setPaso(1);
 
 // ---------- adjuntos de factura (bucket "Facturas") ----------
 const BUCKET = 'Facturas';
