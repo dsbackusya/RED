@@ -733,7 +733,7 @@
         <ul>
           <li>Hojas <b>DESPACHO</b> y <b>RECOJOS</b>: columnas FECHA, NODO, PEDIDOS, BULTO, CAJAS, TRANSPORTE, PLACA, AGENCIA, MODO DE PAGO (CONTADO o CREDITO) y ZONA.</li>
           <li>Hoja <b>DETALLE</b>: una fila por bulto del despacho.</li>
-          <li>Puedes subir solo las hojas que necesites. La FECHA puede ir vacía: se usa la fecha de arriba. Lo que falte lo completas en la pantalla de revisión.</li>
+          <li>Puedes subir solo las hojas que necesites. La FECHA puede ir vacía: se usa la fecha de arriba. Si la ZONA va vacía, se completa con la última zona que tuvo ese nodo. Lo que falte lo completas en la pantalla de revisión.</li>
         </ul>
       </details>
       <div id="cMsg" class="msg"></div>
@@ -1142,10 +1142,17 @@ async function leerArchivo(f) {
     const filas = leerTabla(wb); hrnCarga = leerHrn(wb);
     if (!filas && !hrnCarga) return flash($('#cMsg'), 'No encontré filas en las hojas DESPACHO, RECOJOS o DETALLE. Descarga la plantilla y completa esas hojas.', 'err');
     previa = (filas || []).map(r => ({ ...r, agencia: r.agencia || '', modo_pago: r.pago || '', zona: r.zona || '', detalle_gasto: detalleGasto(r) }));
+    let rellenas = 0;   // la zona vacía se completa con la última que tuvo ese nodo en los registros guardados
+    try {
+      const conocidas = new Map();
+      (await traerTodo(() => sb.from('envios').select('nodo,zona').not('zona', 'is', null).order('fecha', { ascending: false }).order('id'))).forEach(x => { const k = norm(x.nodo); if (!conocidas.has(k)) conocidas.set(k, x.zona); });
+      previa.forEach(r => { if (!r.zona && conocidas.has(norm(r.nodo))) { r.zona = conocidas.get(norm(r.nodo)); rellenas++; } });
+    } catch (e) { /* sin conexión o sin la columna: la zona se escribe a mano */ }
     const cuenta = {}; previa.forEach(r => { if (r.fecha) cuenta[r.fecha] = (cuenta[r.fecha] || 0) + 1; });
     const masUsada = Object.keys(cuenta).sort((a, b) => cuenta[b] - cuenta[a] || (a < b ? -1 : 1))[0]; if (masUsada) $('#cFecha').value = masUsada;   // el Detalle y las filas sin FECHA usan la más repetida
     cArchivo = { nombre: f.name, kb: Math.max(1, Math.round(f.size / 1024)) }; cFiltro = ''; listaAgencias();
     $('#cMsg').className = 'msg'; setPaso(2); pintarPrevia();
+    if (rellenas) toast(`Zona completada en ${rellenas} ${rellenas === 1 ? 'fila' : 'filas'} con lo ya registrado`);
   } catch (err) { flash($('#cMsg'), 'No se pudo leer el archivo: ' + err.message, 'err'); }
 }
 $('#cFile').onchange = e => { const f = e.target.files[0]; if (f) leerArchivo(f); };
