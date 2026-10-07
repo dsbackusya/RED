@@ -445,7 +445,7 @@
   .lqbar b { font-weight:600 } .lqf { display:flex; flex-wrap:wrap; gap:4px 18px; margin-top:4px; color:var(--mut); font-size:13px } .lqw { margin-top:4px; color:var(--warn); font-size:13px }
   .sec2 { margin:36px 0 14px } .sec2 h2 { margin:0; font-size:24px; letter-spacing:-.02em }
   #tab-liquidaciones td input[type=checkbox], #tab-liquidaciones th input[type=checkbox] { width:16px; height:16px; min-width:0; padding:0; accent-color:var(--pri) }
-  .tb.env { background:var(--okbg); color:var(--ok) } .tb.pen { background:var(--warnbg); color:var(--warn) }
+  .tb.rec { background:#e8f1fc; color:var(--pri) } .tb.env { background:var(--okbg); color:var(--ok) } .tb.pen { background:var(--warnbg); color:var(--warn) }
   #lqParDlg { width:min(560px, 92vw) } #lqParDlg .in { padding:24px; margin:0 } #lqParDlg .fgrid input { width:100%; min-width:0 } #lqParDlg .fgrid label { min-width:0 }
   @media (max-width:900px) { .lqbar { flex-direction:column; align-items:stretch } }
   td input:disabled, td select:disabled { opacity:.55; cursor:not-allowed } button.del:disabled { opacity:.4; cursor:not-allowed }
@@ -485,7 +485,7 @@
     #rTabla td input, #rTabla td select, #kTabla td input, #kTabla td select { width:100% !important; min-width:0 !important; background:var(--head); border:0; text-align:left; padding:10px 12px; font-size:16px }
     #rTabla td input.chip { width:100% !important; text-align:left } #rTabla td.n input { text-align:left; font-weight:600 }
     #rTabla td[data-c=nodo] { grid-column:1/-1; order:1; font-size:19px; font-weight:700; letter-spacing:-.02em } #rTabla .nodo { font-size:19px }
-    #rTabla td[data-c=estado] { grid-column:1/4; order:2 } #rTabla td[data-c=fecha] { grid-column:4/7; order:3; text-align:right; font-size:13px; color:var(--mut); align-self:center }
+    #rTabla td[data-c=estado] { grid-column:1/3; order:2 } #rTabla td[data-c=motivo] { grid-column:3/5; order:2 } #rTabla td[data-c=fecha] { grid-column:5/7; order:3; text-align:right; font-size:13px; color:var(--mut); align-self:center }
     #rTabla td[data-c=trans] { grid-column:1/4; order:4 } #rTabla td[data-c=pago] { grid-column:4/7; order:5 }
     #rTabla td[data-c=importe] { grid-column:1/4; order:6 } #rTabla td[data-c=factura] { grid-column:4/7; order:7 }
     #rTabla td[data-c=adj] { grid-column:1/-1; order:8 } #rTabla td[data-c=agencia] { grid-column:1/-1; order:9 }
@@ -546,7 +546,7 @@
     #cTabla tr[data-i] { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px 12px; background:var(--card); border-radius:18px; padding:16px; margin-bottom:12px } #cTabla tr.miss { box-shadow:inset 0 0 0 2px var(--amb) } #cTabla tr.miss td { background:none !important }
     #cTabla td { display:block; padding:0; border:0; white-space:normal; min-width:0; background:none !important } #cTabla td[data-l]::before { content:attr(data-l); display:block; margin-bottom:4px; font-size:12px; color:var(--mut); font-weight:500 }
     #cTabla td input, #cTabla td select { width:100% !important; min-width:0 !important; background:var(--head); border:0; text-align:left; padding:10px 12px; font-size:16px }
-    #cTabla td[data-c=nodo] { grid-column:1/-1; font-size:19px } #cTabla td[data-c=trans], #cTabla td[data-c=placa] { grid-column:span 3 } #cTabla td[data-c=agencia], #cTabla td[data-c=pago], #cTabla td[data-c=detalle] { grid-column:1/-1 }
+    #cTabla td[data-c=nodo] { grid-column:1/-1; font-size:19px } #cTabla td[data-c=motivo] { grid-column:span 3 } #cTabla td[data-c=trans], #cTabla td[data-c=placa] { grid-column:span 3 } #cTabla td[data-c=agencia], #cTabla td[data-c=pago], #cTabla td[data-c=detalle] { grid-column:1/-1 }
     #cPrev .row { flex-direction:column; align-items:stretch } #cGuardar { width:100% }
   }
   @media (max-width:760px) { #cPrev { background:none; padding:0 } #cPrev .row { background:var(--card); border-radius:18px; padding:16px; margin-bottom:12px } #cPrev .row b { font-size:16px } #cPrev .tw { margin-top:0 !important } }
@@ -572,11 +572,11 @@
   @media (min-width:761px) {
     main:has(#tab-registros:not(.hide)) { max-width:1680px }
     #tab-registros .tw { overflow-x:auto }
-    #rTabla { table-layout:fixed; width:100%; min-width:1180px }
-    #rTabla th, #rTabla td { padding-left:8px; padding-right:8px; overflow:hidden; text-overflow:ellipsis }
-    #rTabla th:nth-child(1) { width:78px } #rTabla th:nth-child(2) { width:94px } #rTabla th:nth-child(3) { width:76px } #rTabla th:nth-child(4) { width:112px }
-    #rTabla th:nth-child(5), #rTabla th:nth-child(6), #rTabla th:nth-child(7) { width:56px; text-align:center } #rTabla th:nth-child(8) { width:92px }
-    #rTabla th:nth-child(11) { width:100px } #rTabla th:nth-child(12) { width:88px } #rTabla th:nth-child(13) { width:122px } #rTabla th:nth-child(14) { width:100px } #rTabla th:nth-child(15) { width:44px }
+    #rTabla { table-layout:fixed; width:100%; min-width:1280px }
+    #rTabla th[data-c=fecha] { width:82px } #rTabla th[data-c=estado] { width:100px } #rTabla th[data-c=motivo] { width:92px } #rTabla th[data-c=trans] { width:74px } #rTabla th[data-c=nodo] { width:100px }
+    #rTabla th[data-c=bultos], #rTabla th[data-c=pedidos], #rTabla th[data-c=cajas] { width:50px; text-align:center } #rTabla th[data-c=placa] { width:78px }
+    #rTabla th[data-c=pago] { width:88px } #rTabla th[data-c=importe] { width:84px } #rTabla th[data-c=factura] { width:120px } #rTabla th[data-c=adj] { width:96px } #rTabla th[data-c=del] { width:40px }
+    #rTabla th, #rTabla td { padding-left:6px; padding-right:6px; overflow:hidden; text-overflow:ellipsis }
     #rTabla td input, #rTabla td select { min-width:0 !important; width:100%; text-overflow:ellipsis }
     #rTabla td input.chip { width:100%; min-width:0 } #rTabla td.n input { min-width:0 }
     #rTabla td.adj { min-width:0; display:table-cell; white-space:nowrap } #rTabla td.adj .thumb { vertical-align:middle } #rTabla td.adj .tx { display:none } #rTabla td.adj .ic { display:inline }
@@ -588,20 +588,14 @@
   }
   @media (max-width:760px) { #rTabla td.adj .ic { display:none } #rTabla td.adj .tx { display:inline } #rTabla .del .tx { display:inline } }
 
-  @media (min-width:761px) {
-    #rTabla th:nth-child(1) { width:74px } #rTabla th:nth-child(2) { width:90px } #rTabla th:nth-child(3) { width:84px } #rTabla th:nth-child(4) { width:106px }
-    #rTabla th:nth-child(5) { width:60px } #rTabla th:nth-child(6) { width:68px } #rTabla th:nth-child(7) { width:58px } #rTabla th:nth-child(8) { width:86px }
-    #rTabla th:nth-child(11) { width:100px } #rTabla th:nth-child(12) { width:86px } #rTabla th:nth-child(13) { width:118px } #rTabla th:nth-child(14) { width:92px } #rTabla th:nth-child(15) { width:44px }
-  }
   /* en pantallas medianas se oculta "Detalle del gasto" (es automático) para que la agencia se lea completa */
-  @media (min-width:761px) and (max-width:1499px) { #rTabla th:nth-child(10), #rTabla td[data-c=detalle] { display:none } #rTabla { min-width:1100px } }
+  @media (min-width:761px) and (max-width:1499px) { #rTabla th[data-c=detalle], #rTabla td[data-c=detalle] { display:none } #rTabla { min-width:1210px } }
 
   @media (min-width:761px) {
-    #rTabla th:nth-child(12) { width:96px } #rTabla th:nth-child(13) { width:130px } #rTabla th:nth-child(14) { width:106px }
     #rTabla input[type=number]::-webkit-inner-spin-button, #rTabla input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0 } #rTabla input[type=number] { -moz-appearance:textfield; appearance:textfield }
     #rTabla td.adj .thumb { width:26px; height:26px } #rTabla td.n input { padding-right:4px }
   }
-  @media (min-width:761px) { #rTabla th:nth-child(8) { width:96px } #rTabla td input.chip { font-size:11px; padding-left:6px; padding-right:6px } #rTabla td input, #rTabla td select { font-size:13px } #rTabla td[data-c=agencia] input { padding-left:6px; padding-right:4px } }
+  @media (min-width:761px) { #rTabla td input.chip { font-size:11px; padding-left:6px; padding-right:6px } #rTabla td input, #rTabla td select { font-size:13px } #rTabla td[data-c=agencia] input { padding-left:6px; padding-right:4px } }
   .ico { width:1.1em; height:1.1em; vertical-align:-.2em; flex:none } .ar { display:inline-block; vertical-align:0; margin-left:2px } .nb .x svg, .x2 svg, .x2 { display:grid; place-items:center }
   .pag button .ico { width:14px; height:14px; vertical-align:-2px }
 </style>
@@ -683,7 +677,7 @@
       <label>Archivo Excel del día<input type="file" id="cFile" accept=".xlsx,.xls,.csv"></label>
       <button class="b sec" id="cPlantilla">Descargar plantilla</button>
     </div>
-    <p class="hint">Un solo Excel: se lee el despacho (hoja RESUMEN, con NODO, PEDIDOS, BULTO, CAJAS y TRANSPORTE) y, si trae la hoja DETALLE, también su detalle por bulto. Agencia, modo de pago y detalle del gasto se completan desde Agencias. Las filas amarillas no están en esa hoja.</p>
+    <p class="hint">Un solo Excel con tres hojas: DESPACHO y RECOJOS (con NODO, PEDIDOS, BULTO, CAJAS y TRANSPORTE) y DETALLE (una fila por bulto del despacho). Puede traer solo las que necesites. Agencia, modo de pago y detalle del gasto se completan desde Agencias. Las filas amarillas no están en esa hoja.</p>
     <div id="cMsg" class="msg"></div>
   </div>
   <div class="card hide" id="cPrev">
@@ -708,6 +702,7 @@
       <label>Hasta<input type="date" id="rHasta"></label>
       <label>Transporte<select id="rTrans"><option value="">Todos</option></select></label>
       <div class="fg" style="gap:4px"><span style="font-size:13px;font-weight:500;color:var(--mut)">Estado</span><div class="pseg" id="rEstado"><button data-e="" class="on">Todos</button><button data-e="pend">Pendientes <small id="nPend"></small></button><button data-e="term">Terminados <small id="nTerm"></small></button><button data-e="env">Enviados <small id="nEnv"></small></button></div></div>
+      <label>Motivo<select id="rMot"><option value="">Todos</option><option value="DESPACHO">Despacho</option><option value="RECOJO">Recojo</option></select></label>
       <label>Modo de pago<select id="rPago"><option value="">Todos</option><option>CONTADO</option><option>CREDITO</option></select></label>
       <label>Nodo / destino<input id="rNodo" placeholder="Buscar nodo…"></label>
       <button class="b g" id="rBuscar">Buscar</button>
@@ -733,6 +728,7 @@
       <div class="fg" id="kgMes"><span>Mes</span><input type="month" id="kMes" aria-label="Mes"></div>
       <div class="fg hide" id="kgRango"><span>Rango</span><div class="rg"><input type="date" id="kDesde" aria-label="Desde"><i>a</i><input type="date" id="kHasta" aria-label="Hasta"></div></div>
       <div class="fg"><span>Transporte</span><div class="pseg" id="kTransSeg"><button data-t="" class="on">Todos</button></div><select id="kTrans" aria-label="Transporte" class="hide"><option value="">Todos</option></select></div>
+      <div class="fg"><span>Motivo</span><div class="pseg" id="kMotSeg"><button data-m="" class="on">Todos</button><button data-m="DESPACHO">Despacho</button><button data-m="RECOJO">Recojo</button></div></div>
       <div class="fg"><span>Agencia</span><select id="kAgencia" aria-label="Agencia"><option value="">Todas</option></select></div>
       <div class="fg"><span>Zona</span><select id="kZona" aria-label="Zona"><option value="">Todas</option></select></div>
     </div>
@@ -945,6 +941,8 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const norm = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
 const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SETIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 const PAGOS = ['CONTADO','CREDITO'];
+const MOTIVOS = ['DESPACHO', 'RECOJO'];
+const motTag = m => m === 'RECOJO' ? '<span class="tb rec">Recojo</span>' : '<span class="tb">Despacho</span>';
 const num = v => { const n = Number(String(v ?? '').replace(/,/g,'')); return Number.isFinite(n) ? n : null; };
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };   // fecha local (no UTC)
 const fdmy = f => f ? String(f).slice(0, 10).split('-').reverse().join('/') : '';
@@ -1089,31 +1087,48 @@ $('#dstF').onsubmit = async e => {
 // ---------- carga ----------
 $('#cPlantilla').onclick = async () => {
   await xlsxLib();
-  const ws = XLSX.utils.aoa_to_sheet([['NODO','PEDIDOS','BULTO','CAJAS','TRANSPORTE'],['BARRANCA',2,2,2,'ELIAS'],['ABANCAY',12,12,5,'RELUFI']]);
-  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'DESPACHO');
+  const wb = XLSX.utils.book_new(), cab = ['NODO', 'PEDIDOS', 'BULTO', 'CAJAS', 'TRANSPORTE'];
+  [['DESPACHO', cab], ['RECOJOS', cab], ['DETALLE', HRN_COLS.map(c => c[1])]].forEach(([n, h]) => {
+    const ws = XLSX.utils.aoa_to_sheet([h]); ws['!cols'] = h.map(x => ({ wch: Math.max(12, x.length + 2) })); XLSX.utils.book_append_sheet(wb, ws, n);
+  });
   XLSX.writeFile(wb, 'plantilla_despacho.xlsx');
 };
 
-function leerTabla(wb) {
-  const hojas = [...wb.SheetNames].sort((a, b) => (norm(b) === 'RESUMEN') - (norm(a) === 'RESUMEN'));
-  for (const nombre of hojas) {
-    const filas = XLSX.utils.sheet_to_json(wb.Sheets[nombre], { header: 1, defval: '', raw: true });
-    for (let i = 0; i < filas.length; i++) {
-      const h = filas[i].map(norm);
-      const iN = h.findIndex(x => x === 'NODO' || x === 'NODOS');
-      const iC = h.findIndex(x => x.includes('CAJA'));
-      if (iN < 0 || iC < 0) continue;
-      const iP = h.findIndex(x => x.includes('PEDIDO')), iB = h.findIndex(x => x.includes('BULTO')), iT = h.findIndex(x => x.startsWith('TRANSPORT'));
-      const out = [];
-      for (let j = i + 1; j < filas.length; j++) {
-        const nodo = norm(filas[j][iN]);
-        if (!nodo || nodo.startsWith('TOTAL')) break;
-        out.push({ nodo, pedidos: num(filas[j][iP]), bultos: num(filas[j][iB]), cajas: num(filas[j][iC]), transporte: norm(filas[j][iT]) });
-      }
-      if (out.length) return out;
+// lee la primera tabla con encabezados NODO y CAJAS de una hoja; null si la hoja no la tiene, [] si está vacía
+function tablaDeHoja(ws) {
+  const filas = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
+  for (let i = 0; i < filas.length; i++) {
+    const h = filas[i].map(norm);
+    const iN = h.findIndex(x => x === 'NODO' || x === 'NODOS');
+    const iC = h.findIndex(x => x.includes('CAJA'));
+    if (iN < 0 || iC < 0) continue;
+    const iP = h.findIndex(x => x.includes('PEDIDO')), iB = h.findIndex(x => x.includes('BULTO')), iT = h.findIndex(x => x.startsWith('TRANSPORT'));
+    const out = [];
+    for (let j = i + 1; j < filas.length; j++) {
+      const nodo = norm(filas[j][iN]);
+      if (!nodo || nodo.startsWith('TOTAL')) break;
+      out.push({ nodo, pedidos: num(filas[j][iP]), bultos: num(filas[j][iB]), cajas: num(filas[j][iC]), transporte: norm(filas[j][iT]) });
     }
+    return out;
   }
   return null;
+}
+// hojas DESPACHO y RECOJOS; si el archivo es de los anteriores (hoja RESUMEN u otra), todo se toma como despacho
+function leerTabla(wb) {
+  const tipo = n => ({ DESPACHO: 'DESPACHO', RECOJO: 'RECOJO', RECOJOS: 'RECOJO' })[norm(n)];
+  const propias = wb.SheetNames.filter(tipo), out = [];
+  if (propias.length) {
+    propias.forEach(n => (tablaDeHoja(wb.Sheets[n]) || []).forEach(r => out.push({ ...r, motivo: tipo(n) })));
+    return out.length ? out : null;
+  }
+  const hojas = [...wb.SheetNames].sort((a, b) => (norm(b) === 'RESUMEN') - (norm(a) === 'RESUMEN'));
+  for (const n of hojas) { const f = tablaDeHoja(wb.Sheets[n]); if (f && f.length) return f.map(r => ({ ...r, motivo: 'DESPACHO' })); }
+  return null;
+}
+// "ENVIO DE PEDIDOS X" del catálogo pasa a "RECOJO DE PEDIDOS X" cuando el motivo es recojo
+function detalleGasto(r, c) {
+  const d = (c && c.concatenar) || 'ENVIO DE PEDIDOS ' + r.nodo;
+  return r.motivo === 'RECOJO' ? d.replace(/^ENVIO\b/i, 'RECOJO') : d;
 }
 
 $('#cFile').onchange = async e => {
@@ -1121,14 +1136,14 @@ $('#cFile').onchange = async e => {
   try {
     hrnCarga = null; await xlsxLib(); const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
     const filas = leerTabla(wb);
-    if (!filas) return flash($('#cMsg'), 'No encontré una tabla con encabezados NODO y CAJAS. Usa la plantilla.' + (leerHrn(wb) ? ' Este archivo solo trae el detalle: súbelo en la pestaña Detalle.' : ''), 'err');
+    if (!filas) return flash($('#cMsg'), 'No encontré filas en las hojas DESPACHO o RECOJOS (con encabezados NODO y CAJAS). Usa la plantilla.' + (leerHrn(wb) ? ' Este archivo solo trae el detalle: súbelo en la pestaña Detalle.' : ''), 'err');
     hrnCarga = leerHrn(wb);
     setPaso(2);
     previa = filas.map(r => {
       const c = catalogo.get(norm(r.nodo));
       return { ...r, transporte: r.transporte || norm(c?.transporte), placa: '', agencia: c?.agencia || '',
                modo_pago: c ? (norm(c.observacion).includes('CONTADO') ? 'CONTADO' : 'CREDITO') : 'CONTADO', en_catalogo: !!c,
-               detalle_gasto: c?.concatenar || 'ENVIO DE PEDIDOS ' + r.nodo };
+               detalle_gasto: detalleGasto(r, c) };
     });
     $('#cMsg').className = 'msg';
     pintarPrevia();
@@ -1137,10 +1152,12 @@ $('#cFile').onchange = async e => {
 
 function pintarPrevia() {
   const faltan = previa.filter(r => !r.en_catalogo).length;
-  $('#cResumen').textContent = `${previa.length} nodos, ${previa.reduce((s, r) => s + (r.pedidos || 0), 0)} pedidos, ${previa.reduce((s, r) => s + (r.bultos || 0), 0)} bultos, ${previa.reduce((s, r) => s + (r.cajas || 0), 0)} cajas` + (faltan ? `, ${faltan} sin catálogo` : '');
-  $('#cTabla').innerHTML = '<tr><th>Nodo</th><th>Transporte</th><th>Pedidos</th><th>Bultos</th><th>Cajas</th><th>Placa</th><th>Agencia</th><th>Modo de pago</th><th>Detalle del gasto</th></tr>' +
+  const nRec = previa.filter(r => r.motivo === 'RECOJO').length;
+  $('#cResumen').textContent = `${previa.length - nRec} ${previa.length - nRec === 1 ? 'despacho' : 'despachos'}` + (nRec ? ` y ${nRec} ${nRec === 1 ? 'recojo' : 'recojos'}` : '') + `, ${previa.length} nodos, ${previa.reduce((s, r) => s + (r.pedidos || 0), 0)} pedidos, ${previa.reduce((s, r) => s + (r.bultos || 0), 0)} bultos, ${previa.reduce((s, r) => s + (r.cajas || 0), 0)} cajas` + (faltan ? `, ${faltan} sin catálogo` : '');
+  $('#cTabla').innerHTML = '<tr><th>Nodo</th><th>Motivo</th><th>Transporte</th><th>Pedidos</th><th>Bultos</th><th>Cajas</th><th>Placa</th><th>Agencia</th><th>Modo de pago</th><th>Detalle del gasto</th></tr>' +
     previa.map((r, i) => `<tr class="${r.en_catalogo ? '' : 'miss'}" data-i="${i}">
       <td data-c="nodo"><b>${esc(r.nodo)}</b></td>
+      <td data-c="motivo" data-l="Motivo"><select data-f="motivo">${MOTIVOS.map(m => `<option value="${m}"${m === r.motivo ? ' selected' : ''}>${m === 'RECOJO' ? 'Recojo' : 'Despacho'}</option>`).join('')}</select></td>
       <td data-c="trans" data-l="Transporte"><input data-f="transporte" value="${esc(r.transporte)}"></td>
       <td class="n" data-c="n" data-l="Pedidos"><input data-f="pedidos" type="number" value="${r.pedidos ?? ''}"></td>
       <td class="n" data-c="n" data-l="Bultos"><input data-f="bultos" type="number" value="${r.bultos ?? ''}"></td>
@@ -1155,30 +1172,32 @@ function pintarPrevia() {
 $('#cTabla').addEventListener('change', e => {
   const tr = e.target.closest('tr'); if (!tr || !e.target.dataset.f) return;
   const f = e.target.dataset.f, v = e.target.value;
-  previa[tr.dataset.i][f] = ['pedidos','bultos','cajas'].includes(f) ? num(v) : (f === 'modo_pago' ? v : v.trim());
+  previa[tr.dataset.i][f] = ['pedidos','bultos','cajas'].includes(f) ? num(v) : (f === 'modo_pago' || f === 'motivo' ? v : v.trim());
 });
 
 $('#cGuardar').onclick = async () => {
   const fecha = $('#cFecha').value;
   if (!fecha) return flash($('#cMsg'), 'Elige la fecha del despacho', 'err');
+  const repetidos = new Set(), vistos = new Set(); previa.forEach(r => { const k = norm(r.nodo) + '|' + r.motivo; if (vistos.has(k)) repetidos.add(r.nodo + (r.motivo === 'RECOJO' ? ' (recojo)' : '')); vistos.add(k); });
+  if (repetidos.size) return flash($('#cMsg'), `Hay nodos repetidos con el mismo motivo: ${[...repetidos].join(', ')}. Deja una sola fila por nodo y motivo.`, 'err');
   if (previa.some(r => !r.agencia) && !await confirmar('Hay nodos sin agencia', 'Puedes completarla después en Registros. ¿Guardar igual?', 'Guardar')) return;
   $('#cGuardar').disabled = true;
-  const { data: ya, error: eYa } = await sb.from('envios').select('nodo,liquidacion_id').eq('fecha', fecha);
-  if (eYa) { $('#cGuardar').disabled = false; return flash($('#cMsg'), eYa.message, 'err'); }
-  const enviados = new Set((ya || []).filter(x => x.liquidacion_id).map(x => norm(x.nodo))), nuevosN = previa.filter(r => !enviados.has(norm(r.nodo)));
+  const { data: ya, error: eYa } = await sb.from('envios').select('nodo,motivo,liquidacion_id').eq('fecha', fecha);
+  if (eYa) { $('#cGuardar').disabled = false; return flash($('#cMsg'), /motivo/.test(eYa.message) ? 'Falta ejecutar supabase_motivo.sql en Supabase.' : eYa.message, 'err'); }
+  const enviados = new Set((ya || []).filter(x => x.liquidacion_id).map(x => norm(x.nodo) + '|' + x.motivo)), nuevosN = previa.filter(r => !enviados.has(norm(r.nodo) + '|' + r.motivo));
   if ((ya || []).length && !await confirmar(`Ya hay ${ya.length} registros del ${fdmy(fecha)}`, `Se actualizarán nodo, transporte, cantidades, placa, agencia y pago con lo de este archivo; el importe y la factura se conservan.` + (enviados.size ? ` ${enviados.size} ${enviados.size === 1 ? 'registro ya está enviado y no se tocará' : 'registros ya están enviados y no se tocarán'}.` : ''), 'Actualizar')) { $('#cGuardar').disabled = false; return; }
   if (!nuevosN.length) { $('#cGuardar').disabled = false; return flash($('#cMsg'), 'Todos los nodos de este archivo ya están enviados en una liquidación.', 'err'); }
   const filas = nuevosN.map(r => ({ fecha, origen: 'LIMA', transporte: r.transporte, nodo: r.nodo, bultos: r.bultos, pedidos: r.pedidos, cajas: r.cajas,
-    placa: r.placa || null, agencia: r.agencia || null, detalle_gasto: r.detalle_gasto, modo_pago: r.modo_pago }));
-  const { error } = await sb.from('envios').upsert(filas, { onConflict: 'fecha,nodo' });
+    placa: r.placa || null, agencia: r.agencia || null, detalle_gasto: r.detalle_gasto, modo_pago: r.modo_pago, motivo: r.motivo }));
+  const { error } = await sb.from('envios').upsert(filas, { onConflict: 'fecha,nodo,motivo' });
   $('#cGuardar').disabled = false;
-  if (error) return flash($('#cMsg'), error.message, 'err');
+  if (error) return flash($('#cMsg'), /motivo/.test(error.message) ? 'Falta ejecutar supabase_motivo.sql en Supabase.' : error.message, 'err');
   let extra = '';
   if (hrnCarga) {
     try { extra = ' Detalle: ' + hrnTexto(fecha, await guardarHrn(fecha, hrnCarga)) + '.'; }
     catch (err) { previa = []; $('#cPrev').classList.add('hide'); $('#cFile').value = ''; setPaso(1); $('#rDesde').value = fecha; $('#rHasta').value = fecha; buscarRegistros(); return flash($('#cMsg'), `El despacho se guardó, pero el detalle no: ${err.message}. Súbelo de nuevo en la pestaña Detalle; no se duplicará.`, 'err'); }
   }
-  flash($('#cMsg'), `Guardados ${filas.length} nodos del ${fdmy(fecha)}.${extra} Completa importe y factura en Registros.`, 'ok');
+  flash($('#cMsg'), `Guardados ${filas.length} ${filas.length === 1 ? 'nodo' : 'nodos'} del ${fdmy(fecha)}.${extra} Completa importe y factura en Registros.`, 'ok');
   previa = []; hrnCarga = null; $('#cPrev').classList.add('hide'); $('#cFile').value = ''; setPaso(1);
   $('#rDesde').value = fecha; $('#rHasta').value = fecha; buscarRegistros();
 };
@@ -1308,10 +1327,10 @@ function estadoTag(r) {
 function filaRegistro(r) {
   const L = regEnviado(r) ? ' disabled title="Está en una liquidación. Anúlala para editarlo."' : '';
   return `<tr data-id="${r.id}">
-      <td class="mono sm" data-c="fecha">${fdmy(r.fecha)}</td><td data-c="estado">${estadoTag(r)}</td><td data-c="trans" data-l="Transporte">${tbadge(r.transporte)}</td><td data-c="nodo"><span class="nodo">${PIN}${esc(r.nodo)}</span></td>
+      <td class="mono sm" data-c="fecha">${fdmy(r.fecha)}</td><td data-c="estado">${estadoTag(r)}</td><td data-c="motivo">${motTag(r.motivo)}</td><td data-c="trans" data-l="Transporte">${tbadge(r.transporte)}</td><td data-c="nodo"><span class="nodo" title="${esc(r.nodo)}">${PIN}${esc(r.nodo)}</span></td>
       <td class="c" data-c="bultos" data-l="Bultos">${r.bultos ?? ''}</td><td class="c" data-c="pedidos" data-l="Pedidos">${r.pedidos ?? ''}</td><td class="c" data-c="cajas" data-l="Cajas">${r.cajas ?? ''}</td>
       <td data-c="placa" data-l="Placa"><input class="chip mono" data-f="placa" value="${esc(r.placa)}" placeholder="placa"></td>
-      <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}" placeholder="Sin agencia asignada"></td>
+      <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" title="${esc(r.agencia)}" value="${esc(r.agencia)}" placeholder="Sin agencia asignada"></td>
       <td data-c="detalle" data-l="Detalle del gasto"><input data-f="detalle_gasto" value="${esc(r.detalle_gasto)}"></td>
       <td class="c" data-c="pago" data-l="Pago"><select data-f="modo_pago" data-v="${r.modo_pago}"${L}>${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
       <td class="n" data-c="importe" data-l="Importe"><input class="mono imp" data-f="importe" type="number" step="0.01" value="${r.importe == null ? '' : Number(r.importe).toFixed(2)}" placeholder="0.00"${L}></td>
@@ -1323,7 +1342,7 @@ function pintarTablaRegistros() {
   const N = registros.length, paginas = Math.max(1, Math.ceil(N / pag.size));
   pag.n = Math.min(Math.max(1, pag.n), paginas);
   const ini = (pag.n - 1) * pag.size, vista = registros.slice(ini, ini + pag.size);
-  $('#rTabla').innerHTML = '<tr><th>Fecha</th><th>Estado</th><th>Transporte</th><th>Nodo</th><th class="c">Bultos</th><th class="c">Pedidos</th><th class="c">Cajas</th><th>Placa</th><th>Agencia</th><th>Detalle del gasto</th><th class="c">Pago</th><th class="num">Importe</th><th>Factura</th><th>Adjunto</th><th class="c" aria-label="Acciones"></th></tr>' + (vista.map(filaRegistro).join('') || '<tr><td colspan="14"><div class="empty"><b>Sin registros en este rango</b><span>Ajusta las fechas o sube un despacho en «Cargar despacho».</span></div></td></tr>');
+  $('#rTabla').innerHTML = '<tr><th data-c="fecha">Fecha</th><th data-c="estado">Estado</th><th data-c="motivo">Motivo</th><th data-c="trans">Transporte</th><th data-c="nodo">Nodo</th><th data-c="bultos" class="c">Bultos</th><th data-c="pedidos" class="c">Pedidos</th><th data-c="cajas" class="c">Cajas</th><th data-c="placa">Placa</th><th data-c="agencia">Agencia</th><th data-c="detalle">Detalle del gasto</th><th data-c="pago" class="c">Pago</th><th data-c="importe" class="num">Importe</th><th data-c="factura">Factura</th><th data-c="adj">Adjunto</th><th data-c="del" class="c" aria-label="Acciones"></th></tr>' + (vista.map(filaRegistro).join('') || '<tr><td colspan="16"><div class="empty"><b>Sin registros en este rango</b><span>Ajusta las fechas o sube un despacho en «Cargar despacho».</span></div></td></tr>');
   const nums = []; for (let i = 1; i <= paginas; i++) if (i === 1 || i === paginas || Math.abs(i - pag.n) <= 1) nums.push(i); else if (nums[nums.length - 1] !== '…') nums.push('…');
   $('#rPag').innerHTML = `<div class="l"><span>Filas por página:</span><select id="rSize" aria-label="Filas por página">${[15, 25, 50, 100].map(v => `<option${v === pag.size ? ' selected' : ''}>${v}</option>`).join('')}</select><span>Mostrando <b>${N ? ini + 1 : 0}-${Math.min(N, ini + pag.size)}</b> de <b>${N}</b> registros</span></div>
     <div class="r"><button data-p="prev"${pag.n <= 1 ? ' disabled' : ''} aria-label="Anterior">${ICO.prev}</button>${nums.map(n => n === '…' ? '<span>…</span>' : `<button data-p="${n}" class="${n === pag.n ? 'on' : ''}">${n}</button>`).join('')}<button data-p="next"${pag.n >= paginas ? ' disabled' : ''} aria-label="Siguiente">${ICO.next}</button></div>`;
@@ -1341,6 +1360,7 @@ async function buscarRegistros() {
     if ($('#rHasta').value) q = q.lte('fecha', $('#rHasta').value);
     if ($('#rTrans').value) q = q.eq('transporte', $('#rTrans').value);
     if ($('#rPago').value) q = q.eq('modo_pago', $('#rPago').value);
+    if ($('#rMot').value) q = q.eq('motivo', $('#rMot').value);
     if ($('#rNodo').value.trim()) q = q.ilike('nodo', '%' + $('#rNodo').value.trim() + '%');
     return q;
   };
@@ -1416,9 +1436,9 @@ $('#rTabla').addEventListener('click', async e => {
 $('#rExport').onclick = async () => {
   await xlsxLib();
   const serial = f => Math.round((Date.parse(f + 'T00:00:00Z') - Date.parse('1899-12-30T00:00:00Z')) / 86400000);
-  const aoa = [['MES','FECHA','ORIGEN','TRANSPORTE','NODOS','Cant. Bultos','Cant. Pedidos','Cant -CAJAS','PLACAS','AGENCIAS','DETALLE DEL GASTO','MODO DE PAGO','IMPORTE','OBSERVACIÓN','CONC']]
+  const aoa = [['MES','FECHA','ORIGEN','TRANSPORTE','NODOS','Cant. Bultos','Cant. Pedidos','Cant -CAJAS','PLACAS','AGENCIAS','DETALLE DEL GASTO','MODO DE PAGO','IMPORTE','OBSERVACIÓN','CONC','MOTIVO']]
     .concat(registros.map(r => [MESES[Number(r.fecha.slice(5, 7)) - 1], serial(r.fecha), r.origen, r.transporte, r.nodo, r.bultos, r.pedidos, r.cajas,
-      r.placa, r.agencia, r.detalle_gasto, r.modo_pago, r.importe, r.factura, serial(r.fecha) + r.nodo]));
+      r.placa, r.agencia, r.detalle_gasto, r.modo_pago, r.importe, r.factura, serial(r.fecha) + r.nodo, r.motivo === 'RECOJO' ? 'RECOJO' : 'DESPACHO']));
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   ws['!cols'] = aoa[0].map(() => ({ wch: 16 }));
   aoa.slice(1).forEach((_, i) => { const c = ws['B' + (i + 2)]; if (c) c.z = 'dd-mmm'; });
@@ -1549,7 +1569,7 @@ $('#qExport').onclick = async () => {
 // ---------- KPIs ----------
 const fmt = n => 'S/ ' + (n || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtN = n => (n || 0).toLocaleString('es-PE');
-const SIN_HRN = '(SIN DETALLE)';
+const SIN_HRN = '(SIN DETALLE)', RECOJO_CTA = '(RECOJOS)';
 let kpiResultado = null;
 
 async function traerTodo(crear) {
@@ -1574,7 +1594,7 @@ function calcularKpi(envios, hrn, base) {
     g.set(r.descripcion_cuenta || '(SIN CUENTA)', c); grupos.set(k, g);
   });
   const nuevo = () => ({ costo: 0, pedidos: 0, bultos: 0 });
-  const R = { total: 0, pedidos: 0, bultos: 0, cajas: 0, conImporte: 0, pendientes: 0, cuentas: new Map(), nodos: new Map(), transportes: new Map(), agencias: new Map(), zonas: new Map(), cuentaNodos: new Map(), sinHrn: 0, sinHrnNodos: new Set(), sinHrnFechas: new Set() };
+  const R = { recojo: 0, total: 0, pedidos: 0, bultos: 0, cajas: 0, conImporte: 0, pendientes: 0, cuentas: new Map(), nodos: new Map(), transportes: new Map(), agencias: new Map(), zonas: new Map(), cuentaNodos: new Map(), sinHrn: 0, sinHrnNodos: new Set(), sinHrnFechas: new Set() };
   const ext = (mapa, clave, e, imp, ped, bul) => {
     const a = mapa.get(clave) || { costo: 0, pedidos: 0, bultos: 0, cajas: 0, contado: 0, credito: 0, n: 0, nodos: new Set(), fac: 0 };
     a.costo += imp; a.pedidos += ped; a.bultos += bul; a.cajas += Number(e.cajas) || 0;
@@ -1594,6 +1614,7 @@ function calcularKpi(envios, hrn, base) {
     ext(R.transportes, e.transporte || '(SIN TRANSPORTE)', e, imp, ped, bul);
     ext(R.agencias, e.agencia || '(sin agencia)', e, imp, ped, bul);
     ext(R.zonas, zonaDe(e.nodo), e, imp, ped, bul);
+    if (e.motivo === 'RECOJO') { R.recojo += imp; suma(R.cuentas, RECOJO_CTA, imp, ped, bul); porNodo(RECOJO_CTA, e.nodo, imp); return; }   // los recojos no tienen detalle por cuenta
     const g = grupos.get(e.fecha + '|' + norm(e.nodo));
     if (!g) { R.sinHrn += imp; R.sinHrnNodos.add(e.fecha + '|' + norm(e.nodo)); R.sinHrnFechas.add(e.fecha); suma(R.cuentas, SIN_HRN, imp, ped, bul); porNodo(SIN_HRN, e.nodo, imp); return; }
     const np = c => c.peds.size || c.pedidos;
@@ -1728,7 +1749,7 @@ function zonasKpi(R, envios) {
 }
 function transporteKpi(R) { tablaKpi($('#kpTrans'), 'Transporte', R.transportes, 'tra'); }
 // ---------- cabecera de KPIs: filtros que se aplican solos ----------
-const kst = { p: 'mes' };
+const kst = { p: 'mes', m: '' };
 const isoLocal = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const ym = d => isoLocal(d).slice(0, 7);
 function rangoDeMes() {
@@ -1740,6 +1761,7 @@ function kSync() {
   document.querySelectorAll('#kPer button').forEach(b => b.classList.toggle('on', b.dataset.p === kst.p || (b.dataset.p === 'mes' && ['ant', 'sel'].includes(kst.p))));
   $('#kgMes').classList.toggle('hide', !['mes', 'ant', 'sel'].includes(kst.p)); $('#kgRango').classList.toggle('hide', kst.p !== 'per');
   document.querySelectorAll('#kTransSeg button').forEach(b => b.classList.toggle('on', b.dataset.t === $('#kTrans').value));
+  document.querySelectorAll('#kMotSeg button').forEach(b => b.classList.toggle('on', b.dataset.m === kst.m));
 }
 function kPeriodo(p) {
   kst.p = p; const hoy = new Date();
@@ -1753,10 +1775,11 @@ const kAuto = () => { clearTimeout(kTimer); kTimer = setTimeout(calcularKpis, 22
 $('#kPer').onclick = e => { const b = e.target.closest('button'); if (b) kPeriodo(b.dataset.p); };
 $('#kMes').onchange = () => { kst.p = 'sel'; rangoDeMes(); kSync(); kAuto(); };
 $('#kDesde').onchange = $('#kHasta').onchange = () => { kst.p = 'per'; $('#kMes').value = ''; kSync(); kAuto(); };
+$('#kMotSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; kst.m = b.dataset.m; kSync(); kAuto(); };
 $('#kTransSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#kTrans').value = b.dataset.t; kSync(); kAuto(); };
 $('#kFiltros').onclick = () => { const o = $('#tab-kpis').classList.toggle('fopen'); $('#kFiltros').setAttribute('aria-expanded', o); $('#kFiltros').textContent = o ? 'Ocultar filtros' : 'Filtros'; };
 $('#kRefrescar').onclick = () => calcularKpis();
-function kRestablecer() { $('#kTrans').value = ''; $('#kAgencia').value = ''; $('#kZona').value = ''; kPeriodo('mes'); }
+function kRestablecer() { kst.m = ''; $('#kTrans').value = ''; $('#kAgencia').value = ''; $('#kZona').value = ''; kPeriodo('mes'); }
 function pintarUpd() {
   if (!kUpdTs) { $('#kUpd').textContent = ''; return; }
   const s = Math.round((Date.now() - kUpdTs) / 1000), m = Math.round(s / 60);
@@ -1767,9 +1790,9 @@ function pintarActivos() {
   const mes = $('#kMes').value; let per;
   if (mes && ['mes', 'ant', 'sel'].includes(kst.p)) { const [y, m] = mes.split('-').map(Number), t = new Date(y, m - 1, 1).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' }); per = t.charAt(0).toUpperCase() + t.slice(1); }
   else per = `${kst.p === '30' ? 'Últimos 30 días, ' : ''}del ${fdmy($('#kDesde').value)} al ${fdmy($('#kHasta').value)}`;
-  const hay = $('#kTrans').value || $('#kAgencia').value || $('#kZona').value;
+  const hay = $('#kTrans').value || $('#kAgencia').value || $('#kZona').value || kst.m;
   $('#kAct').classList.toggle('hide', !hay);
-  $('#kAct').innerHTML = `<span class="hide"><span class="pill">${esc(per)}</span><span class="pill">${esc($('#kTrans').value || 'Todos los transportes')}</span>${$('#kAgencia').value ? `<span class="pill">${esc($('#kAgencia').value)}</span>` : ''}${$('#kZona').value ? `<span class="pill">Zona ${esc($('#kZona').value)}</span>` : ''}</span><button class="link" id="kLimpiar">Restablecer filtros</button>`;
+  $('#kAct').innerHTML = `<span class="hide"><span class="pill">${esc(per)}</span><span class="pill">${esc($('#kTrans').value || 'Todos los transportes')}</span>${kst.m ? `<span class="pill">${kst.m === 'RECOJO' ? 'Recojos' : 'Despachos'}</span>` : ''}${$('#kAgencia').value ? `<span class="pill">${esc($('#kAgencia').value)}</span>` : ''}${$('#kZona').value ? `<span class="pill">Zona ${esc($('#kZona').value)}</span>` : ''}</span><button class="link" id="kLimpiar">Restablecer filtros</button>`;
   $('#kLimpiar').onclick = kRestablecer;
 }
 function pintarTransSeg(lista) {
@@ -1780,6 +1803,7 @@ function pintarTransSeg(lista) {
 const zonaDe = n => (catalogo.get(norm(n)) || {}).zona || '(sin zona)';
 function kPasa(e) {
   const ag = $('#kAgencia').value, zo = $('#kZona').value;
+  if (kst.m && (e.motivo || 'DESPACHO') !== kst.m) return false;
   if (ag && (ag === '(sin agencia)' ? e.agencia : e.agencia !== ag)) return false;
   if (zo && zonaDe(e.nodo) !== zo) return false;
   return true;
@@ -1794,7 +1818,7 @@ async function periodoPrevio(desde, hasta, trans) {
   if (!desde || !hasta) return { total: 0, pedidos: 0, bultos: 0, cajas: 0 };
   const d0 = new Date(desde + 'T00:00:00'), d1 = new Date(hasta + 'T00:00:00'), n = Math.round((d1 - d0) / 86400000) + 1;
   const pf = isoLocal(new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() - n)), pt = isoLocal(new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() - 1));
-  const rows = await traerTodo(() => { let q = sb.from('envios').select('nodo,agencia,modo_pago,pedidos,bultos,cajas,importe').gte('fecha', pf).lte('fecha', pt).order('id'); if (trans) q = q.eq('transporte', trans); return q; });
+  const rows = await traerTodo(() => { let q = sb.from('envios').select('nodo,motivo,agencia,modo_pago,pedidos,bultos,cajas,importe').gte('fecha', pf).lte('fecha', pt).order('id'); if (trans) q = q.eq('transporte', trans); return q; });
   const r = { total: 0, pedidos: 0, bultos: 0, cajas: 0 };
   rows.filter(kPasa).forEach(e => { const i = Number(e.importe) || 0; if (i > 0) { r.total += i; r.pedidos += Number(e.pedidos) || 0; r.bultos += Number(e.bultos) || 0; r.cajas += Number(e.cajas) || 0; } });
   return r;
@@ -1829,7 +1853,7 @@ function hallazgosKpi(R, envios) {
   if (sinAg.length) out.push(['w', '', `${sinAg.length} ${sinAg.length === 1 ? 'registro sin agencia asignada' : 'registros sin agencia asignada'}`, `${[...new Set(sinAg.map(e => e.nodo))].slice(0, 4).join(', ')}${new Set(sinAg.map(e => e.nodo)).size > 4 ? '…' : ''}: agrégalos al catálogo de Agencias.`, 'Revisar', 'cal']);
   const sinFac = envios.filter(e => !e.factura && Number(e.importe) > 0), mFac = sinFac.reduce((s, e) => s + Number(e.importe), 0);
   if (sinFac.length) out.push(['w', '', `${fmt(mFac)} (${Math.round(mFac / T * 100)}%) sin N° de factura`, `${sinFac.length} de ${R.conImporte} registros aún no tienen su factura registrada.`, 'Revisar', 'cal']);
-  const cu = [...R.cuentas].filter(([k]) => k !== SIN_HRN).sort((a, b) => b[1].costo - a[1].costo)[0];
+  const cu = [...R.cuentas].filter(([k]) => !k.startsWith('(')).sort((a, b) => b[1].costo - a[1].costo)[0];
   if (cu && cu[1].costo / T >= 0.3) out.push(['b', '', `${cu[0]} concentra el ${Math.round(cu[1].costo / T * 100)}% del costo`, `${fmtN(cu[1].pedidos)} de ${fmtN(R.pedidos)} pedidos del período.`, 'Ver cuentas', 'cuenta']);
   $('#kpHall').innerHTML = out.slice(0, 3).map(([c, i, t, d, a, go]) => `<div class="hl ${c}" data-kt="${go}"><i>${i}</i><div><b>${esc(t)}</b><span>${esc(d)}</span><em>${a}</em></div></div>`).join('');
 }
@@ -1838,7 +1862,7 @@ function calidadKpi(R, envios) {
   const sinImp = envios.filter(e => !(Number(e.importe) > 0)), sinFac = envios.filter(e => !e.factura), sinAdj = envios.filter(e => !e.factura_archivo), sinAg = envios.filter(e => !e.agencia), sinZona = envios.filter(e => zonaDe(e.nodo) === '(sin zona)');
   const item = (ic, bg, t, d, malos, go, btn) => { const pc = (1 - malos / n) * 100, col = pc >= 95 ? 'var(--grn)' : pc >= 50 ? 'var(--amb)' : 'var(--red)';
     return `<div class="cq-i"><div class="tx"><b>${t}</b><span>${d}</span></div><div class="mt"><div class="tr"><i style="width:${pc}%;background:${col}"></i></div><small>${n - malos} de ${n} completos</small></div><button class="b sec" data-go="${go}">${btn}</button></div>`; };
-  const hrnPc = R.total ? (1 - R.sinHrn / R.total) * 100 : 100;
+  const hrnPc = R.total - R.recojo > 0 ? (1 - R.sinHrn / (R.total - R.recojo)) * 100 : 100;
   $('#calList').innerHTML =
     item('', '', 'Registros con importe', 'Sin importe no entran a ningún KPI.', sinImp.length, 'registros', 'Ir a Registros') +
     item('', '#fffbeb', 'Con N° de factura', `${fmt(sinFac.reduce((s, e) => s + (Number(e.importe) || 0), 0))} aún sin número de factura.`, sinFac.length, 'registros', 'Completar en Registros') +
@@ -1905,7 +1929,7 @@ async function traerHrn(desde, hasta) {
 // ---------- meta mensual ----------
 const mesNombre = m => { const [y, n] = m.split('-').map(Number), t = new Date(y, n - 1, 1).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' }); return t.charAt(0).toUpperCase() + t.slice(1); };
 async function cargarMeta() {
-  const mes = $('#kMes').value, sinFiltros = !$('#kTrans').value && !$('#kAgencia').value && !$('#kZona').value;
+  const mes = $('#kMes').value, sinFiltros = !$('#kTrans').value && !$('#kAgencia').value && !$('#kZona').value && !kst.m;
   if (!mes || !['mes', 'ant', 'sel'].includes(kst.p)) return { aplica: false, motivo: 'rango' };
   if (!sinFiltros) return { aplica: false, motivo: 'filtros', mes };
   const { data, error } = await sb.from('metas').select('monto').eq('mes', mes).maybeSingle();
@@ -1944,6 +1968,7 @@ function kParams() {
   const p = new URLSearchParams(), porMes = ['mes', 'ant', 'sel'].includes(kst.p) && $('#kMes').value;
   if (porMes) p.set('mes', $('#kMes').value); else { p.set('d', $('#kDesde').value); p.set('h', $('#kHasta').value); }
   [['t', '#kTrans'], ['ag', '#kAgencia'], ['zo', '#kZona']].forEach(([k, id]) => { if ($(id).value) p.set(k, $(id).value); });
+  if (kst.m) p.set('mo', kst.m);
   const v = document.querySelector('#kpTabs .on')?.dataset.v; if (v && v !== 'res') p.set('v', v);
   return p.toString();
 }
@@ -1953,7 +1978,7 @@ function kAplicar(qs) {
   if (p.get('mes')) { kst.p = 'sel'; $('#kMes').value = p.get('mes'); rangoDeMes(); }
   else if (p.get('d')) { kst.p = 'per'; $('#kMes').value = ''; $('#kDesde').value = p.get('d'); $('#kHasta').value = p.get('h') || p.get('d'); }
   const t = p.get('t'); $('#kTrans').innerHTML = '<option value="">Todos</option>' + (t ? `<option>${esc(t)}</option>` : ''); $('#kTrans').value = t || '';
-  $('#kAgencia').value = p.get('ag') || ''; $('#kZona').value = p.get('zo') || '';
+  $('#kAgencia').value = p.get('ag') || ''; $('#kZona').value = p.get('zo') || ''; kst.m = MOTIVOS.includes(p.get('mo')) ? p.get('mo') : '';
   kSync(); if (KT.includes(p.get('v'))) kTab(p.get('v'));
 }
 $('#kLink').onclick = () => { history.replaceState(null, '', '#kpis?' + kParams()); (navigator.clipboard ? navigator.clipboard.writeText(location.href) : Promise.reject()).then(() => toast('Enlace copiado: abre estos mismos filtros', 'ok'), () => toast('No se pudo copiar el enlace', 'err')); };
@@ -2051,7 +2076,7 @@ async function calcularKpis() {
   $('#kpCards').innerHTML = Array(4).fill('<div class="kpi sk"><span></span><b></b><small></small></div>').join('');
   try {
     let envios = await traerTodo(() => {
-      let q = sb.from('envios').select('id,fecha,nodo,transporte,agencia,pedidos,bultos,cajas,importe,modo_pago,factura,factura_archivo').order('id');
+      let q = sb.from('envios').select('id,fecha,nodo,motivo,transporte,agencia,pedidos,bultos,cajas,importe,modo_pago,factura,factura_archivo').order('id');
       if (desde) q = q.gte('fecha', desde); if (hasta) q = q.lte('fecha', hasta); if (trans) q = q.eq('transporte', trans);
       return q;
     });
@@ -2063,7 +2088,7 @@ async function calcularKpis() {
     const R = calcularKpi(envios, hrn, 'bultos');
     kpiResultado = R;
     const dias = agruparDias(envios); diasResultado = dias;
-    const nombradas = [...R.cuentas].filter(([k]) => k !== SIN_HRN);
+    const nombradas = [...R.cuentas].filter(([k]) => !k.startsWith('('));
     pintarResumen(R, dias, prev, envios); pintarAlertas(R); hallazgosKpi(R, envios);
     $('#nCta').textContent = nombradas.length; $('#nNodo').textContent = R.nodos.size; $('#nAge').textContent = R.agencias.size;
     pintarDias(dias); resumenKpi(R, dias); calendarioKpi(dias);
@@ -2144,7 +2169,7 @@ function lqPartir(list) {
 function lqPintar() {
   const marca = lqLista.length && lqLista.every(r => lqSel.has(r.id));
   $('#lqTabla').innerHTML = `<tr><th style="width:36px"><input type="checkbox" id="lqTodos" ${marca ? 'checked' : ''} aria-label="Seleccionar todos"></th><th>Fecha</th><th>Transporte</th><th>Nodo</th><th>Pago</th><th>Factura</th><th class="num">Importe</th></tr>` +
-    (lqLista.map(r => `<tr><td data-c="chk"><input type="checkbox" data-id="${r.id}" ${lqSel.has(r.id) ? 'checked' : ''} aria-label="Incluir ${esc(r.nodo)}"></td><td class="mono sm" data-c="fecha">${fdmy(r.fecha)}</td><td data-c="trans">${tbadge(r.transporte)}</td><td data-c="nodo"><b>${esc(r.nodo)}</b></td><td data-c="pago">${r.modo_pago === 'CREDITO' ? 'Crédito' : 'Contado'}</td><td class="mono" data-c="factura">${esc(r.factura)}</td><td class="num" data-c="importe"><b>${fmt(r.importe)}</b></td></tr>`).join('') ||
+    (lqLista.map(r => `<tr><td data-c="chk"><input type="checkbox" data-id="${r.id}" ${lqSel.has(r.id) ? 'checked' : ''} aria-label="Incluir ${esc(r.nodo)}"></td><td class="mono sm" data-c="fecha">${fdmy(r.fecha)}</td><td data-c="trans">${tbadge(r.transporte)}</td><td data-c="nodo"><b>${esc(r.nodo)}</b>${r.motivo === 'RECOJO' ? ' <span class="tb rec">Recojo</span>' : ''}</td><td data-c="pago">${r.modo_pago === 'CREDITO' ? 'Crédito' : 'Contado'}</td><td class="mono" data-c="factura">${esc(r.factura)}</td><td class="num" data-c="importe"><b>${fmt(r.importe)}</b></td></tr>`).join('') ||
     '<tr><td colspan="7"><div class="empty"><b>No hay registros listos para liquidar</b><span>Un registro está listo cuando tiene importe, N° de factura y foto, y aún no fue enviado.</span></div></td></tr>');
   const elegidos = lqLista.filter(r => lqSel.has(r.id)), total = elegidos.reduce((s, r) => s + Number(r.importe), 0), grupos = lqPartir(elegidos), lim = lqLimite();
   const grandes = elegidos.filter(r => Number(r.importe) > lim).length, cuenta = {};
