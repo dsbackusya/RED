@@ -884,6 +884,7 @@
         <div class="fg"><span>Desde</span><input type="date" id="lqDesde"></div>
         <div class="fg"><span>Hasta</span><input type="date" id="lqHasta"></div>
         <div class="fg"><span>Transporte</span><select id="lqTrans"><option value="">Todos</option></select></div>
+        <div class="fg"><span>Motivo</span><div class="pseg" id="lqMot"><button data-m="" class="on">Todos</button><button data-m="DESPACHO">Despacho</button><button data-m="RECOJO">Recojo</button></div></div>
         <div class="fg"><span>Pago</span><div class="pseg" id="lqPago"><button data-g="" class="on">Todos</button><button data-g="CONTADO">Contado</button><button data-g="CREDITO">Crédito</button></div></div>
         <button class="b" id="lqBuscar">Buscar</button>
       </div>
@@ -991,7 +992,8 @@
     <label style="grid-column:1/-1">Nombre del liquidador<input id="lpLiquidador" required></label>
     <label>Área<input id="lpArea"></label>
     <label>Moneda<input id="lpMoneda"></label>
-    <label style="grid-column:1/-1">Concepto del gasto<input id="lpConcepto"></label>
+    <label>Concepto del gasto, despacho<input id="lpConcepto"></label>
+    <label>Concepto del gasto, recojo<input id="lpConceptoRec"></label>
     <label>Tipo de documento<input id="lpTipo"></label>
     <label>Cuenta contable<input id="lpCuenta"></label>
     <label>Centro de costo<input id="lpCentro"></label>
@@ -2370,9 +2372,9 @@ $('#kExport').onclick = async () => {
 };
 
 // ---------- liquidaciones ----------
-const LQ_DEF = { liquidador: 'BENITES VEGA LUIS MIGUEL', area: 'ECOMMERCE', moneda: 'SOLES', concepto: 'Flete interprovincial', tipo_doc: 'FACTURA', cuenta: '63111002', centro: '8003825', denominacion: 'Distribución Red Troncal', limite: '1500' };
+const LQ_DEF = { liquidador: 'BENITES VEGA LUIS MIGUEL', area: 'ECOMMERCE', moneda: 'SOLES', concepto: 'Flete interprovincial', concepto_recojo: 'Recojo interprovincial', tipo_doc: 'FACTURA', cuenta: '63111002', centro: '8003825', denominacion: 'Distribución Red Troncal', limite: '1500' };
 const LQ_FILAS = 47;   // filas que tiene el formato (14 a 60)
-let lqPar = { ...LQ_DEF }, lqLista = [], lqPend = [], lqSel = new Set(), lqPago = '', lqListo = false;
+let lqPar = { ...LQ_DEF }, lqLista = [], lqPend = [], lqSel = new Set(), lqPago = '', lqMot = '', lqListo = false;
 const lqScript = src => new Promise((ok, ko) => { const t = document.createElement('script'); t.src = src; t.onload = ok; t.onerror = () => ko(new Error('No se pudo cargar una librería. Revisa tu conexión.')); document.head.appendChild(t); });
 async function lqLibs() {
   if (!window.ExcelJS) await lqScript('https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js');
@@ -2396,6 +2398,7 @@ async function lqBuscar(opc) {
     if ($('#lqHasta').value) q = q.lte('fecha', $('#lqHasta').value);
     if ($('#lqTrans').value) q = q.eq('transporte', $('#lqTrans').value);
     if (lqPago) q = q.eq('modo_pago', lqPago);
+    if (lqMot) q = q.eq('motivo', lqMot);
     return q;
   };
   let data; try { data = await traerTodo(crear); } catch (error) { return flash($('#lqMsg'), error.message, 'err'); }
@@ -2452,6 +2455,7 @@ $('#lqTabla').addEventListener('click', e => {   // tocar la fila marca o desmar
 });
 $('#lqAll').onclick = () => { lqSel = new Set(lqLista.map(r => r.id)); lqPintar(); };
 $('#lqNone').onclick = () => { lqSel = new Set(); lqPintar(); };
+$('#lqMot').onclick = e => { const b = e.target.closest('button'); if (!b) return; lqMot = b.dataset.m; document.querySelectorAll('#lqMot button').forEach(x => x.classList.toggle('on', x === b)); lqBuscar(); };
 $('#lqPago').onclick = e => { const b = e.target.closest('button'); if (!b) return; lqPago = b.dataset.g; document.querySelectorAll('#lqPago button').forEach(x => x.classList.toggle('on', x === b)); lqBuscar(); };
 $('#lqBuscar').onclick = lqBuscar;
 ['lqTrans', 'lqDesde', 'lqHasta'].forEach(id => $('#' + id).addEventListener('change', lqBuscar));
@@ -2473,7 +2477,7 @@ async function lqExcel(filas, L) {
   for (let i = 0; i < LQ_FILAS; i++) {
     const f = 14 + i, r = filas[i], c = col => ws.getCell(col + f);
     if (!r) { 'ABCDEFGHIJK'.split('').forEach(k => { c(k).value = null; }); continue; }
-    c('A').value = i + 1; c('B').value = dia(r.fecha); c('B').numFmt = 'dd/mm/yyyy'; c('C').value = r.transporte || ''; c('D').value = lqPar.concepto; c('E').value = r.nodo;
+    c('A').value = i + 1; c('B').value = dia(r.fecha); c('B').numFmt = 'dd/mm/yyyy'; c('C').value = r.transporte || ''; c('D').value = r.motivo === 'RECOJO' ? (lqPar.concepto_recojo || lqPar.concepto) : lqPar.concepto; c('E').value = r.nodo;
     c('F').value = lqPar.tipo_doc; c('G').value = Number(r.importe); c('H').value = r.factura;
     c('I').value = /^\d+$/.test(lqPar.centro) ? Number(lqPar.centro) : lqPar.centro; c('J').value = lqPar.denominacion; c('K').value = /^\d+$/.test(lqPar.cuenta) ? Number(lqPar.cuenta) : lqPar.cuenta;
   }
@@ -2556,7 +2560,7 @@ $('#lqHist').addEventListener('click', async e => {
   b.disabled = false; b.textContent = 'Descargar';
 });
 // datos fijos del formato
-const LP = { liquidador: '#lpLiquidador', area: '#lpArea', moneda: '#lpMoneda', concepto: '#lpConcepto', tipo_doc: '#lpTipo', cuenta: '#lpCuenta', centro: '#lpCentro', denominacion: '#lpDenom', limite: '#lpLimite' };
+const LP = { liquidador: '#lpLiquidador', area: '#lpArea', moneda: '#lpMoneda', concepto: '#lpConcepto', concepto_recojo: '#lpConceptoRec', tipo_doc: '#lpTipo', cuenta: '#lpCuenta', centro: '#lpCentro', denominacion: '#lpDenom', limite: '#lpLimite' };
 $('#lqPar').onclick = () => { for (const k in LP) $(LP[k]).value = lqPar[k]; $('#lpE').className = 'msg'; $('#lpOk').disabled = false; $('#lqParDlg').showModal(); };
 $('#lpX').onclick = () => $('#lqParDlg').close();
 $('#lqParF').onsubmit = async e => {
