@@ -1020,6 +1020,7 @@ document.querySelectorAll(NAVB).forEach(b => b.onclick = () => {
   scrollTo(0, 0);
   if (b.dataset.tab === 'liquidaciones') lqAbrir();
   if (b.dataset.tab === 'detalle' && !hrnCargado) buscarHrn();
+  if (b.dataset.tab === 'kpis') calcularKpis();
 });
 function conexion(ok) { $('#estado').className = 'estado' + (ok ? '' : ' mal'); $('#estado span').textContent = ok ? '' : 'Sin conexión con la base de datos'; }
 
@@ -1158,12 +1159,17 @@ $('#cGuardar').onclick = async () => {
   if (!fecha) return flash($('#cMsg'), 'Elige la fecha del despacho', 'err');
   if (previa.some(r => !r.agencia) && !await confirmar('Hay nodos sin agencia', 'Puedes completarla después en Registros. ¿Guardar igual?', 'Guardar')) return;
   $('#cGuardar').disabled = true;
-  const filas = previa.map(r => ({ fecha, origen: 'LIMA', transporte: r.transporte, nodo: r.nodo, bultos: r.bultos, pedidos: r.pedidos, cajas: r.cajas,
+  const { data: ya, error: eYa } = await sb.from('envios').select('nodo,liquidacion_id').eq('fecha', fecha);
+  if (eYa) { $('#cGuardar').disabled = false; return flash($('#cMsg'), eYa.message, 'err'); }
+  const enviados = new Set((ya || []).filter(x => x.liquidacion_id).map(x => norm(x.nodo))), nuevosN = previa.filter(r => !enviados.has(norm(r.nodo)));
+  if ((ya || []).length && !await confirmar(`Ya hay ${ya.length} registros del ${fdmy(fecha)}`, `Se actualizarán nodo, transporte, cantidades, placa, agencia y pago con lo de este archivo; el importe y la factura se conservan.` + (enviados.size ? ` ${enviados.size} ${enviados.size === 1 ? 'registro ya está enviado y no se tocará' : 'registros ya están enviados y no se tocarán'}.` : ''), 'Actualizar')) { $('#cGuardar').disabled = false; return; }
+  if (!nuevosN.length) { $('#cGuardar').disabled = false; return flash($('#cMsg'), 'Todos los nodos de este archivo ya están enviados en una liquidación.', 'err'); }
+  const filas = nuevosN.map(r => ({ fecha, origen: 'LIMA', transporte: r.transporte, nodo: r.nodo, bultos: r.bultos, pedidos: r.pedidos, cajas: r.cajas,
     placa: r.placa || null, agencia: r.agencia || null, detalle_gasto: r.detalle_gasto, modo_pago: r.modo_pago }));
   const { error } = await sb.from('envios').upsert(filas, { onConflict: 'fecha,nodo' });
   $('#cGuardar').disabled = false;
   if (error) return flash($('#cMsg'), error.message, 'err');
-  flash($('#cMsg'), `Guardados ${filas.length} nodos del ${fecha}. Completa importe y factura en Registros.`, 'ok');
+  flash($('#cMsg'), `Guardados ${filas.length} nodos del ${fdmy(fecha)}. Completa importe y factura en Registros.`, 'ok');
   previa = []; $('#cPrev').classList.add('hide'); $('#cFile').value = ''; setPaso(1);
   $('#rDesde').value = fecha; $('#rHasta').value = fecha; buscarRegistros();
 };
@@ -1256,7 +1262,9 @@ $('#fGuardar').onclick = async () => {
   cerrarFactura(); flash($('#rMsg'), 'Datos de la factura guardados', 'ok'); buscarRegistros();
 };
 function refrescarAdjunto(r) {
-  const td = document.querySelector(`#rTabla tr[data-id="${r.id}"] td.adj`); if (td) td.innerHTML = adjuntoHtml(r);
+  const tr = document.querySelector(`#rTabla tr[data-id="${r.id}"]`); if (!tr) return;
+  tr.querySelector('td.adj').innerHTML = adjuntoHtml(r);
+  const te = tr.querySelector('td[data-c=estado]'); if (te) te.innerHTML = estadoTag(r); contarEstados();
 }
 
 // ---------- registros ----------
@@ -1341,9 +1349,12 @@ const regEnviado = r => !!r.liquidacion_id;
 const regListo = r => Number(r.importe) > 0 && !!r.factura && !!r.factura_archivo;
 const regTerminado = r => regListo(r) && !regEnviado(r);
 let lqNumeros = new Map();
-function aplicarEstado() {
+function contarEstados() {
   const nT = regBase.filter(regTerminado).length, nE = regBase.filter(regEnviado).length;
   $('#nPend').textContent = regBase.length - nT - nE; $('#nTerm').textContent = nT; $('#nEnv').textContent = nE;
+}
+function aplicarEstado() {
+  contarEstados();
   registros = estadoReg === 'term' ? regBase.filter(regTerminado) : estadoReg === 'env' ? regBase.filter(regEnviado) : estadoReg === 'pend' ? regBase.filter(r => !regListo(r) && !regEnviado(r)) : regBase;
   pintarResumenRegistros(); pintarTablaRegistros();
 }
@@ -1367,6 +1378,7 @@ $('#rTabla').addEventListener('change', async e => {
   if (error) return flash($('#rMsg'), error.message, 'err');
   const r = registros.find(x => x.id === tr.dataset.id); if (r) r[f] = v;
   flash($('#rMsg'), 'Guardado', 'ok');
+  if (r) { const td = tr.querySelector('td[data-c=estado]'); if (td) td.innerHTML = estadoTag(r); contarEstados(); }
   pintarResumenRegistros();
 });
 $('#rTabla').addEventListener('click', async e => {
@@ -1623,7 +1635,7 @@ function pintarCuentas() {
   const prom = P ? T / P : 0, porCosto = [...base].sort((a, b) => b.costo - a.costo);
   if (!base.length || !T) { ['#ctaInsight', '#ctaBarras', '#ctaTabla'].forEach(i => $(i).innerHTML = ''); $('#ctaSc').innerHTML = ''; $('#ctaBarras').innerHTML = '<p class="hint">Sin datos en este rango.</p>'; return; }
   { const named = porCosto.filter(x => !x.sin), Tn = named.reduce((x, y) => x + y.costo, 0); let ac = 0, n80 = 0; for (const x of named) { ac += x.costo; n80++; if (Tn && ac / Tn >= 0.8) break; }
-    $('#ctaInsight').innerHTML = Tn ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span><b>${Math.round(named.slice(0, 3).reduce((x, y) => x + y.costo, 0) / Tn * 100)}%</b> del costo está en las 3 primeras cuentas · <b>${n80} ${n80 === 1 ? 'cuenta explica' : 'cuentas explican'}</b> el 80%</span>` : ''; }
+    $('#ctaInsight').innerHTML = Tn ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span><b>${Math.round(named.slice(0, 3).reduce((x, y) => x + y.costo, 0) / Tn * 100)}%</b> del costo está en las 3 primeras cuentas, y <b>${n80} ${n80 === 1 ? 'cuenta explica' : 'cuentas explican'}</b> el 80%</span>` : ''; }
   let d = base; const q = norm($('#ctaQ').value); if (q) d = d.filter(x => norm(x.nombre).includes(q));
   const o = $('#ctaOrd').value; d = [...d].sort((a, b) => o === 'nombre' ? a.nombre.localeCompare(b.nombre) : b[o] - a[o]);
   const lim = Number($('#ctaTop').value), vis = d.slice(0, lim), max = Math.max(...d.map(x => x.costo), 1);
@@ -1689,7 +1701,7 @@ function nodosKpi(R) {
 function agenciasKpi(R) {
   const L = listaDe(R.agencias); rankingCajas(L, 'age', R.total, '#ageBarras');
   $('#ageMix').innerHTML = L.length ? L.map(x => { const t = x.contado + x.credito, p = t ? x.contado / t * 100 : 0;
-    return `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:4px"><b style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.nombre)}</b><span style="color:var(--mut);white-space:nowrap">${fmt(x.contado)} contado · ${fmt(x.credito)} crédito</span></div><div class="split" style="margin-top:0"><i style="width:${p}%;background:var(--grn)"></i><i style="flex:1;background:var(--ind)"></i></div></div>`; }).join('') : '<p class="hint">Sin datos en este rango.</p>';
+    return `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:4px"><b style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.nombre)}</b><span style="color:var(--mut);white-space:nowrap">${fmt(x.contado)} contado, ${fmt(x.credito)} crédito</span></div><div class="split" style="margin-top:0"><i style="width:${p}%;background:var(--grn)"></i><i style="flex:1;background:var(--ind)"></i></div></div>`; }).join('') : '<p class="hint">Sin datos en este rango.</p>';
 }
 function zonasKpi(R, envios) {
   rankingCajas(listaDe(R.zonas), 'zona', R.total, '#zonaBarras');
@@ -1815,7 +1827,7 @@ function calidadKpi(R, envios) {
     item('', '', 'Registros con importe', 'Sin importe no entran a ningún KPI.', sinImp.length, 'registros', 'Ir a Registros') +
     item('', '#fffbeb', 'Con N° de factura', `${fmt(sinFac.reduce((s, e) => s + (Number(e.importe) || 0), 0))} aún sin número de factura.`, sinFac.length, 'registros', 'Completar en Registros') +
     item('', '', 'Con foto de factura adjunta', 'La lectura automática rellena factura e importe desde la foto.', sinAdj.length, 'registros', 'Adjuntar fotos') +
-    item('', '#fef2f2', 'Con agencia asignada', `${[...new Set(sinAg.map(e => e.nodo))].join(', ') || 'Todos los nodos tienen agencia'}${sinAg.length ? ': faltan en el catálogo de agencias.' : '.'}`, sinAg.length, 'catalogo', 'Completar catálogo') +
+    item('', '#fef2f2', 'Con agencia asignada', `${esc([...new Set(sinAg.map(e => e.nodo))].join(', ') || 'Todos los nodos tienen agencia')}${sinAg.length ? ': faltan en el catálogo de agencias.' : '.'}`, sinAg.length, 'catalogo', 'Completar catálogo') +
     item('', '', 'Con zona', 'Necesaria para el análisis por zona y la matriz transporte × zona.', sinZona.length, 'catalogo', 'Completar catálogo') +
     `<div class="cq-i"><div class="tx"><b>Importe repartido entre cuentas (HRN)</b><span>${R.sinHrn ? `${fmt(R.sinHrn)} sin cuenta: falta el HRN de ${R.sinHrnNodos.size} ${R.sinHrnNodos.size === 1 ? 'nodo' : 'nodos'}.` : 'Todo el costo está asignado a una cuenta.'}</span></div><div class="mt"><div class="tr"><i style="width:${hrnPc}%;background:${hrnPc >= 95 ? 'var(--grn)' : 'var(--amb)'}"></i></div><small>${hrnPc.toFixed(0)}% asignado</small></div><button class="b sec" data-go="detalle">Cargar HRN</button></div>`;
   $('#dotCal').className = (sinImp.length || sinFac.length || sinAdj.length || sinAg.length || sinZona.length || R.sinHrn) ? 'dotw' : '';
@@ -1937,7 +1949,7 @@ function resumenKpi(R, dias) {
   const W = 900, H = 250, m = { l: 44, r: 12, t: 12, b: 26 }, vals = cost.map(d => d.costo), mx = Math.max(...vals) * 1.1, bw = (W - m.l - m.r) / vals.length, Y = v => H - m.b - v / mx * (H - m.t - m.b);
   let g = ''; for (let i = 0; i <= 4; i++) { const v = mx * i / 4; g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${m.l - 6}" y="${Y(v) + 3}" text-anchor="end">${v.toFixed(0)}</text>`; }
   const paso = Math.ceil(vals.length / 16);
-  g += vals.map((v, i) => `<rect x="${m.l + i * bw + 2}" y="${Y(v)}" width="${Math.max(2, bw - 4)}" height="${H - m.b - Y(v)}" rx="3" fill="#bfdbfe" data-det="dia|${cost[i].fecha}"><title>${fdmy(cost[i].fecha)} · ${fmt(v)}</title></rect>${i % paso === 0 ? `<text x="${m.l + i * bw + bw / 2}" y="${H - 8}" text-anchor="middle">${cost[i].fecha.slice(8)}</text>` : ''}`).join('');
+  g += vals.map((v, i) => `<rect x="${m.l + i * bw + 2}" y="${Y(v)}" width="${Math.max(2, bw - 4)}" height="${H - m.b - Y(v)}" rx="3" fill="#bfdbfe" data-det="dia|${cost[i].fecha}"><title>${fdmy(cost[i].fecha)}, ${fmt(v)}</title></rect>${i % paso === 0 ? `<text x="${m.l + i * bw + bw / 2}" y="${H - 8}" text-anchor="middle">${cost[i].fecha.slice(8)}</text>` : ''}`).join('');
   if (vals.length > 1) { const ma = vals.map((_, i) => { const w = vals.slice(Math.max(0, i - 6), i + 1); return w.reduce((a, b) => a + b, 0) / w.length; });
     g += `<path d="${ma.map((v, i) => (i ? 'L' : 'M') + (m.l + i * bw + bw / 2).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ')}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round"/>`; }
   $('#resLine').innerHTML = g;
@@ -1966,11 +1978,11 @@ function informePDF() {
   const R = kpiResultado; if (!R) return toast('Primero espera a que se calculen los KPIs', 'err');
   const w = window.open('', '_blank'); if (!w) return toast('El navegador bloqueó la ventana del informe: permite ventanas emergentes.', 'err');
   const T = R.total, dias = diasResultado, env = kpEnvios, nF = env.filter(e => e.factura).length, conta = dias.reduce((x, d) => x + d.contado, 0), cred = dias.reduce((x, d) => x + d.credito, 0);
-  const filtros = [...document.querySelectorAll('#kAct .pill')].map(x => x.textContent).join(' · '), hall = [...document.querySelectorAll('#kpHall .hl')].map(h => `<li><b>${esc(h.querySelector('b').textContent)}.</b> ${esc(h.querySelector('span').textContent)}</li>`).join('');
+  const filtros = [...document.querySelectorAll('#kAct .pill')].map(x => x.textContent).join(', '), hall = [...document.querySelectorAll('#kpHall .hl')].map(h => `<li><b>${esc(h.querySelector('b').textContent)}.</b> ${esc(h.querySelector('span').textContent)}</li>`).join('');
   const tabla = (t, cab, filas) => `<h2>${t}</h2><table><tr>${cab.map((c, i) => `<th${i ? ' class="r"' : ''}>${c}</th>`).join('')}</tr>${filas.map(f => `<tr>${f.map((c, i) => `<td${i ? ' class="r"' : ''}>${c}</td>`).join('')}</tr>`).join('')}</table>`;
   const top = (mapa, n) => [...mapa].sort((a, b) => b[1].costo - a[1].costo).slice(0, n), pc = x => T ? (x / T * 100).toFixed(1) + '%' : '-';
   const caja = v => v.cajas ? fmt(v.costo / v.cajas) : '-', ped = v => v.pedidos ? fmt(v.costo / v.pedidos) : '-';
-  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de costos · Red Troncal</title><style>
+  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de costos de Red Troncal</title><style>
     @page { size:A4; margin:14mm } * { box-sizing:border-box } body { font:11px/1.45 Inter,system-ui,Arial,sans-serif; color:#0f172a; margin:0 }
     header { display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #059669; padding-bottom:10px; margin-bottom:12px } header img { height:42px } h1 { font-size:20px; margin:0 } .sub { color:#64748b; font-size:11px }
     h2 { font-size:13px; margin:18px 0 6px; border-left:4px solid #2563eb; padding-left:8px; break-after:avoid } table { width:100%; border-collapse:collapse; margin-bottom:6px } th { background:#f1f5f9; text-align:left; padding:5px 7px; font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:#475569 }
@@ -1994,7 +2006,7 @@ function informePDF() {
     ${tabla('Costo por zona', ['Zona', 'Costo', '% total', 'Cajas', 'Tarifa por caja'], top(R.zonas, 20).map(([k, v]) => [esc(k), fmt(v.costo), pc(v.costo), fmtN(v.cajas), caja(v)]))}
     ${tabla('Costo por transporte', ['Transporte', 'Costo', '% total', 'Pedidos', 'Costo x pedido', 'Tarifa por caja'], top(R.transportes, 20).map(([k, v]) => [esc(k), fmt(v.costo), pc(v.costo), fmtN(v.pedidos), ped(v), caja(v)]))}
     ${dias.length > 1 ? tabla('Costo por día', ['Día', 'Registros', 'Pedidos', 'Contado', 'Crédito', 'Costo total'], dias.map(d => [fdmy(d.fecha), d.registros, fmtN(d.pedidos), fmt(d.contado), fmt(d.credito), fmt(d.costo)])) : ''}
-    <footer>Generado el ${new Date().toLocaleString('es-PE')} · Red Troncal · Dinet Logística</footer>
+    <footer>Generado el ${new Date().toLocaleString('es-PE')}. Red Troncal, Dinet Logística.</footer>
   </body></html>`;
   w.document.open(); w.document.write(html); w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 600);
 }
@@ -2027,9 +2039,8 @@ async function calcularKpis() {
       if (desde) q = q.gte('fecha', desde); if (hasta) q = q.lte('fecha', hasta); if (trans) q = q.eq('transporte', trans);
       return q;
     });
-    const hrn = await traerHrn(desde, hasta);
-    const prev = await periodoPrevio(desde, hasta, trans);
-    kMeta = await cargarMeta();
+    const [hrn, prev, meta] = await Promise.all([traerHrn(desde, hasta), periodoPrevio(desde, hasta, trans), cargarMeta()]);
+    kMeta = meta;
     if (mi !== kSeq) return;
     if (!trans) pintarTransSeg([...new Set(envios.map(e => e.transporte).filter(Boolean))].sort());
     envios = envios.filter(kPasa); kpEnvios = envios;
@@ -2045,7 +2056,6 @@ async function calcularKpis() {
   } catch (err) { flash($('#kpMsg'), 'No se pudo calcular: ' + err.message, 'err'); }
   if (mi === kSeq) $('#kRefrescar').disabled = false;
 }
-document.querySelector('nav [data-tab="kpis"]').addEventListener('click', calcularKpis);
 $('#kExport').onclick = async () => {
   if (!kpiResultado) return; await xlsxLib();
   const wb = XLSX.utils.book_new(), r2 = n => Math.round(n * 100) / 100;
@@ -2082,8 +2092,9 @@ async function lqAbrir() {
   lqBuscar(); lqHistorial();
 }
 const lqLimite = () => Number(lqPar.limite) || 1500;
+let lqSeq = 0;
 async function lqBuscar() {
-  const crear = () => {
+  const mi = ++lqSeq, crear = () => {
     let q = sb.from('envios').select('*').is('liquidacion_id', null).order('fecha').order('transporte').order('nodo').order('id');
     if ($('#lqDesde').value) q = q.gte('fecha', $('#lqDesde').value);
     if ($('#lqHasta').value) q = q.lte('fecha', $('#lqHasta').value);
@@ -2092,6 +2103,7 @@ async function lqBuscar() {
     return q;
   };
   let data; try { data = await traerTodo(crear); } catch (error) { return flash($('#lqMsg'), error.message, 'err'); }
+  if (mi !== lqSeq) return;
   const sel = $('#lqTrans').value;
   if (!sel) $('#lqTrans').innerHTML = '<option value="">Todos</option>' + [...new Set(data.map(r => r.transporte).filter(Boolean))].sort().map(t => `<option>${esc(t)}</option>`).join('');
   lqLista = data.filter(regListo); lqPend = data.filter(r => !regListo(r));
