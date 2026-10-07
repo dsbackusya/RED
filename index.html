@@ -199,7 +199,7 @@
   .insight { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:10px; font-size:12px; margin-bottom:14px; background:color-mix(in srgb, var(--pri) 7%, var(--card)); border:1px solid color-mix(in srgb, var(--pri) 18%, var(--line)) }
   .insight svg { width:16px; height:16px; color:var(--pri); flex:none } .insight b { font-weight:700 }
   details.dt { margin-top:14px; border-top:1px solid var(--line); padding-top:4px } details.dt summary { cursor:pointer; font-size:12px; font-weight:600; color:var(--pri); padding:8px 0; list-style:none; user-select:none }
-  details.dt summary::-webkit-details-marker { display:none } details.dt summary::before { content:"▸"; display:inline-block; margin-right:6px; transition:transform .15s } details.dt[open] summary::before { transform:rotate(90deg) }
+  details.dt summary::-webkit-details-marker { display:none } details.dt summary::before { content:""; display:inline-block; width:10px; height:10px; margin-right:8px; background:currentColor; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5l7 7-7 7'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5l7 7-7 7'/%3E%3C/svg%3E") center/contain no-repeat; transition:transform .15s } details.dt[open] summary::before { transform:rotate(90deg) }
   .empty { display:flex; flex-direction:column; align-items:center; gap:4px; padding:38px 16px; color:var(--mut); text-align:center; font-size:12px } .empty b { color:var(--ink); font-size:14px }
   .kpi.sk span, .kpi.sk b, .kpi.sk small { display:block; border-radius:6px; background:linear-gradient(90deg, var(--head), var(--line), var(--head)); background-size:200% 100%; animation:shm 1.2s linear infinite }
   .kpi.sk span { height:10px; width:55% } .kpi.sk b { height:24px; width:70%; margin:10px 0 }  .kpi.sk small { height:10px; width:45% }
@@ -602,6 +602,8 @@
     #rTabla td.adj .thumb { width:26px; height:26px } #rTabla td.n input { padding-right:4px }
   }
   @media (min-width:761px) { #rTabla th:nth-child(8) { width:96px } #rTabla td input.chip { font-size:11px; padding-left:6px; padding-right:6px } #rTabla td input, #rTabla td select { font-size:13px } #rTabla td[data-c=agencia] input { padding-left:6px; padding-right:4px } }
+  .ico { width:1.1em; height:1.1em; vertical-align:-.2em; flex:none } .ar { display:inline-block; vertical-align:0; margin-left:2px } .nb .x svg, .x2 svg, .x2 { display:grid; place-items:center }
+  .pag button .ico { width:14px; height:14px; vertical-align:-2px }
 </style>
 </head>
 <body>
@@ -881,7 +883,7 @@
   <button class="cancel" id="masX">Cerrar</button>
 </div></div>
 <div class="ov" id="ov"></div>
-<aside class="dr" id="dr" aria-label="Detalle"><header><div><small id="drT"></small><h2 id="drN"></h2></div><button class="x2" id="drX" aria-label="Cerrar">×</button></header><div class="bd" id="drB"></div></aside>
+<aside class="dr" id="dr" aria-label="Detalle"><header><div><small id="drT"></small><h2 id="drN"></h2></div><button class="x2" id="drX" aria-label="Cerrar"></button></header><div class="bd" id="drB"></div></aside>
 <dialog id="metaDlg"><div class="in">
   <h3 id="metaT" style="margin:0 0 4px">Meta mensual</h3><p class="hint" id="metaS" style="margin:0 0 12px"></p>
   <label>Meta de costo del mes (S/)<input id="metaV" type="number" step="0.01" min="0" inputmode="decimal"></label>
@@ -925,6 +927,16 @@
 <script src="ocr.js?v=4"></script>
 <script>
 const $ = s => document.querySelector(s);
+const ICO = {
+  clip: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.5l-8.6 8.6a5.5 5.5 0 01-7.8-7.8l9-9a3.7 3.7 0 015.2 5.2l-9 9a1.8 1.8 0 01-2.6-2.6l8.3-8.3"/></svg>',
+  file: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8zM14 3v5h5M9 13h6M9 17h6"/></svg>',
+  refresh: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 00-14.9-3M4 4v4h4M4 13a8 8 0 0014.9 3M20 20v-4h-4"/></svg>',
+  x: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  check: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  prev: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+  next: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>'
+};
+const flecha = sube => `<svg class="ar" viewBox="0 0 10 10" width="9" height="9" fill="currentColor" aria-hidden="true"><path d="${sube ? 'M5 1.5l4 7H1z' : 'M5 8.5l-4-7h8z'}"/></svg>`;
 // librería de Excel: se descarga solo al importar o exportar
 let xlsxPromesa;
 const xlsxLib = () => window.XLSX ? Promise.resolve() : (xlsxPromesa ||= new Promise((ok, ko) => { const t = document.createElement('script'); t.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; t.onload = ok; t.onerror = () => { xlsxPromesa = null; ko(new Error('No se pudo cargar la librería de Excel. Revisa tu conexión.')); }; document.head.appendChild(t); }));
@@ -946,11 +958,11 @@ function confirmar(titulo, mensaje, ok = 'Aceptar', peligro = false) {
 }
 document.addEventListener('change', e => { if (e.target.dataset && 'v' in e.target.dataset) e.target.dataset.v = e.target.value; });
 function setPaso(n) {
-  document.querySelectorAll('#cSteps .step').forEach((el, i) => { el.className = 'step' + (i + 1 < n ? ' done' : i + 1 === n ? ' on' : ''); el.querySelector('i').textContent = i + 1 < n ? '✓' : i + 1; });
+  document.querySelectorAll('#cSteps .step').forEach((el, i) => { el.className = 'step' + (i + 1 < n ? ' done' : i + 1 === n ? ' on' : ''); el.querySelector('i').innerHTML = i + 1 < n ? ICO.check : i + 1; });
 }
 function toast(text, type) {
   const t = document.createElement('div'); t.className = 'toast ' + (type === 'err' ? 'err' : 'ok');
-  t.innerHTML = `<i>${type === 'err' ? '!' : '✓'}</i><span>${esc(text)}</span>`; $('#toasts').appendChild(t);
+  t.innerHTML = `<i>${type === 'err' ? ICO.x : ICO.check}</i><span>${esc(text)}</span>`; $('#toasts').appendChild(t);
   setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, type === 'err' ? 6500 : 3200);
 }
 function flash(el, text, type) {
@@ -1163,9 +1175,9 @@ const urlAdjunto = path => sb.storage.from(BUCKET).getPublicUrl(path).data.publi
 const esImagen = path => /\.(png|jpe?g|gif|webp|bmp|heic)$/i.test(path);
 function adjuntoHtml(r) {
   const fijo = regEnviado(r);
-  if (!r.factura_archivo) return '<button class="b sec" data-act="adjuntar">📎 Adjuntar</button>';
+  if (!r.factura_archivo) return `<button class="b sec" data-act="adjuntar">${ICO.clip} Adjuntar</button>`;
   const u = esc(urlAdjunto(r.factura_archivo));
-  return `<a href="${u}" target="_blank" rel="noopener" title="Ver factura">${esImagen(r.factura_archivo) ? `<img class="thumb" src="${u}" alt="Factura">` : '📄'}<span class="tx"> Ver</span></a>${fijo ? '' : '<button class="lnk" data-act="adjuntar" title="Cambiar foto"><span class="ic">↻</span><span class="tx">Cambiar</span></button><button class="lnk" data-act="quitar" title="Quitar foto"><span class="ic">×</span><span class="tx">Quitar</span></button>'}`;
+  return `<a href="${u}" target="_blank" rel="noopener" title="Ver factura">${esImagen(r.factura_archivo) ? `<img class="thumb" src="${u}" alt="Factura">` : ICO.file}<span class="tx"> Ver</span></a>${fijo ? '' : `<button class="lnk" data-act="adjuntar" title="Cambiar foto"><span class="ic">${ICO.refresh}</span><span class="tx">Cambiar</span></button><button class="lnk" data-act="quitar" title="Quitar foto"><span class="ic">${ICO.x}</span><span class="tx">Quitar</span></button>`}`;
 }
 let adjId = null;
 $('#adjFile').onchange = async e => {
@@ -1297,7 +1309,7 @@ function pintarTablaRegistros() {
   $('#rTabla').innerHTML = '<tr><th>Fecha</th><th>Estado</th><th>Transporte</th><th>Nodo</th><th class="c">Bultos</th><th class="c">Pedidos</th><th class="c">Cajas</th><th>Placa</th><th>Agencia</th><th>Detalle del gasto</th><th class="c">Pago</th><th class="num">Importe</th><th>Factura</th><th>Adjunto</th><th class="c" aria-label="Acciones"></th></tr>' + (vista.map(filaRegistro).join('') || '<tr><td colspan="14"><div class="empty"><b>Sin registros en este rango</b><span>Ajusta las fechas o sube un despacho en «Cargar despacho».</span></div></td></tr>');
   const nums = []; for (let i = 1; i <= paginas; i++) if (i === 1 || i === paginas || Math.abs(i - pag.n) <= 1) nums.push(i); else if (nums[nums.length - 1] !== '…') nums.push('…');
   $('#rPag').innerHTML = `<div class="l"><span>Filas por página:</span><select id="rSize" aria-label="Filas por página">${[15, 25, 50, 100].map(v => `<option${v === pag.size ? ' selected' : ''}>${v}</option>`).join('')}</select><span>Mostrando <b>${N ? ini + 1 : 0}-${Math.min(N, ini + pag.size)}</b> de <b>${N}</b> registros</span></div>
-    <div class="r"><button data-p="prev"${pag.n <= 1 ? ' disabled' : ''}>‹</button>${nums.map(n => n === '…' ? '<span>…</span>' : `<button data-p="${n}" class="${n === pag.n ? 'on' : ''}">${n}</button>`).join('')}<button data-p="next"${pag.n >= paginas ? ' disabled' : ''}>›</button></div>`;
+    <div class="r"><button data-p="prev"${pag.n <= 1 ? ' disabled' : ''} aria-label="Anterior">${ICO.prev}</button>${nums.map(n => n === '…' ? '<span>…</span>' : `<button data-p="${n}" class="${n === pag.n ? 'on' : ''}">${n}</button>`).join('')}<button data-p="next"${pag.n >= paginas ? ' disabled' : ''} aria-label="Siguiente">${ICO.next}</button></div>`;
 }
 $('#rPag').addEventListener('click', e => {
   const b = e.target.closest('button[data-p]'); if (!b || b.disabled) return;
@@ -1617,7 +1629,7 @@ function pintarCuentas() {
   const lim = Number($('#ctaTop').value), vis = d.slice(0, lim), max = Math.max(...d.map(x => x.costo), 1);
   $('#ctaBarras').innerHTML = '<div class="rk h"><span></span><span>Cuenta</span><span>Costo</span><span style="text-align:right">Monto</span><span style="text-align:right">% total</span><span style="text-align:center">Costo x pedido</span></div>' +
     (vis.map((x, i) => { const c = ctaClase(x.cpp, prom);
-      return `<div class="rk" data-det="cta|${esc(x.nombre)}"><span class="n">${i + 1}</span><span class="nm" title="${esc(x.nombre)}">${esc(x.nombre)}</span><span class="bar"><i style="width:${x.costo / max * 100}%;background:${ctaVAR[c]}"></i></span><span class="v">${fmt(x.costo)}</span><span class="p">${(x.costo / T * 100).toFixed(1)}%</span><span><span class="cz ${c}">${x.pedidos ? fmt(x.cpp) + (x.cpp > prom ? ' ▲' : ' ▼') : '-'}</span></span></div>`; }).join('') || '<p class="hint">Sin resultados.</p>') +
+      return `<div class="rk" data-det="cta|${esc(x.nombre)}"><span class="n">${i + 1}</span><span class="nm" title="${esc(x.nombre)}">${esc(x.nombre)}</span><span class="bar"><i style="width:${x.costo / max * 100}%;background:${ctaVAR[c]}"></i></span><span class="v">${fmt(x.costo)}</span><span class="p">${(x.costo / T * 100).toFixed(1)}%</span><span><span class="cz ${c}">${x.pedidos ? fmt(x.cpp) + ' ' + flecha(x.cpp > prom) : '-'}</span></span></div>`; }).join('') || '<p class="hint">Sin resultados.</p>') +
     (d.length > vis.length ? `<div class="cutl">+ ${d.length - vis.length} cuentas más: ${fmt(d.slice(lim).reduce((s, x) => s + x.costo, 0))}</div>` : '');
   $('#ctaTabla').innerHTML = '<table><tr><th>Cuenta</th><th class="num">Costo</th><th class="num">% total</th><th class="num">Pedidos</th><th class="num">Bultos</th><th class="num">Costo por pedido</th><th class="num">Costo por bulto</th></tr>' +
     vis.map(x => `<tr><td><b>${esc(x.nombre)}</b></td><td class="num">${fmt(x.costo)}</td><td class="num">${(x.costo / T * 100).toFixed(1)}%</td><td class="num">${fmtN(x.pedidos)}</td><td class="num">${fmtN(x.bultos)}</td><td class="num">${x.pedidos ? fmt(x.cpp) : '-'}</td><td class="num">${x.bultos ? fmt(x.costo / x.bultos) : '-'}</td></tr>`).join('') +
@@ -1665,7 +1677,7 @@ function rankingCajas(lista, tipo, T, cont, vacio) {
   const med = mediana(lista.filter(x => x.cajas).map(x => x.tar)), max = Math.max(...lista.map(x => x.costo), 1);
   $(cont).innerHTML = lista.length ? '<div class="rk rk7 h"><span></span><span>Nombre</span><span>Costo</span><span style="text-align:right">Monto</span><span style="text-align:right">% total</span><span style="text-align:right">Cajas</span><span style="text-align:center">Tarifa / caja</span></div>' +
     lista.map((x, i) => { const c = x.sin ? 'a' : ctaClase(x.tar, med);
-      return `<div class="rk rk7" data-det="${tipo}|${esc(x.nombre)}"><span class="n">${i + 1}</span><span class="nm" title="${esc(x.nombre)}">${esc(x.nombre)}</span><span class="bar"><i style="width:${x.costo / max * 100}%;background:${ctaVAR[c]}"></i></span><span class="v">${fmt(x.costo)}</span><span class="p">${T ? (x.costo / T * 100).toFixed(1) : 0}%</span><span class="q">${fmtN(x.cajas)}</span><span><span class="cz ${c}">${x.cajas ? fmt(x.tar) + (x.tar > med ? ' ▲' : ' ▼') : '-'}</span></span></div>`; }).join('') : `<p class="hint">${vacio || 'Sin datos en este rango.'}</p>`;
+      return `<div class="rk rk7" data-det="${tipo}|${esc(x.nombre)}"><span class="n">${i + 1}</span><span class="nm" title="${esc(x.nombre)}">${esc(x.nombre)}</span><span class="bar"><i style="width:${x.costo / max * 100}%;background:${ctaVAR[c]}"></i></span><span class="v">${fmt(x.costo)}</span><span class="p">${T ? (x.costo / T * 100).toFixed(1) : 0}%</span><span class="q">${fmtN(x.cajas)}</span><span><span class="cz ${c}">${x.cajas ? fmt(x.tar) + ' ' + flecha(x.tar > med) : '-'}</span></span></div>`; }).join('') : `<p class="hint">${vacio || 'Sin datos en este rango.'}</p>`;
   return med;
 }
 const listaDe = mapa => [...mapa].map(([nombre, v]) => ({ nombre, ...v, tar: v.cajas ? v.costo / v.cajas : 0, sin: nombre.startsWith('(') })).sort((a, b) => b.costo - a.costo);
@@ -1759,7 +1771,7 @@ async function periodoPrevio(desde, hasta, trans) {
   rows.filter(kPasa).forEach(e => { const i = Number(e.importe) || 0; if (i > 0) { r.total += i; r.pedidos += Number(e.pedidos) || 0; r.bultos += Number(e.bultos) || 0; r.cajas += Number(e.cajas) || 0; } });
   return r;
 }
-const kDelta = (a, b) => { if (!b || !a) return ''; const d = (a - b) / b * 100, c = Math.abs(d) < 0.5 ? 'eq' : d > 0 ? 'up' : 'dn'; return `<span class="dl ${c}">${c === 'eq' ? '=' : d > 0 ? '▲' : '▼'} ${Math.abs(d).toFixed(1)}%</span>`; };
+const kDelta = (a, b) => { if (!b || !a) return ''; const d = (a - b) / b * 100, c = Math.abs(d) < 0.5 ? 'eq' : d > 0 ? 'up' : 'dn'; return `<span class="dl ${c}">${c === 'eq' ? '=' : flecha(d > 0)} ${Math.abs(d).toFixed(1)}%</span>`; };
 function pintarResumen(R, dias, prev, envios) {
   const cpp = R.pedidos ? R.total / R.pedidos : 0, cpc = R.cajas ? R.total / R.cajas : 0, pcpp = prev.pedidos ? prev.total / prev.pedidos : 0, pcpc = prev.cajas ? prev.total / prev.cajas : 0;
   const conta = dias.reduce((x, d) => x + d.contado, 0), cred = dias.reduce((x, d) => x + d.credito, 0), sumaCD = conta + cred, pc = sumaCD ? Math.round(conta / sumaCD * 100) : 0;
@@ -1797,15 +1809,15 @@ function calidadKpi(R, envios) {
   const n = envios.length; if (!n) { $('#calList').innerHTML = '<div class="empty"><b>Sin registros en este rango</b></div>'; $('#dotCal').className = ''; return; }
   const sinImp = envios.filter(e => !(Number(e.importe) > 0)), sinFac = envios.filter(e => !e.factura), sinAdj = envios.filter(e => !e.factura_archivo), sinAg = envios.filter(e => !e.agencia), sinZona = envios.filter(e => zonaDe(e.nodo) === '(sin zona)');
   const item = (ic, bg, t, d, malos, go, btn) => { const pc = (1 - malos / n) * 100, col = pc >= 95 ? 'var(--grn)' : pc >= 50 ? 'var(--amb)' : 'var(--red)';
-    return `<div class="cq-i"><div class="ic" style="background:${bg}">${ic}</div><div class="tx"><b>${t}</b><span>${d}</span></div><div class="mt"><div class="tr"><i style="width:${pc}%;background:${col}"></i></div><small>${n - malos} de ${n} completos</small></div><button class="b sec" data-go="${go}">${btn}</button></div>`; };
+    return `<div class="cq-i"><div class="tx"><b>${t}</b><span>${d}</span></div><div class="mt"><div class="tr"><i style="width:${pc}%;background:${col}"></i></div><small>${n - malos} de ${n} completos</small></div><button class="b sec" data-go="${go}">${btn}</button></div>`; };
   const hrnPc = R.total ? (1 - R.sinHrn / R.total) * 100 : 100;
   $('#calList').innerHTML =
-    item('💲', 'var(--okbg)', 'Registros con importe', 'Sin importe no entran a ningún KPI.', sinImp.length, 'registros', 'Ir a Registros') +
+    item('', '', 'Registros con importe', 'Sin importe no entran a ningún KPI.', sinImp.length, 'registros', 'Ir a Registros') +
     item('', '#fffbeb', 'Con N° de factura', `${fmt(sinFac.reduce((s, e) => s + (Number(e.importe) || 0), 0))} aún sin número de factura.`, sinFac.length, 'registros', 'Completar en Registros') +
-    item('📎', '#fffbeb', 'Con foto de factura adjunta', 'La lectura automática rellena factura e importe desde la foto.', sinAdj.length, 'registros', 'Adjuntar fotos') +
+    item('', '', 'Con foto de factura adjunta', 'La lectura automática rellena factura e importe desde la foto.', sinAdj.length, 'registros', 'Adjuntar fotos') +
     item('', '#fef2f2', 'Con agencia asignada', `${[...new Set(sinAg.map(e => e.nodo))].join(', ') || 'Todos los nodos tienen agencia'}${sinAg.length ? ': faltan en el catálogo de agencias.' : '.'}`, sinAg.length, 'catalogo', 'Completar catálogo') +
-    item('🗺', '#fef2f2', 'Con zona', 'Necesaria para el análisis por zona y la matriz transporte × zona.', sinZona.length, 'catalogo', 'Completar catálogo') +
-    `<div class="cq-i"><div class="ic" style="background:#fffbeb">📦</div><div class="tx"><b>Importe repartido entre cuentas (HRN)</b><span>${R.sinHrn ? `${fmt(R.sinHrn)} sin cuenta: falta el HRN de ${R.sinHrnNodos.size} ${R.sinHrnNodos.size === 1 ? 'nodo' : 'nodos'}.` : 'Todo el costo está asignado a una cuenta.'}</span></div><div class="mt"><div class="tr"><i style="width:${hrnPc}%;background:${hrnPc >= 95 ? 'var(--grn)' : 'var(--amb)'}"></i></div><small>${hrnPc.toFixed(0)}% asignado</small></div><button class="b sec" data-go="detalle">Cargar HRN</button></div>`;
+    item('', '', 'Con zona', 'Necesaria para el análisis por zona y la matriz transporte × zona.', sinZona.length, 'catalogo', 'Completar catálogo') +
+    `<div class="cq-i"><div class="tx"><b>Importe repartido entre cuentas (HRN)</b><span>${R.sinHrn ? `${fmt(R.sinHrn)} sin cuenta: falta el HRN de ${R.sinHrnNodos.size} ${R.sinHrnNodos.size === 1 ? 'nodo' : 'nodos'}.` : 'Todo el costo está asignado a una cuenta.'}</span></div><div class="mt"><div class="tr"><i style="width:${hrnPc}%;background:${hrnPc >= 95 ? 'var(--grn)' : 'var(--amb)'}"></i></div><small>${hrnPc.toFixed(0)}% asignado</small></div><button class="b sec" data-go="detalle">Cargar HRN</button></div>`;
   $('#dotCal').className = (sinImp.length || sinFac.length || sinAdj.length || sinAg.length || sinZona.length || R.sinHrn) ? 'dotw' : '';
 }
 // ---------- detalle lateral ----------
@@ -1833,6 +1845,7 @@ function abrirDetalle(tipo, k) {
   $('#dr').classList.add('on'); $('#ov').classList.add('on');
 }
 const cerrarDetalle = () => { $('#dr').classList.remove('on'); $('#ov').classList.remove('on'); };
+$('#drX').innerHTML = ICO.x;
 $('#drX').onclick = $('#ov').onclick = cerrarDetalle;
 document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarDetalle(); });
 document.addEventListener('click', e => {
@@ -1991,7 +2004,7 @@ function pintarAlertas(R) {
   const ic = {
     w: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>',
     o: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' };
-  const nb = (tipo, texto, go, accion) => `<div class="nb ${tipo}">${ic[tipo]}<div class="t">${texto}</div>${go ? `<span class="go" data-go="${go}">${accion}</span>` : ''}<button class="x" aria-label="Cerrar">×</button></div>`;
+  const nb = (tipo, texto, go, accion) => `<div class="nb ${tipo}">${ic[tipo]}<div class="t">${texto}</div>${go ? `<span class="go" data-go="${go}">${accion}</span>` : ''}<button class="x" aria-label="Cerrar">${ICO.x}</button></div>`;
   const out = [];
   if (R.sinHrn) { const n = R.sinHrnNodos.size, f = [...R.sinHrnFechas].sort().map(x => fdmy(x).slice(0, 5)); out.push(nb('w', `<b>${fmt(R.sinHrn)} sin cuenta asignada.</b> Falta el HRN de ${n} ${n === 1 ? 'nodo' : 'nodos'} (${f.slice(0, 4).join(', ')}${f.length > 4 ? '…' : ''}).`, 'detalle', 'Cargar HRN')); }
   if (R.pendientes) out.push(nb('w', `<b>${R.pendientes} ${R.pendientes === 1 ? 'registro sin importe' : 'registros sin importe'}</b> no ${R.pendientes === 1 ? 'entra' : 'entran'} al cálculo.`, 'registros', 'Ir a Registros'));
