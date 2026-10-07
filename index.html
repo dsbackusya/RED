@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Red Troncal</title>
-<meta name="theme-color" content="#0B192C">
+<meta name="theme-color" content="#f5f5f7">
 <link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -449,6 +449,109 @@
   #lqParDlg { width:min(560px, 92vw) } #lqParDlg .in { padding:24px; margin:0 } #lqParDlg .fgrid input { width:100%; min-width:0 } #lqParDlg .fgrid label { min-width:0 }
   @media (max-width:900px) { .lqbar { flex-direction:column; align-items:stretch } }
   td input:disabled, td select:disabled { opacity:.55; cursor:not-allowed } button.del:disabled { opacity:.4; cursor:not-allowed }
+
+  /* ===== Versión móvil: barra de pestañas abajo, tarjetas en lugar de tablas, formularios para el pulgar ===== */
+  .tabbar, .sheetw { display:none }
+  @media (max-width:760px) {
+    html { -webkit-tap-highlight-color:transparent } body { overscroll-behavior-y:none }
+    /* barra superior mínima: solo el logo (y Salir si hay login) */
+    .topbar .in { height:46px; padding:0 16px; gap:12px; flex-wrap:nowrap } .topbar nav, .busca, .estado:not(.mal) { display:none } .tlogo { height:30px }
+    main { padding:16px 16px calc(84px + env(safe-area-inset-bottom)) } h1 { font-size:30px } .sub { font-size:15px; margin-top:4px }
+    .top { margin-bottom:18px; align-items:flex-start } .top .acts { flex-wrap:wrap; gap:4px 18px; font-size:15px }
+    .top .acts .b { font-size:15px; padding:8px 0 }
+    /* barra de pestañas */
+    .tabbar { display:flex; position:fixed; left:0; right:0; bottom:0; z-index:60; padding:6px 4px calc(6px + env(safe-area-inset-bottom)); background:rgba(249,249,251,.86); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px); border-top:1px solid var(--line) }
+    .tabbar button { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 2px; background:none; border:0; color:var(--mut); font:inherit; font-size:11px; font-weight:500; letter-spacing:0; cursor:pointer }
+    .tabbar button svg { width:24px; height:24px } .tabbar button.on { color:var(--pri) } .tabbar button.on svg { stroke-width:2.2 }
+    .sheetw:not([hidden]) { display:block; position:fixed; inset:0; z-index:70 } .sheetbg { position:absolute; inset:0; background:rgba(0,0,0,.3); animation:fadein .2s }
+    .sheet { position:absolute; left:8px; right:8px; bottom:calc(8px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:8px; animation:subir .25s ease-out }
+    .sheet button { background:rgba(255,255,255,.96); border:0; border-radius:16px; padding:14px 18px; text-align:left; font:inherit; font-size:17px; font-weight:500; color:var(--ink); display:flex; flex-direction:column; gap:1px }
+    .sheet button small { color:var(--mut); font-size:13px; font-weight:400 } .sheet button.cancel { text-align:center; color:var(--pri); font-weight:600; margin-top:2px }
+    @keyframes subir { from { transform:translateY(30px); opacity:0 } } @keyframes fadein { from { opacity:0 } }
+    /* controles: 16 px para que iOS no haga zoom al tocar, y alto cómodo */
+    input, select, button.b { font-size:16px; padding:11px 14px; min-height:44px; border-radius:12px } button.b { padding:11px 20px }
+    input[type=checkbox] { min-height:0 } .pseg button, .seg button, .ktabs button { min-height:36px; font-size:14px }
+    .card { padding:16px; border-radius:18px } .row { gap:12px } .row > label, .row > button, .fg { flex:1 1 140px } .fb { gap:14px }
+    .fg select, .fg input, .row label input, .row label select { width:100% }
+    .pseg { max-width:100% }
+    /* tablas con muchas columnas, convertidas en tarjetas */
+    .tw:has(#rTabla, #lqTabla, #kTabla) { max-height:none !important; overflow:visible; border:0; background:none; border-radius:0 }
+    .tcard:has(#rTabla, #lqTabla, #kTabla) { background:none; overflow:visible } .tcard:has(#lqTabla) { background:var(--card); overflow:hidden }
+    #rTabla, #rTabla tbody, #kTabla, #kTabla tbody, #lqTabla, #lqTabla tbody { display:block; background:none }
+    #rTabla tr:not([data-id]), #kTabla tr:not([data-n]), #lqTabla tr:has(th) { display:none }
+    #rTabla tr[data-id], #kTabla tr[data-n] { display:grid; grid-template-columns:repeat(6, 1fr); gap:10px 12px; background:var(--card); border-radius:18px; padding:16px; margin-bottom:12px }
+    #rTabla td, #kTabla td { display:block; padding:0; border:0; white-space:normal; min-width:0; background:none !important; text-align:left }
+    #rTabla td[data-l]::before, #kTabla td[data-l]::before { content:attr(data-l); display:block; margin-bottom:4px; font-size:12px; color:var(--mut); font-weight:500 }
+    #rTabla td input, #rTabla td select, #kTabla td input, #kTabla td select { width:100% !important; min-width:0 !important; background:var(--head); border:0; text-align:left; padding:10px 12px; font-size:16px }
+    #rTabla td input.chip { width:100% !important; text-align:left } #rTabla td.n input { text-align:left; font-weight:600 }
+    #rTabla td[data-c=nodo] { grid-column:1/-1; order:1; font-size:19px; font-weight:700; letter-spacing:-.02em } #rTabla .nodo { font-size:19px }
+    #rTabla td[data-c=estado] { grid-column:1/4; order:2 } #rTabla td[data-c=fecha] { grid-column:4/7; order:3; text-align:right; font-size:13px; color:var(--mut); align-self:center }
+    #rTabla td[data-c=trans] { grid-column:1/4; order:4 } #rTabla td[data-c=pago] { grid-column:4/7; order:5 }
+    #rTabla td[data-c=importe] { grid-column:1/4; order:6 } #rTabla td[data-c=factura] { grid-column:4/7; order:7 }
+    #rTabla td[data-c=adj] { grid-column:1/-1; order:8 } #rTabla td[data-c=agencia] { grid-column:1/-1; order:9 }
+    #rTabla td[data-c=placa] { grid-column:1/4; order:10 } #rTabla td[data-c=bultos] { grid-column:4/5; order:11 } #rTabla td[data-c=pedidos] { grid-column:5/6; order:12 } #rTabla td[data-c=cajas] { grid-column:6/7; order:13 }
+    #rTabla td[data-c=bultos], #rTabla td[data-c=pedidos], #rTabla td[data-c=cajas] { text-align:center; font-weight:600; font-size:16px } #rTabla td[data-c=bultos]::before, #rTabla td[data-c=pedidos]::before, #rTabla td[data-c=cajas]::before { text-align:center }
+    #rTabla td[data-c=detalle] { grid-column:1/-1; order:14 } #rTabla td[data-c=del] { grid-column:1/-1; order:15; text-align:right; border-top:1px solid var(--line); padding-top:8px; margin-top:2px } #rTabla .del { min-height:40px; font-size:15px }
+    #rTabla td.adj { min-width:0 } #rTabla td.adj a { display:inline-flex; align-items:center; gap:8px; font-size:16px } #rTabla .thumb { width:44px; height:44px }
+    #rTabla td.adj .lnk, #rTabla td.adj button { font-size:16px; min-height:40px }
+    #rPag { flex-direction:column; align-items:stretch; gap:10px; background:none; border:0; padding:6px 0 0 } #rPag .l, #rPag .r { justify-content:space-between; flex-wrap:wrap }
+    #rPag button { min-width:40px; min-height:40px }
+    /* Agencias */
+    #kTabla tr[data-n] { grid-template-columns:1fr 1fr }
+    #kTabla td[data-c=destino] { grid-column:1/-1; font-size:19px } #kTabla td[data-c=agencia], #kTabla td[data-c=concat] { grid-column:1/-1 } #kTabla td[data-c=del] { grid-column:1/-1; text-align:right }
+    /* Liquidaciones */
+    #lqTabla tr { display:grid; grid-template-columns:44px 1fr auto; grid-template-areas:"chk nodo imp" "chk meta meta"; gap:2px 8px; padding:12px 14px; border-top:1px solid var(--line) } #lqTabla tr:first-child { border-top:0 }
+    #lqTabla td { display:block; padding:0; border:0; white-space:normal; background:none !important }
+    #lqTabla td[data-c=chk] { grid-area:chk; align-self:center } #lqTabla td[data-c=chk] input { width:22px; height:22px }
+    #lqTabla td[data-c=nodo] { grid-area:nodo; font-size:16px } #lqTabla td[data-c=importe] { grid-area:imp; text-align:right; font-size:16px }
+    #lqTabla td[data-c=factura], #lqTabla td[data-c=fecha], #lqTabla td[data-c=trans], #lqTabla td[data-c=pago] { display:inline; font-size:13px; color:var(--mut) }
+    #lqTabla td[data-c=factura] { grid-area:meta } #lqTabla td[data-c=fecha], #lqTabla td[data-c=trans], #lqTabla td[data-c=pago] { display:none }
+    .lqbar { flex-direction:column; align-items:stretch; padding:14px 16px } #lqDescargar { width:100% }
+    #lqHist, #lqHist tbody { display:block } #lqHist tr:has(th) { display:none } #lqHist tr[data-id] { display:grid; grid-template-columns:1fr auto; gap:2px 10px; padding:14px 16px; border-top:1px solid var(--line) } #lqHist td { display:block; padding:0; border:0; background:none !important; white-space:normal }
+    #lqHist td:last-child { grid-column:1/-1; text-align:left !important; margin-top:6px } #lqHist td:nth-child(3) { color:var(--mut); font-size:13px } #lqHist td:nth-child(4) { display:none } #lqHist td:nth-child(2) { grid-column:2; grid-row:1; text-align:right; color:var(--mut); font-size:13px } #lqHist td:nth-child(5) { grid-column:2; grid-row:2; text-align:right }
+    /* Costos: cifras y filtros */
+    #kpCards { grid-template-columns:1fr 1fr; gap:16px 18px } #kpCards .hero b { font-size:46px } #kpCards .cd { grid-column:1/-1 } .cdr { grid-template-columns:10px 1fr auto 40px }
+    .insw .nb, .hl { padding:14px 16px } .cgrid { gap:12px }
+    /* ventanas como hojas inferiores */
+    dialog { width:100% !important; max-width:100% !important; margin:auto 0 0 0 !important; max-height:92vh; border-radius:22px 22px 0 0 !important; padding-bottom:env(safe-area-inset-bottom) } dialog[open] { animation:subir .28s ease-out }
+    #cfDlg .in, #dstDlg .in, #lqParDlg .in, #metaDlg .in { padding:22px 20px 20px } #cfDlg .row .b, #dstDlg .row .b, #lqParDlg .row .b, #metaDlg .row .b { flex:1; justify-content:center }
+    .fd { grid-template-columns:1fr; max-height:92vh } .fd-img { max-height:32vh } .fgrid { grid-template-columns:1fr 1fr }
+    .dr { width:100vw } .dr .ks { grid-template-columns:1fr 1fr }
+    #toasts { right:12px; left:12px; bottom:calc(76px + env(safe-area-inset-bottom)) } .toast { max-width:none }
+    /* sin desbordes laterales */
+    html, body { max-width:100%; overflow-x:hidden }
+  }
+  @media (max-width:380px) { h1 { font-size:27px } #kpCards .hero b { font-size:40px } .tabbar button { font-size:10px } }
+
+  @media (max-width:760px) {
+    .pseg { display:flex; width:100%; overflow-x:auto } .pseg button { flex:1 0 auto; padding:7px 14px }
+    .row > label:has(input[type=date]) { flex:1 1 calc(50% - 6px); min-width:0 } .fb .fg:has(input[type=date]), .fb .rg { min-width:0 }
+    .rg { width:100% } .rg input { flex:1; min-width:0 }
+    #rTabla td.adj { display:flex !important; flex-wrap:wrap; align-items:center; gap:6px 18px } #rTabla td.adj::before { flex-basis:100% }
+    #rTabla td.adj a { text-decoration:none; color:var(--pri) } #rTabla td.adj button.b { width:100% }
+    #rTabla td select[data-v] { text-align:center; border-radius:12px; font-size:15px; font-weight:600 }
+    .lqsel { display:flex; gap:20px; padding:0 4px 10px; font-size:15px } .lqsel button { padding:6px 0; font-size:15px }
+    .kpis { grid-template-columns:1fr 1fr } .kpi small { overflow:visible; white-space:normal }
+  }
+  @media (min-width:761px) { .lqsel { display:none } }
+  @media (max-width:760px) { .tcard:has(#lqTabla) { display:flex; flex-direction:column } .tcard:has(#lqTabla) .lqbar { order:-1; border-top:0; border-bottom:1px solid var(--line) } }
+  @media (max-width:760px) { .fb .fg { flex:1 1 100% } .fb .fg:has(#kAgencia), .fb .fg:has(#kZona) { flex:1 1 calc(50% - 7px) } #kgMes input { width:100% } .top .acts { gap:2px 20px } }
+  .mfil { display:none !important }
+  @media (max-width:760px) { .mfil { display:inline-flex !important } #tab-kpis > .card:has(.fb) { display:none } #tab-kpis.fopen > .card:has(.fb) { display:block } }
+  @media (max-width:760px) { #kTabla td[data-c=pago] { grid-column:1/-1 } #kTabla .b.sec { color:var(--bad); background:var(--badbg); min-height:40px } }
+  @media (max-width:760px) {
+    #tab-cargar .row > * { flex:1 1 100% } #tab-cargar input[type=file] { width:100%; padding:18px 12px; border-radius:16px } #tab-cargar .row .b { width:100%; justify-content:center }
+    .tw:has(#cTabla) { max-height:none !important; overflow:visible; border:0; background:none } #cTabla, #cTabla tbody { display:block; background:none } #cTabla tr:has(th) { display:none }
+    #cTabla tr[data-i] { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px 12px; background:var(--card); border-radius:18px; padding:16px; margin-bottom:12px } #cTabla tr.miss { box-shadow:inset 0 0 0 2px var(--amb) } #cTabla tr.miss td { background:none !important }
+    #cTabla td { display:block; padding:0; border:0; white-space:normal; min-width:0; background:none !important } #cTabla td[data-l]::before { content:attr(data-l); display:block; margin-bottom:4px; font-size:12px; color:var(--mut); font-weight:500 }
+    #cTabla td input, #cTabla td select { width:100% !important; min-width:0 !important; background:var(--head); border:0; text-align:left; padding:10px 12px; font-size:16px }
+    #cTabla td[data-c=nodo] { grid-column:1/-1; font-size:19px } #cTabla td[data-c=trans], #cTabla td[data-c=placa] { grid-column:span 3 } #cTabla td[data-c=agencia], #cTabla td[data-c=pago], #cTabla td[data-c=detalle] { grid-column:1/-1 }
+    #cPrev .row { flex-direction:column; align-items:stretch } #cGuardar { width:100% }
+  }
+  @media (max-width:760px) { #cPrev { background:none; padding:0 } #cPrev .row { background:var(--card); border-radius:18px; padding:16px; margin-bottom:12px } #cPrev .row b { font-size:16px } #cPrev .tw { margin-top:0 !important } }
+  @media (max-width:760px) { .top:has(> h1) { flex-direction:column; align-items:flex-start; gap:4px } #tab-detalle .row > * { flex:1 1 100% } #tab-detalle .tw { max-height:60vh } }
+  @media (max-width:760px) { #dstDlg .fgrid label:nth-child(2), #dstDlg .fgrid label:nth-child(3) { grid-column:1/-1 } }
+  @media (max-width:760px) { .ktabs { display:flex; flex-wrap:nowrap; width:100%; overflow-x:auto; scroll-snap-type:x proximity } .ktabs button { flex:0 0 auto; white-space:nowrap } }
 </style>
 </head>
 <body>
@@ -569,7 +672,7 @@
 <section id="tab-kpis" class="hide">
   <div class="top">
     <div><h1>Costos</h1><div class="sub">Qué se paga por mover la carga, y a quién</div></div>
-    <div class="acts"><span class="upd hide" id="kUpd"></span><button class="b sec" id="kRefrescar">Actualizar</button><button class="b sec" id="kLink">Copiar enlace</button><button class="b sec" id="kPdf">Informe PDF</button><button class="b sec" id="kExport">Exportar a Excel</button></div>
+    <div class="acts"><span class="upd hide" id="kUpd"></span><button class="b sec mfil" id="kFiltros" aria-expanded="false">Filtros</button><button class="b sec" id="kRefrescar">Actualizar</button><button class="b sec" id="kLink">Copiar enlace</button><button class="b sec" id="kPdf">Informe PDF</button><button class="b sec" id="kExport">Exportar a Excel</button></div>
   </div>
   <div class="card">
     <div class="fb">
@@ -657,6 +760,7 @@
       </div>
       <div id="lqMsg" class="msg"></div>
     </div>
+    <div class="lqsel"><button class="lnk" id="lqAll">Seleccionar todo</button><button class="lnk" id="lqNone">Ninguno</button></div>
     <div class="card tcard">
       <div class="tw" style="max-height:52vh"><table id="lqTabla"></table></div>
       <div class="lqbar"><div id="lqResumen"></div><button class="b" id="lqDescargar" disabled>Descargar liquidación</button></div>
@@ -713,6 +817,18 @@
 </div></main>
 </div></div>
 
+<div class="tabbar" id="tabbar">
+  <button data-tab="cargar" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg><span>Cargar</span></button>
+  <button data-tab="registros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Registros</span></button>
+  <button data-tab="liquidaciones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/></svg><span>Liquidar</span></button>
+  <button data-tab="kpis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg><span>Costos</span></button>
+  <button id="masBtn" aria-haspopup="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg><span>Más</span></button>
+</div>
+<div class="sheetw" id="masSheet" hidden><div class="sheetbg" id="masBg"></div><div class="sheet" role="menu">
+  <button data-tab="detalle">Detalle<small>Una fila por bulto</small></button>
+  <button data-tab="catalogo">Agencias<small>Destinos, agencias y zonas</small></button>
+  <button class="cancel" id="masX">Cerrar</button>
+</div></div>
 <div class="ov" id="ov"></div>
 <aside class="dr" id="dr" aria-label="Detalle"><header><div><small id="drT"></small><h2 id="drN"></h2></div><button class="x2" id="drX" aria-label="Cerrar">×</button></header><div class="bd" id="drB"></div></aside>
 <dialog id="metaDlg"><div class="in">
@@ -829,8 +945,12 @@ window.addEventListener('hashchange', () => { const t = location.hash.slice(1).s
 
 const TITULOS = { cargar: 'Cargar despacho', registros: 'Registros', kpis: 'Costos', liquidaciones: 'Liquidaciones', detalle: 'Detalle', catalogo: 'Agencias' };
 const irA = tab => document.querySelector(`nav button[data-tab="${tab}"]`).click();
-document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
+$('#masBtn').onclick = () => { $('#masSheet').hidden = false; };
+$('#masBg').onclick = $('#masX').onclick = () => { $('#masSheet').hidden = true; };
+const NAVB = 'nav button, .tabbar button[data-tab], #masSheet button[data-tab]';
+document.querySelectorAll(NAVB).forEach(b => b.onclick = () => {
+  document.querySelectorAll(NAVB).forEach(x => x.classList.toggle('on', x.dataset.tab === b.dataset.tab));
+  $('#masBtn').classList.toggle('on', ['detalle', 'catalogo'].includes(b.dataset.tab)); $('#masSheet').hidden = true;
   ['cargar','registros','liquidaciones','kpis','detalle','catalogo'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
   document.title = TITULOS[b.dataset.tab] + ' – Red Troncal';
   history.replaceState(null, '', '#' + b.dataset.tab); try { localStorage.setItem('tab', b.dataset.tab); } catch (e) {}
@@ -854,13 +974,13 @@ async function cargarCatalogo() {
 function pintarCatalogo(rows) {
   $('#kTabla').innerHTML = '<tr><th>Destino</th><th>Agencia</th><th>Transporte</th><th>Zona</th><th>Observación</th><th>Concatenar</th><th></th></tr>' +
     rows.map(r => `<tr data-n="${esc(r.destino)}">
-      <td><b>${esc(r.destino)}</b></td>
-      <td><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}"></td>
-      <td><input data-f="transporte" value="${esc(r.transporte)}"></td>
-      <td><input data-f="zona" value="${esc(r.zona)}"></td>
-      <td><select data-f="observacion" data-v="${r.observacion}">${OBS.map(p => `<option${p === r.observacion ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
-      <td><input data-f="concatenar" style="min-width:260px" value="${esc(r.concatenar)}"></td>
-      <td><button class="b sec" data-del="1">Eliminar</button></td></tr>`).join('');
+      <td data-c="destino"><b>${esc(r.destino)}</b></td>
+      <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}"></td>
+      <td data-c="trans" data-l="Transporte"><input data-f="transporte" value="${esc(r.transporte)}"></td>
+      <td data-c="zona" data-l="Zona"><input data-f="zona" value="${esc(r.zona)}"></td>
+      <td data-c="pago" data-l="Modo de pago"><select data-f="observacion" data-v="${r.observacion}">${OBS.map(p => `<option${p === r.observacion ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
+      <td data-c="concat" data-l="Detalle del gasto"><input data-f="concatenar" style="min-width:260px" value="${esc(r.concatenar)}"></td>
+      <td data-c="del"><button class="b sec" data-del="1">Eliminar</button></td></tr>`).join('');
 }
 $('#kTabla').addEventListener('change', async e => {
   const tr = e.target.closest('tr'); if (!tr || !e.target.dataset.f) return;
@@ -953,15 +1073,15 @@ function pintarPrevia() {
   $('#cResumen').textContent = `${previa.length} nodos, ${previa.reduce((s, r) => s + (r.pedidos || 0), 0)} pedidos, ${previa.reduce((s, r) => s + (r.bultos || 0), 0)} bultos, ${previa.reduce((s, r) => s + (r.cajas || 0), 0)} cajas` + (faltan ? `, ${faltan} sin catálogo` : '');
   $('#cTabla').innerHTML = '<tr><th>Nodo</th><th>Transporte</th><th>Pedidos</th><th>Bultos</th><th>Cajas</th><th>Placa</th><th>Agencia</th><th>Modo de pago</th><th>Detalle del gasto</th></tr>' +
     previa.map((r, i) => `<tr class="${r.en_catalogo ? '' : 'miss'}" data-i="${i}">
-      <td><b>${esc(r.nodo)}</b></td>
-      <td><input data-f="transporte" value="${esc(r.transporte)}"></td>
-      <td class="n"><input data-f="pedidos" type="number" value="${r.pedidos ?? ''}"></td>
-      <td class="n"><input data-f="bultos" type="number" value="${r.bultos ?? ''}"></td>
-      <td class="n"><input data-f="cajas" type="number" value="${r.cajas ?? ''}"></td>
-      <td><input data-f="placa" value="${esc(r.placa)}"></td>
-      <td><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}"></td>
-      <td><select data-f="modo_pago" data-v="${r.modo_pago}">${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
-      <td><input data-f="detalle_gasto" value="${esc(r.detalle_gasto)}"></td></tr>`).join('');
+      <td data-c="nodo"><b>${esc(r.nodo)}</b></td>
+      <td data-c="trans" data-l="Transporte"><input data-f="transporte" value="${esc(r.transporte)}"></td>
+      <td class="n" data-c="n" data-l="Pedidos"><input data-f="pedidos" type="number" value="${r.pedidos ?? ''}"></td>
+      <td class="n" data-c="n" data-l="Bultos"><input data-f="bultos" type="number" value="${r.bultos ?? ''}"></td>
+      <td class="n" data-c="n" data-l="Cajas"><input data-f="cajas" type="number" value="${r.cajas ?? ''}"></td>
+      <td data-c="placa" data-l="Placa"><input data-f="placa" value="${esc(r.placa)}"></td>
+      <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}"></td>
+      <td data-c="pago" data-l="Modo de pago"><select data-f="modo_pago" data-v="${r.modo_pago}">${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
+      <td data-c="detalle" data-l="Detalle del gasto"><input data-f="detalle_gasto" value="${esc(r.detalle_gasto)}"></td></tr>`).join('');
   $('#cPrev').classList.remove('hide');
 }
 $('#cTabla').addEventListener('change', e => {
@@ -1108,16 +1228,16 @@ function estadoTag(r) {
 function filaRegistro(r) {
   const L = regEnviado(r) ? ' disabled title="Está en una liquidación. Anúlala para editarlo."' : '';
   return `<tr data-id="${r.id}">
-      <td class="mono sm">${fdmy(r.fecha)}</td><td>${estadoTag(r)}</td><td>${tbadge(r.transporte)}</td><td><span class="nodo">${PIN}${esc(r.nodo)}</span></td>
-      <td class="c">${r.bultos ?? ''}</td><td class="c">${r.pedidos ?? ''}</td><td class="c">${r.cajas ?? ''}</td>
-      <td><input class="chip mono" data-f="placa" value="${esc(r.placa)}" placeholder="placa"></td>
-      <td><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}" placeholder="Sin agencia asignada"></td>
-      <td><input data-f="detalle_gasto" value="${esc(r.detalle_gasto)}"></td>
-      <td class="c"><select data-f="modo_pago" data-v="${r.modo_pago}"${L}>${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
-      <td class="n"><input class="mono imp" data-f="importe" type="number" step="0.01" value="${r.importe == null ? '' : Number(r.importe).toFixed(2)}" placeholder="0.00"${L}></td>
-      <td><input class="mono" data-f="factura" value="${esc(r.factura)}" placeholder="F001-0000"${L}></td>
-      <td class="adj">${adjuntoHtml(r)}</td>
-      <td class="c"><button class="del" data-del="1"${L}>${TRASH} Eliminar</button></td></tr>`;
+      <td class="mono sm" data-c="fecha">${fdmy(r.fecha)}</td><td data-c="estado">${estadoTag(r)}</td><td data-c="trans" data-l="Transporte">${tbadge(r.transporte)}</td><td data-c="nodo"><span class="nodo">${PIN}${esc(r.nodo)}</span></td>
+      <td class="c" data-c="bultos" data-l="Bultos">${r.bultos ?? ''}</td><td class="c" data-c="pedidos" data-l="Pedidos">${r.pedidos ?? ''}</td><td class="c" data-c="cajas" data-l="Cajas">${r.cajas ?? ''}</td>
+      <td data-c="placa" data-l="Placa"><input class="chip mono" data-f="placa" value="${esc(r.placa)}" placeholder="placa"></td>
+      <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}" placeholder="Sin agencia asignada"></td>
+      <td data-c="detalle" data-l="Detalle del gasto"><input data-f="detalle_gasto" value="${esc(r.detalle_gasto)}"></td>
+      <td class="c" data-c="pago" data-l="Pago"><select data-f="modo_pago" data-v="${r.modo_pago}"${L}>${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
+      <td class="n" data-c="importe" data-l="Importe"><input class="mono imp" data-f="importe" type="number" step="0.01" value="${r.importe == null ? '' : Number(r.importe).toFixed(2)}" placeholder="0.00"${L}></td>
+      <td data-c="factura" data-l="N° de factura"><input class="mono" data-f="factura" value="${esc(r.factura)}" placeholder="F001-0000"${L}></td>
+      <td class="adj" data-c="adj" data-l="Factura adjunta">${adjuntoHtml(r)}</td>
+      <td class="c" data-c="del"><button class="del" data-del="1"${L}>${TRASH} Eliminar</button></td></tr>`;
 }
 function pintarTablaRegistros() {
   const N = registros.length, paginas = Math.max(1, Math.ceil(N / pag.size));
@@ -1543,6 +1663,7 @@ $('#kPer').onclick = e => { const b = e.target.closest('button'); if (b) kPeriod
 $('#kMes').onchange = () => { kst.p = 'sel'; rangoDeMes(); kSync(); kAuto(); };
 $('#kDesde').onchange = $('#kHasta').onchange = () => { kst.p = 'per'; $('#kMes').value = ''; kSync(); kAuto(); };
 $('#kTransSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#kTrans').value = b.dataset.t; kSync(); kAuto(); };
+$('#kFiltros').onclick = () => { const o = $('#tab-kpis').classList.toggle('fopen'); $('#kFiltros').setAttribute('aria-expanded', o); $('#kFiltros').textContent = o ? 'Ocultar filtros' : 'Filtros'; };
 $('#kRefrescar').onclick = () => calcularKpis();
 function kRestablecer() { $('#kTrans').value = ''; $('#kAgencia').value = ''; $('#kZona').value = ''; kPeriodo('mes'); }
 function pintarUpd() {
@@ -1931,7 +2052,7 @@ function lqPartir(list) {
 function lqPintar() {
   const marca = lqLista.length && lqLista.every(r => lqSel.has(r.id));
   $('#lqTabla').innerHTML = `<tr><th style="width:36px"><input type="checkbox" id="lqTodos" ${marca ? 'checked' : ''} aria-label="Seleccionar todos"></th><th>Fecha</th><th>Transporte</th><th>Nodo</th><th>Pago</th><th>Factura</th><th class="num">Importe</th></tr>` +
-    (lqLista.map(r => `<tr><td><input type="checkbox" data-id="${r.id}" ${lqSel.has(r.id) ? 'checked' : ''}></td><td class="mono sm">${fdmy(r.fecha)}</td><td>${tbadge(r.transporte)}</td><td><b>${esc(r.nodo)}</b></td><td>${r.modo_pago === 'CREDITO' ? 'Crédito' : 'Contado'}</td><td class="mono">${esc(r.factura)}</td><td class="num"><b>${fmt(r.importe)}</b></td></tr>`).join('') ||
+    (lqLista.map(r => `<tr><td data-c="chk"><input type="checkbox" data-id="${r.id}" ${lqSel.has(r.id) ? 'checked' : ''} aria-label="Incluir ${esc(r.nodo)}"></td><td class="mono sm" data-c="fecha">${fdmy(r.fecha)}</td><td data-c="trans">${tbadge(r.transporte)}</td><td data-c="nodo"><b>${esc(r.nodo)}</b></td><td data-c="pago">${r.modo_pago === 'CREDITO' ? 'Crédito' : 'Contado'}</td><td class="mono" data-c="factura">${esc(r.factura)}</td><td class="num" data-c="importe"><b>${fmt(r.importe)}</b></td></tr>`).join('') ||
     '<tr><td colspan="7"><div class="empty"><b>No hay registros listos para liquidar</b><span>Un registro está listo cuando tiene importe, N° de factura y foto, y aún no fue enviado.</span></div></td></tr>');
   const elegidos = lqLista.filter(r => lqSel.has(r.id)), total = elegidos.reduce((s, r) => s + Number(r.importe), 0), grupos = lqPartir(elegidos), lim = lqLimite();
   const grandes = elegidos.filter(r => Number(r.importe) > lim).length, cuenta = {};
@@ -1950,6 +2071,8 @@ $('#lqTabla').addEventListener('change', e => {
   else if (e.target.dataset.id) e.target.checked ? lqSel.add(e.target.dataset.id) : lqSel.delete(e.target.dataset.id);
   lqPintar();
 });
+$('#lqAll').onclick = () => { lqSel = new Set(lqLista.map(r => r.id)); lqPintar(); };
+$('#lqNone').onclick = () => { lqSel = new Set(); lqPintar(); };
 $('#lqPago').onclick = e => { const b = e.target.closest('button'); if (!b) return; lqPago = b.dataset.g; document.querySelectorAll('#lqPago button').forEach(x => x.classList.toggle('on', x === b)); lqBuscar(); };
 $('#lqBuscar').onclick = lqBuscar;
 ['lqTrans', 'lqDesde', 'lqHasta'].forEach(id => $('#' + id).addEventListener('change', lqBuscar));
