@@ -1027,6 +1027,8 @@ let catalogo = new Map();   // nodo normalizado -> fila
 let previa = [];            // filas de la carga en curso
 let hrnCarga = null;        // detalle HRN encontrado en el mismo Excel
 let registros = [];
+const rtMios = new Map();   // registros que acabo de modificar yo (el eco en tiempo real se ignora)
+const marcarMio = id => rtMios.set(id, Date.now()), esMio = id => Date.now() - (rtMios.get(id) || 0) < 4000;
 
 // ---------- sesión ----------
 async function iniciar() {
@@ -1048,7 +1050,7 @@ async function mostrarApp(user) {
   $('#cFecha').value = today(); $('#hFecha').value = today(); $('#kHasta').value = today(); $('#kMes').value = today().slice(0, 7); rangoDeMes();
   $('#rDesde').value = today().slice(0, 8) + '01'; $('#rHasta').value = today();
   await cargarCatalogo();
-  buscarRegistros();
+  buscarRegistros(); iniciarTiempoReal();
   const h0 = (location.hash || '').slice(1); let t0 = h0.split('?')[0]; if (t0 === 'hrn') t0 = 'detalle'; if (!TITULOS[t0]) { try { t0 = (localStorage.getItem('tab') || '').replace(/^hrn$/, 'detalle'); } catch (e) { t0 = ''; } }
   if (t0 === 'kpis' && h0.includes('?')) { poblarFiltros(); kAplicar(h0.split('?')[1]); }
   if (TITULOS[t0] && t0 !== 'cargar') irA(t0);
@@ -1275,6 +1277,7 @@ $('#adjFile').onchange = async e => {
   flash($('#rMsg'), 'Subiendo adjunto…', 'ok');
   const up = await sb.storage.from(BUCKET).upload(path, subir, { contentType: tipo, upsert: false });
   if (up.error) return flash($('#rMsg'), 'No se pudo subir: ' + up.error.message, 'err');
+  marcarMio(r.id);
   const { error } = await sb.from('envios').update({ factura_archivo: path }).eq('id', r.id);
   if (error) { await sb.storage.from(BUCKET).remove([path]); return flash($('#rMsg'), error.message, 'err'); }
   if (r.factura_archivo) await sb.storage.from(BUCKET).remove([r.factura_archivo]);
@@ -1327,6 +1330,7 @@ $('#fGuardar').onclick = async () => {
   const cambios = { factura: v('fFactura') || null, importe: nn('fImporte'), factura_fecha: v('fFecha') || null, factura_ruc: v('fRuc') || null,
     factura_guia: v('fGuia') || null, factura_destino: v('fDestino') || null, factura_bultos: nn('fBultos'), factura_peso: nn('fPeso') };
   $('#fGuardar').disabled = true;
+  marcarMio(fReg.id);
   const { error } = await sb.from('envios').update(cambios).eq('id', fReg.id);
   $('#fGuardar').disabled = false;
   if (error) { $('#fEstado').className = 'aviso'; $('#fEstado').textContent = 'No se pudo guardar: ' + error.message; return; }
@@ -1414,7 +1418,7 @@ async function buscarRegistros() {
     return q;
   };
   let data; try { data = await traerTodo(crear); } catch (error) { conexion(false); return flash($('#rMsg'), error.message, 'err'); }
-  conexion(true);
+  conexion(true); rtUltimo = Date.now();
   regBase = data;
   const { data: lqs } = await sb.from('liquidaciones').select('id,numero'); lqNumeros = new Map((lqs || []).map(x => [x.id, x.numero]));
   const ts = [...new Set(data.map(r => r.transporte).filter(Boolean))].sort(), sel = $('#rTrans').value;
@@ -1452,6 +1456,7 @@ $('#rTabla').addEventListener('change', async e => {
   const tr = e.target.closest('tr'); if (!tr || !e.target.dataset.f) return;
   const f = e.target.dataset.f; let v = e.target.value.trim();
   if (v === '') v = null;
+  marcarMio(tr.dataset.id);
   const { error } = await sb.from('envios').update({ [f]: v }).eq('id', tr.dataset.id);
   if (error) return flash($('#rMsg'), error.message, 'err');
   const r = regBase.find(x => x.id === tr.dataset.id); if (r) r[f] = v;
@@ -1513,6 +1518,7 @@ $('#rmAc').addEventListener('click', async e => {
   const b = e.target.closest('button[data-f]'), r = rmReg(); if (!b || !r) return;
   if (b.dataset.f === 'cambiar') { adjId = r.id; $('#adjFile').click(); return; }
   if (!await confirmar('¿Quitar el adjunto?', 'La foto o el PDF se borrará de este registro.', 'Quitar', true)) return;
+  marcarMio(r.id);
   const { error } = await sb.from('envios').update({ factura_archivo: null }).eq('id', r.id);
   if (error) return flash($('#rMsg'), error.message, 'err');
   await sb.storage.from(BUCKET).remove([r.factura_archivo]);
@@ -1524,6 +1530,7 @@ async function guardarReg(siguiente) {
   if (v.importe != null && v.importe < 0) return toast('El importe no puede ser negativo', 'err');
   if (rmSucio()) {
     $('#rmOk').disabled = $('#rmSig').disabled = true;
+    marcarMio(r.id);
     const { error } = await sb.from('envios').update(v).eq('id', r.id);
     $('#rmOk').disabled = false; rmNav();
     if (error) return toast(error.message, 'err');
@@ -2175,12 +2182,12 @@ $('#kpAlertas').addEventListener('click', e => {
   const x = e.target.closest('.x'); if (x) x.parentNode.remove();
 });
 
-async function calcularKpis() {
+async function calcularKpis(silencioso) {
   const desde = $('#kDesde').value, hasta = $('#kHasta').value, trans = $('#kTrans').value, mi = ++kSeq;
   if (desde && hasta && desde > hasta) { $('#kpCards').innerHTML = '<div class="card empty" style="grid-column:1/-1"><b>La fecha inicial es posterior a la final</b><span>Corrige el rango para ver los costos.</span></div>'; $('#kpHall').innerHTML = ''; $('#kpAlertas').innerHTML = ''; return; }
   $('#kRefrescar').disabled = true;
   poblarFiltros(); pintarActivos();
-  $('#kpCards').innerHTML = Array(4).fill('<div class="kpi sk"><span></span><b></b><small></small></div>').join('');
+  if (silencioso !== true) $('#kpCards').innerHTML = Array(4).fill('<div class="kpi sk"><span></span><b></b><small></small></div>').join('');
   try {
     let envios = await traerTodo(() => {
       let q = sb.from('envios').select('id,fecha,nodo,motivo,transporte,agencia,pedidos,bultos,cajas,importe,modo_pago,factura,factura_archivo').order('id');
@@ -2240,8 +2247,8 @@ async function lqAbrir() {
   lqBuscar(); lqHistorial();
 }
 const lqLimite = () => Number(lqPar.limite) || 1500;
-let lqSeq = 0;
-async function lqBuscar() {
+let lqSeq = 0, lqOcupado = false;
+async function lqBuscar(opc) {
   const mi = ++lqSeq, crear = () => {
     let q = sb.from('envios').select('*').is('liquidacion_id', null).order('fecha').order('transporte').order('nodo').order('id');
     if ($('#lqDesde').value) q = q.gte('fecha', $('#lqDesde').value);
@@ -2254,8 +2261,9 @@ async function lqBuscar() {
   if (mi !== lqSeq) return;
   const sel = $('#lqTrans').value;
   if (!sel) $('#lqTrans').innerHTML = '<option value="">Todos</option>' + [...new Set(data.map(r => r.transporte).filter(Boolean))].sort().map(t => `<option>${esc(t)}</option>`).join('');
-  lqLista = data.filter(regListo); lqPend = data.filter(r => !regListo(r));
-  lqSel = new Set(lqLista.map(r => r.id));
+  const lqLista0 = lqLista; lqLista = data.filter(regListo); lqPend = data.filter(r => !regListo(r));
+  if (opc && opc.conservar) { const antes = new Set(lqLista0.map(r => r.id)); lqSel = new Set(lqLista.filter(r => lqSel.has(r.id) || !antes.has(r.id)).map(r => r.id)); }
+  else lqSel = new Set(lqLista.map(r => r.id));
   lqPintar();
 }
 // Reparte los registros en archivos: cada archivo es de UNA sola fecha de despacho y no supera el monto máximo ni las filas del formato.
@@ -2355,7 +2363,7 @@ $('#lqDescargar').onclick = async () => {
   const elegidos = lqLista.filter(r => lqSel.has(r.id)); if (!elegidos.length) return;
   const grupos = lqPartir(elegidos), total = elegidos.reduce((s, r) => s + Number(r.importe), 0);
   if (!await confirmar('Descargar liquidación', `${elegidos.length} ${elegidos.length === 1 ? 'registro' : 'registros'} por ${fmt(total)} en ${grupos.length} ${grupos.length === 1 ? 'archivo' : 'archivos'}. Quedarán marcados como enviados.`, 'Descargar')) return;
-  const btn = $('#lqDescargar'), flot = $('#lqFlotB'); btn.disabled = true; flot.disabled = true; btn.textContent = flot.textContent = 'Preparando…';
+  const btn = $('#lqDescargar'), flot = $('#lqFlotB'); btn.disabled = true; flot.disabled = true; btn.textContent = flot.textContent = 'Preparando…'; lqOcupado = true;
   const creadas = [];
   try {
     await lqLibs();
@@ -2376,7 +2384,7 @@ $('#lqDescargar').onclick = async () => {
     for (const L of creadas) { await sb.from('envios').update({ liquidacion_id: null }).eq('liquidacion_id', L.id); await sb.from('liquidaciones').delete().eq('id', L.id); }
     toast('No se pudo generar la liquidación: ' + (e.message || e), 'err');
   }
-  btn.textContent = 'Descargar liquidación'; flot.textContent = 'Descargar'; flot.disabled = false; lqBuscar(); lqHistorial();
+  lqOcupado = false; btn.textContent = 'Descargar liquidación'; flot.textContent = 'Descargar'; flot.disabled = false; lqBuscar(); lqHistorial();
 };
 async function lqHistorial() {
   const { data, error } = await sb.from('liquidaciones').select('*').eq('anulada', false).order('numero', { ascending: false }).limit(50);
@@ -2418,6 +2426,55 @@ $('#lqParF').onsubmit = async e => {
   if (error) { $('#lpE').textContent = error.message; $('#lpE').className = 'msg err'; return; }
   lqPar = { ...lqPar, ...nuevo }; $('#lqParDlg').close(); toast('Datos del formato guardados'); lqPintar();
 };
+
+// ---------- tiempo real: los cambios de otros usuarios aparecen solos ----------
+let rtCanal = null, rtCaido = false, rtUltimo = Date.now(); const rtTimers = {};
+const rtEspera = (clave, fn, ms) => { clearTimeout(rtTimers[clave]); rtTimers[clave] = setTimeout(fn, ms); };
+const pestanaActual = () => ['cargar', 'registros', 'liquidaciones', 'kpis', 'detalle', 'catalogo'].find(t => !$('#tab-' + t).classList.contains('hide'));
+// ¿el registro entra en los filtros que tengo puestos en Registros?
+const rtCumple = r => { const d = $('#rDesde').value, h = $('#rHasta').value, t = $('#rTrans').value, p = $('#rPago').value, m = $('#rMot').value, n = $('#rNodo').value.trim();
+  return (!d || r.fecha >= d) && (!h || r.fecha <= h) && (!t || r.transporte === t) && (!p || r.modo_pago === p) && (!m || (r.motivo || 'DESPACHO') === m) && (!n || norm(r.nodo).includes(norm(n))); };
+function rtRefrescarVista() {
+  const t = pestanaActual();
+  if (t === 'kpis') rtEspera('kpi', () => calcularKpis(true), 1500);
+  if (t === 'liquidaciones' && !lqOcupado) rtEspera('lq', () => { lqBuscar({ conservar: true }); lqHistorial(); }, 800);
+}
+function rtEnvio(p) {
+  rtUltimo = Date.now();
+  const nuevo = p.new || {}, id = nuevo.id || (p.old || {}).id, r = regBase.find(x => x.id === id);
+  if (p.eventType === 'UPDATE' && r) {
+    const igual = Object.keys(nuevo).every(k => String(nuevo[k] ?? '') === String(r[k] ?? ''));
+    if (!igual) {
+      const enModal = $('#regDlg').open && rm.id === id, sucio = enModal && rmSucio();   // antes de actualizar el registro
+      Object.assign(r, nuevo);
+      const tr = document.querySelector(`#rTabla tr[data-id="${id}"]`);
+      if (tr && !tr.contains(document.activeElement)) repintarFila(r);
+      contarEstados(); pintarResumenRegistros();
+      if (enModal && !esMio(id)) { if (!sucio) abrirReg(id); else toast('Otro usuario cambió este registro. Guarda o descarta tus cambios.', 'err'); }
+    }
+  } else if (p.eventType === 'DELETE') {
+    if (r) { rtEspera('reg', buscarRegistros, 400); if ($('#regDlg').open && rm.id === id) { $('#regDlg').close(); toast('Este registro fue eliminado por otro usuario', 'err'); } }
+  } else if (!r && rtCumple(nuevo)) rtEspera('reg', buscarRegistros, 500);   // registro nuevo o que ahora entra en mis filtros
+  rtRefrescarVista();
+}
+function rtLiq() { rtUltimo = Date.now(); rtEspera('reg', buscarRegistros, 500); rtRefrescarVista(); }
+function rtAgencia() { rtEspera('cat', () => { if (!$('#kTabla').contains(document.activeElement)) cargarCatalogo(); }, 700); }
+function iniciarTiempoReal() {
+  if (rtCanal) return;
+  rtCanal = sb.channel('red-troncal')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'envios' }, rtEnvio)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'liquidaciones' }, rtLiq)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'agencias' }, rtAgencia)
+    .subscribe(estado => {
+      if (estado === 'SUBSCRIBED') { if (rtCaido) { rtCaido = false; buscarRegistros(); rtRefrescarVista(); } }
+      else if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(estado)) rtCaido = true;
+    });
+}
+// al volver a la pestaña después de un rato (celular, otra ventana) se pone al día
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !rtCanal || Date.now() - rtUltimo < 60000) return;
+  rtUltimo = Date.now(); buscarRegistros(); rtRefrescarVista();
+});
 
 {
   const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
