@@ -440,7 +440,7 @@
   td input:disabled, td select:disabled { opacity:.55; cursor:not-allowed } button.del:disabled { opacity:.4; cursor:not-allowed }
 
   /* ===== Versión móvil: barra de pestañas abajo, tarjetas en lugar de tablas, formularios para el pulgar ===== */
-  .tabbar, .sheetw { display:none }
+  .tabbar { display:none }
   @media (max-width:760px) {
     html { -webkit-tap-highlight-color:transparent } body { overscroll-behavior-y:none }
     /* barra superior mínima: solo el logo (y Salir si hay login) */
@@ -452,10 +452,6 @@
     .tabbar { display:flex; position:fixed; left:0; right:0; bottom:0; z-index:60; padding:6px 4px calc(6px + env(safe-area-inset-bottom)); background:rgba(249,249,251,.86); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px); border-top:1px solid var(--line) }
     .tabbar button { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 2px; background:none; border:0; color:var(--mut); font:inherit; font-size:11px; font-weight:500; letter-spacing:0; cursor:pointer }
     .tabbar button svg { width:24px; height:24px } .tabbar button.on { color:var(--pri) } .tabbar button.on svg { stroke-width:2.2 }
-    .sheetw:not([hidden]) { display:block; position:fixed; inset:0; z-index:70 } .sheetbg { position:absolute; inset:0; background:rgba(0,0,0,.3); animation:fadein .2s }
-    .sheet { position:absolute; left:8px; right:8px; bottom:calc(8px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:8px; animation:subir .25s ease-out }
-    .sheet button { background:rgba(255,255,255,.96); border:0; border-radius:16px; padding:14px 18px; text-align:left; font:inherit; font-size:17px; font-weight:500; color:var(--ink); display:flex; flex-direction:column; gap:1px }
-    .sheet button small { color:var(--mut); font-size:13px; font-weight:400 } .sheet button.cancel { text-align:center; color:var(--pri); font-weight:600; margin-top:2px }
     @keyframes subir { from { transform:translateY(30px); opacity:0 } } @keyframes fadein { from { opacity:0 } }
     /* controles: 16 px para que iOS no haga zoom al tocar, y alto cómodo */
     input, select, button.b { font-size:16px; padding:11px 14px; min-height:44px; border-radius:12px } button.b { padding:11px 20px }
@@ -631,10 +627,10 @@
   .calerta { display:flex; gap:12px; align-items:center; background:var(--warnbg); color:var(--warn); border-radius:16px; padding:12px 16px; margin-bottom:16px; font-size:13.5px } .calerta .ico { width:18px; height:18px; flex:none }
   .calerta button { margin-left:auto; font:inherit; font-size:13px; font-weight:600; border:0; background:none; color:var(--warn); cursor:pointer; text-decoration:underline; white-space:nowrap }
   .ccab { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding:16px 20px 12px } .ccab h3 { margin:0; font-size:17px; letter-spacing:-.01em }
-  #cTabla { min-width:860px } #cTabla th:first-child, #cTabla td:first-child { padding-left:20px } #cTabla th:last-child, #cTabla td:last-child { padding-right:20px }
+  #cTabla { min-width:1100px } #cTabla th:first-child, #cTabla td:first-child { padding-left:20px } #cTabla th:last-child, #cTabla td:last-child { padding-right:20px }
   #cTabla td { padding-top:8px; padding-bottom:8px } #cTabla td input, #cTabla td select { width:100%; min-width:0; font-size:13px; padding:8px 10px; border-radius:10px }
-  #cTabla td[data-c=n] { width:76px } #cTabla td[data-c=n] input { text-align:center; padding-left:4px; padding-right:4px }
-  #cTabla td input.vacia { background:var(--warnbg) } #cTabla .nodo { font-weight:700; font-size:14.5px }
+  #cTabla td[data-c=fecha] { width:150px } #cTabla td[data-c=n] { width:76px } #cTabla td[data-c=n] input { text-align:center; padding-left:4px; padding-right:4px }
+  #cTabla td input.vacia, #cTabla td select.vacia { background:var(--warnbg) } #cTabla .nodo { font-weight:700; font-size:14.5px }
   .cfalta { display:inline-block; margin-top:2px; font-size:11.5px; color:var(--warn); font-weight:600; background:var(--warnbg); padding:1px 8px; border-radius:99px }
   .cbarra { position:fixed; left:0; right:0; bottom:0; z-index:30; background:rgba(249,249,251,.88); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px); border-top:1px solid var(--line); padding:14px 28px }
   .cbarra[hidden] { display:none } .cbarra .in { max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:16px }
@@ -648,20 +644,11 @@
     #cTabla tr[data-i] { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px 12px; padding:16px 18px; border-top:1px solid var(--line) } #cTabla tr[data-i]:first-of-type { border-top:0 }
     #cTabla td { display:block; padding:0 !important; border:0; white-space:normal; min-width:0 } #cTabla td[data-l]::before { content:attr(data-l); display:block; margin-bottom:4px; font-size:12px; color:var(--mut); font-weight:500 }
     #cTabla td input, #cTabla td select { width:100% !important; font-size:16px; padding:11px 12px }
-    #cTabla td[data-c=nodo] { grid-column:1/3; font-size:19px } #cTabla td[data-c=motivo] { grid-column:3; text-align:right } #cTabla td[data-c=trans], #cTabla td[data-c=placa], #cTabla td[data-c=agencia], #cTabla td[data-c=pago] { grid-column:1/-1 }
+    #cTabla td[data-c=nodo] { grid-column:1/3; font-size:19px; order:-1 } #cTabla td[data-c=motivo] { grid-column:3; text-align:right; order:-1 } #cTabla td[data-c=fecha], #cTabla td[data-c=trans], #cTabla td[data-c=placa], #cTabla td[data-c=agencia], #cTabla td[data-c=pago], #cTabla td[data-c=zona] { grid-column:1/-1 }
     #cTabla td[data-c=n] { width:auto } #cTabla td[data-c=n] input { text-align:center; font-weight:600 }
     .cbarra { left:12px; right:12px; bottom:calc(80px + env(safe-area-inset-bottom)); border:0; border-radius:18px; padding:10px 10px 10px 16px; background:rgba(255,255,255,.96); box-shadow:0 8px 28px rgba(0,0,0,.22) }
     .cbarra .in { gap:8px } .cbarra .res span { display:none } .cbarra .res b { font-size:14px } .cbarra .b { padding:10px 14px } #cCancelar { display:none }
     #tab-cargar.conbarra { padding-bottom:150px }
-  }
-  .kacc { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px; padding:10px 14px; border-radius:14px; background:#e8f1fc; color:var(--pri); font-size:14px; font-weight:600 } .kacc span { flex:1; min-width:120px }
-  .kacc .b.sec { background:var(--card); color:var(--ink) }
-  #kTabla th[data-c=chk], #kTabla td[data-c=chk] { width:44px; padding-left:16px; padding-right:0 } #kTabla td[data-c=chk] input, #kTabla th[data-c=chk] input { width:18px; height:18px; padding:0; margin:0; cursor:pointer; accent-color:var(--pri) }
-  #kTabla tr.sel td { background:#f0f6fd }
-  @media (max-width:760px) {
-    #kTabla tr[data-n] { position:relative } #kTabla td[data-c=chk] { position:absolute; top:16px; right:16px; width:auto; padding:0 } #kTabla td[data-c=chk] input { width:24px !important; min-width:24px !important; height:24px; padding:0; background:none; accent-color:var(--pri) }
-    #kTabla td[data-c=destino] { padding-right:40px } #kTabla tr.sel { box-shadow:inset 0 0 0 2px var(--pri) } #kTabla tr.sel td { background:none }
-    .kacc { position:sticky; bottom:calc(76px + env(safe-area-inset-bottom)); z-index:20; box-shadow:0 8px 24px rgba(0,0,0,.2); background:#fff }
   }
   .ico { width:1.1em; height:1.1em; vertical-align:-.2em; flex:none } .ar { display:inline-block; vertical-align:0; margin-left:2px } .nb .x svg { display:grid; place-items:center }
   .pag button .ico { width:14px; height:14px; vertical-align:-2px }
@@ -722,7 +709,6 @@
     <button data-tab="liquidaciones">Liquidaciones</button>
     <button data-tab="kpis">Costos</button>
     <button data-tab="detalle">Detalle</button>
-    <button data-tab="catalogo">Agencias</button>
   </nav>
   <span class="estado" id="estado"><span></span></span>
   <div class="busca"><input id="topSearch" type="search" placeholder="Buscar nodo" aria-label="Buscar nodo en Registros"></div>
@@ -745,9 +731,9 @@
       <div class="cayuda"><span>El Excel puede traer</span><span class="chip" data-h="despacho">Despacho</span><span class="chip" data-h="recojos">Recojos</span><span class="chip" data-h="detalle">Detalle</span><span class="sp"></span><button type="button" class="lnk" id="cPlantilla">Descargar plantilla</button></div>
       <details class="how" id="cHow"><summary>¿Cómo debe ser el Excel?</summary>
         <ul>
-          <li>Hojas <b>DESPACHO</b> y <b>RECOJOS</b>: columnas NODO, PEDIDOS, BULTO, CAJAS y TRANSPORTE.</li>
+          <li>Hojas <b>DESPACHO</b> y <b>RECOJOS</b>: columnas FECHA, NODO, PEDIDOS, BULTO, CAJAS, TRANSPORTE, PLACA, AGENCIA, MODO DE PAGO (CONTADO o CREDITO) y ZONA.</li>
           <li>Hoja <b>DETALLE</b>: una fila por bulto del despacho.</li>
-          <li>Puedes subir solo las hojas que necesites. Agencia, pago y detalle del gasto se completan desde Agencias.</li>
+          <li>Puedes subir solo las hojas que necesites. La FECHA puede ir vacía: se usa la fecha de arriba. Lo que falte lo completas en la pantalla de revisión.</li>
         </ul>
       </details>
       <div id="cMsg" class="msg"></div>
@@ -865,7 +851,7 @@
   </div>
   <div id="kp-zona" class="hide">
     <div class="card"><h3>Costo por transporte</h3><div class="tw"><table id="kpTrans"></table></div></div>
-    <div class="card"><h3>Costo por zona</h3><p class="hint">La zona sale del catálogo de Agencias.</p><div id="zonaBarras"></div></div>
+    <div class="card"><h3>Costo por zona</h3><p class="hint">La zona se carga con cada registro.</p><div id="zonaBarras"></div></div>
     <div class="card"><h3>Tarifa por caja según transporte y zona</h3><p class="hint">Costo dividido entre cajas. Las celdas más oscuras son las rutas más caras por caja.</p><div class="tw" style="max-height:none"><table class="mx" id="zonaMx"></table></div></div>
   </div>
   <div id="kp-cal" class="hide"><div class="card"><h3>Calidad de datos</h3><p class="hint">Los KPIs son confiables en la medida en que los registros estén completos. Cada punto lleva a la pantalla donde se corrige.</p><div id="calList"></div></div></div>
@@ -918,22 +904,6 @@
   <div class="tw"><table id="qTabla"></table></div>
 </section>
 
-<section id="tab-catalogo" class="hide">
-  <div class="top"><h1>Agencias</h1><div class="sub">Datos de cada destino para despachos y recojos</div></div>
-  <div class="card">
-    <div class="row" style="align-items:center;justify-content:space-between">
-      <div class="pseg" id="kSeg"><button data-m="DESPACHO" class="on">Despacho <small id="nAgD"></small></button><button data-m="RECOJO">Recojo <small id="nAgR"></small></button></div>
-      <div class="acts" style="display:flex;gap:8px;flex-wrap:wrap"><button class="b sec" id="kBajar">Descargar Excel</button><button class="b sec" id="kSubir">Cargar Excel</button><button class="b" id="kNuevo">Agregar destino</button></div>
-    </div>
-    <input type="file" id="kFile" accept=".xlsx,.xls,.csv" class="hide">
-    <div id="kMsg" class="msg"></div>
-    <p class="hint" id="kHint"></p>
-    <div class="kacc hide" id="kAcc"><span id="kAccT"></span><button type="button" class="b sec" id="kAccQ">Quitar selección</button><button type="button" class="b red" id="kAccE">Eliminar seleccionados</button></div>
-  </div>
-  <div class="card empty hide" id="kVacio"><b></b><span></span><button type="button" class="b" id="kCopiar">Copiar los destinos de Despacho</button></div>
-  <div class="tw" id="kTw"><table id="kTabla"></table></div>
-</section>
-
 </div></main>
 </div></div>
 
@@ -942,13 +912,8 @@
   <button data-tab="registros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Registros</span></button>
   <button data-tab="liquidaciones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/></svg><span>Liquidar</span></button>
   <button data-tab="kpis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg><span>Costos</span></button>
-  <button id="masBtn" aria-haspopup="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg><span>Más</span></button>
+  <button data-tab="detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M10 10v9"/></svg><span>Detalle</span></button>
 </div>
-<div class="sheetw" id="masSheet" hidden><div class="sheetbg" id="masBg"></div><div class="sheet" role="menu">
-  <button data-tab="detalle">Detalle<small>Una fila por bulto</small></button>
-  <button data-tab="catalogo">Agencias<small>Destinos, agencias y zonas</small></button>
-  <button class="cancel" id="masX">Cerrar</button>
-</div></div>
 <dialog id="regDlg"><form id="rmF" autocomplete="off">
   <div class="rm-h">
     <div><small id="rmSub"></small><h2 id="rmNodo"></h2><div class="rm-meta" id="rmMeta"></div></div>
@@ -959,7 +924,8 @@
     <div class="rm-av" id="rmAv" hidden></div>
     <label>Placa<input id="rmPlaca" placeholder="ABC-123"></label>
     <label class="imp">Importe<input id="rmImp" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00"></label>
-    <label class="full">N° de factura<input id="rmFac" placeholder="F001-0000"></label>
+    <label>N° de factura<input id="rmFac" placeholder="F001-0000"></label>
+    <label>Zona<input id="rmZona" placeholder="SUR, CENTRO…"></label>
     <label class="full">Detalle del gasto<input id="rmDet"></label>
     <div class="rm-foto"><div class="rm-th" id="rmTh"></div><div class="rm-tx"><b id="rmTt"></b><span id="rmTs"></span></div><div class="rm-ac" id="rmAc"></div></div>
   </div>
@@ -973,18 +939,6 @@
 <dialog id="cfDlg"><form method="dialog" class="in">
   <h3 id="cfT" style="margin:0 0 6px"></h3><p id="cfM" style="margin:0;color:var(--mut)"></p>
   <div class="row" style="justify-content:flex-end;margin-top:20px"><button class="b sec" value="no">Cancelar</button><button class="b" id="cfOk" value="si"></button></div>
-</form></dialog>
-<dialog id="dstDlg"><form class="in" id="dstF" autocomplete="off">
-  <h3 style="margin:0 0 4px">Nuevo destino</h3><p class="hint" style="margin:0 0 14px">Se usará para completar agencia, transporte y modo de pago al cargar despachos.</p>
-  <div class="fgrid">
-    <label style="grid-column:1/-1">Destino<input id="dstN" required placeholder="Por ejemplo, Bagua"></label>
-    <label>Agencia<select id="dstA" class="cb"></select><input id="dstA_n" class="hide" placeholder="Nombre de la agencia"></label>
-    <label>Transporte<select id="dstT" class="cb"></select><input id="dstT_n" class="hide" placeholder="Nombre del transporte"></label>
-    <label>Zona<select id="dstZ" class="cb"></select><input id="dstZ_n" class="hide" placeholder="Nombre de la zona"></label>
-    <label>Modo de pago<select id="dstP"><option value="AL CONTADO">Al contado</option><option value="CREDITO">Crédito</option></select></label>
-  </div>
-  <div id="dstE" class="msg"></div>
-  <div class="row" style="justify-content:flex-end;margin-top:18px"><button type="button" class="b sec" id="dstX">Cancelar</button><button class="b" id="dstOk">Agregar destino</button></div>
 </form></dialog>
 <dialog id="lqParDlg"><form class="in" id="lqParF" autocomplete="off">
   <h3 style="margin:0 0 4px">Datos del formato</h3><p class="hint" style="margin:0 0 14px">Se escriben en cada Excel de liquidación.</p>
@@ -1062,12 +1016,8 @@ const cfg = window.APP_CONFIG || {};
 if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY) { $('#setup').classList.remove('hide'); throw new Error('config'); }
 const sb = supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
 
-let catalogo = new Map();   // despachos: nodo normalizado -> fila
-let catalogoRec = new Map();   // recojos
-let catRows = [], agMot = 'DESPACHO';
-const kSel = new Set();   // destinos marcados para eliminar (de la lista abierta)
-const catDe = m => m === 'RECOJO' ? catalogoRec : catalogo;
-const zonaEnv = e => ((catDe(e.motivo).get(norm(e.nodo)) || catalogo.get(norm(e.nodo)) || {}).zona) || '(sin zona)';
+const zonaEnv = e => e.zona || '(sin zona)';
+let agBase = [];   // agencias ya conocidas (para sugerir al escribir)
 let previa = [];            // filas de la carga en curso
 let hrnCarga = null;        // detalle HRN encontrado en el mismo Excel
 let registros = [];
@@ -1093,7 +1043,7 @@ async function mostrarApp(user) {
   $('#app').classList.remove('hide');
   $('#cFecha').value = today(); $('#kHasta').value = today(); $('#kMes').value = today().slice(0, 7); rangoDeMes();
   $('#rDesde').value = today().slice(0, 8) + '01'; $('#rHasta').value = today();
-  await cargarCatalogo();
+  sb.from('lista_agencias').select('agencia').then(({ data }) => { agBase = (data || []).map(x => x.agencia); listaAgencias(); });
   buscarRegistros(); iniciarTiempoReal();
   const h0 = (location.hash || '').slice(1); let t0 = h0.split('?')[0]; if (t0 === 'hrn') t0 = 'detalle'; if (!TITULOS[t0]) { try { t0 = (localStorage.getItem('tab') || '').replace(/^hrn$/, 'detalle'); } catch (e) { t0 = ''; } }
   if (t0 === 'kpis' && h0.includes('?')) { poblarFiltros(); kAplicar(h0.split('?')[1]); }
@@ -1101,15 +1051,12 @@ async function mostrarApp(user) {
 }
 window.addEventListener('hashchange', () => { const t = location.hash.slice(1).split('?')[0].replace(/^hrn$/, 'detalle'); if (TITULOS[t]) irA(t); });
 
-const TITULOS = { cargar: 'Cargar despacho', registros: 'Registros', kpis: 'Costos', liquidaciones: 'Liquidaciones', detalle: 'Detalle', catalogo: 'Agencias' };
+const TITULOS = { cargar: 'Cargar despacho', registros: 'Registros', kpis: 'Costos', liquidaciones: 'Liquidaciones', detalle: 'Detalle' };
 const irA = tab => document.querySelector(`nav button[data-tab="${tab}"]`).click();
-$('#masBtn').onclick = () => { $('#masSheet').hidden = false; };
-$('#masBg').onclick = $('#masX').onclick = () => { $('#masSheet').hidden = true; };
-const NAVB = 'nav button, .tabbar button[data-tab], #masSheet button[data-tab]';
+const NAVB = 'nav button, .tabbar button[data-tab]';
 document.querySelectorAll(NAVB).forEach(b => b.onclick = () => {
   document.querySelectorAll(NAVB).forEach(x => x.classList.toggle('on', x.dataset.tab === b.dataset.tab));
-  $('#masBtn').classList.toggle('on', ['detalle', 'catalogo'].includes(b.dataset.tab)); $('#masSheet').hidden = true;
-  ['cargar','registros','liquidaciones','kpis','detalle','catalogo'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
+  ['cargar','registros','liquidaciones','kpis','detalle'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
   document.title = TITULOS[b.dataset.tab] + ' – Red Troncal';
   history.replaceState(null, '', '#' + b.dataset.tab); try { localStorage.setItem('tab', b.dataset.tab); } catch (e) {}
   scrollTo(0, 0);
@@ -1119,178 +1066,25 @@ document.querySelectorAll(NAVB).forEach(b => b.onclick = () => {
 });
 function conexion(ok) { $('#estado').className = 'estado' + (ok ? '' : ' mal'); $('#estado span').textContent = ok ? '' : 'Sin conexión con la base de datos'; }
 
-// ---------- catálogo ----------
-const OBS = ['AL CONTADO','CREDITO'];
-async function cargarCatalogo() {
-  const [{ data, error }, { data: lista }] = await Promise.all([
-    sb.from('agencias').select('*').order('destino'), sb.from('lista_agencias').select('agencia')]);
-  if (error) return flash($('#kMsg'), error.message, 'err');
-  catalogo = new Map(data.filter(r => r.motivo !== 'RECOJO').map(r => [norm(r.destino), r]));
-  catalogoRec = new Map(data.filter(r => r.motivo === 'RECOJO').map(r => [norm(r.destino), r]));
-  catRows = data;
-  const nombres = [...new Set([...(lista || []).map(x => x.agencia), ...data.map(r => r.agencia).filter(Boolean)])].sort();
-  $('#dlAgencias').innerHTML = nombres.map(n => `<option value="${esc(n)}">`).join('');
-  pintarCatalogo(data);
-}
-function pintarCatalogo(rows) {
-  const des = rows.filter(r => r.motivo !== 'RECOJO'), rec = rows.filter(r => r.motivo === 'RECOJO'), vis = agMot === 'RECOJO' ? rec : des;
-  $('#nAgD').textContent = des.length; $('#nAgR').textContent = rec.length;
-  document.querySelectorAll('#kSeg button').forEach(b => b.classList.toggle('on', b.dataset.m === agMot));
-  $('#kHint').textContent = agMot === 'RECOJO' ? 'Estos datos completan los nodos de la hoja RECOJOS al cargar. Los cambios se guardan al salir de la celda.' : 'Estos datos completan los nodos de la hoja DESPACHO al cargar. Los cambios se guardan al salir de la celda.';
-  const vacio = !vis.length; $('#kVacio').classList.toggle('hide', !vacio); $('#kTw').classList.toggle('hide', vacio);
-  if (vacio) { $('#kVacio b').textContent = agMot === 'RECOJO' ? 'Aún no hay destinos de recojo' : 'Aún no hay destinos de despacho'; $('#kVacio span').textContent = agMot === 'RECOJO' ? 'Agrégalos uno por uno, o copia los de Despacho y ajusta lo que cambie.' : 'Agrega el primer destino.'; $('#kCopiar').classList.toggle('hide', agMot !== 'RECOJO' || !des.length); }
-  [...kSel].forEach(n => { if (!vis.some(r => r.destino === n)) kSel.delete(n); });
-  $('#kTabla').innerHTML = '<tr><th data-c="chk"><input type="checkbox" id="kTodos" aria-label="Seleccionar todos"></th><th>Destino</th><th>Agencia</th><th>Transporte</th><th>Zona</th><th>Observación</th><th>Detalle del gasto</th><th></th></tr>' +
-    vis.map(r => `<tr data-n="${esc(r.destino)}"${kSel.has(r.destino) ? ' class="sel"' : ''}>
-      <td data-c="chk"><input type="checkbox" data-sel="${esc(r.destino)}" aria-label="Seleccionar ${esc(r.destino)}"${kSel.has(r.destino) ? ' checked' : ''}></td>
-      <td data-c="destino"><b>${esc(r.destino)}</b></td>
-      <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" title="${esc(r.agencia)}" value="${esc(r.agencia)}"></td>
-      <td data-c="trans" data-l="Transporte"><input data-f="transporte" value="${esc(r.transporte)}"></td>
-      <td data-c="zona" data-l="Zona"><input data-f="zona" value="${esc(r.zona)}"></td>
-      <td data-c="pago" data-l="Modo de pago"><select data-f="observacion" data-v="${r.observacion}">${OBS.map(p => `<option${p === r.observacion ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
-      <td data-c="concat" data-l="Detalle del gasto"><input data-f="concatenar" style="min-width:260px" value="${esc(r.concatenar)}"></td>
-      <td data-c="del"><button class="b sec" data-del="1">Eliminar</button></td></tr>`).join('');
-  kBarra();
-}
-// selección múltiple: casillas por fila, "seleccionar todo" y Mayús para marcar un rango
-function kBarra() {
-  const n = kSel.size, filas = [...document.querySelectorAll('#kTabla input[data-sel]')], todos = $('#kTodos');
-  $('#kAcc').classList.toggle('hide', !n);
-  $('#kAccT').textContent = `${n} ${n === 1 ? 'destino seleccionado' : 'destinos seleccionados'}`;
-  if (todos) { todos.checked = !!filas.length && filas.every(c => c.checked); todos.indeterminate = n > 0 && !todos.checked; }
-  document.querySelectorAll('#kTabla tr[data-n]').forEach(tr => tr.classList.toggle('sel', kSel.has(tr.dataset.n)));
-}
-let kUltimo = null;
-$('#kTabla').addEventListener('click', e => {
-  const c = e.target.closest('input[data-sel]'); if (!c) return;
-  const filas = [...document.querySelectorAll('#kTabla input[data-sel]')], i = filas.indexOf(c);
-  if (e.shiftKey && kUltimo !== null && filas[kUltimo]) { const [a, b] = [Math.min(i, kUltimo), Math.max(i, kUltimo)]; filas.slice(a, b + 1).forEach(x => { x.checked = c.checked; c.checked ? kSel.add(x.dataset.sel) : kSel.delete(x.dataset.sel); }); }
-  else c.checked ? kSel.add(c.dataset.sel) : kSel.delete(c.dataset.sel);
-  kUltimo = i; kBarra();
-});
-$('#kTabla').addEventListener('change', e => {
-  if (e.target.id !== 'kTodos') return;
-  document.querySelectorAll('#kTabla input[data-sel]').forEach(c => { c.checked = e.target.checked; e.target.checked ? kSel.add(c.dataset.sel) : kSel.delete(c.dataset.sel); }); kBarra();
-});
-$('#kAccQ').onclick = () => { kSel.clear(); document.querySelectorAll('#kTabla input[data-sel]').forEach(c => c.checked = false); kBarra(); };
-$('#kAccE').onclick = async () => {
-  const nombres = [...kSel], n = nombres.length; if (!n) return;
-  if (!await confirmar(`¿Eliminar ${n} ${n === 1 ? 'destino' : 'destinos'}?`, `Se quitarán de la lista de ${agMot === 'RECOJO' ? 'recojo' : 'despacho'}. Los registros ya cargados no cambian.`, 'Eliminar', true)) return;
-  $('#kAccE').disabled = true; let error = null;
-  for (let i = 0; i < nombres.length && !error; i += 100) ({ error } = await sb.from('agencias').delete().in('destino', nombres.slice(i, i + 100)).eq('motivo', agMot));
-  $('#kAccE').disabled = false;
-  if (error) return flash($('#kMsg'), error.message, 'err');
-  kSel.clear(); toast(`${n} ${n === 1 ? 'destino eliminado' : 'destinos eliminados'}`); cargarCatalogo();
-};
-// ---- Excel de Agencias: descargar la lista actual o cargar una para actualizar muchos destinos de una vez ----
-const AG_COLS = ['DESTINO', 'AGENCIA', 'TRANSPORTE', 'ZONA', 'OBSERVACION', 'DETALLE DEL GASTO'];
-$('#kBajar').onclick = async () => {
-  await xlsxLib(); const wb = XLSX.utils.book_new();
-  [['DESPACHO', false], ['RECOJOS', true]].forEach(([hoja, rec]) => {
-    const filas = catRows.filter(r => (r.motivo === 'RECOJO') === rec);
-    const ws = XLSX.utils.aoa_to_sheet([AG_COLS, ...filas.map(r => [r.destino, r.agencia, r.transporte, r.zona, r.observacion, r.concatenar])]);
-    ws['!cols'] = [20, 36, 14, 16, 14, 42].map(w => ({ wch: w })); XLSX.utils.book_append_sheet(wb, ws, hoja);
-  });
-  XLSX.writeFile(wb, 'agencias.xlsx');
-};
-function leerAgencias(wb) {
-  const tipo = n => ({ DESPACHO: 'DESPACHO', RECOJO: 'RECOJO', RECOJOS: 'RECOJO' })[norm(n)], tx = v => String(v ?? '').trim();
-  const out = new Map(), errores = [];
-  wb.SheetNames.filter(tipo).forEach(n => {
-    const filas = XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, defval: '', raw: true });
-    const hi = filas.findIndex(f => f.some(c => ['DESTINO', 'NODO'].includes(norm(c)))); if (hi < 0) return;
-    const h = filas[hi].map(norm), col = (...ns) => h.findIndex(x => ns.includes(x));
-    const iD = col('DESTINO', 'NODO'), iA = col('AGENCIA'), iT = col('TRANSPORTE'), iZ = col('ZONA'), iO = col('OBSERVACION', 'PAGO', 'MODO DE PAGO'), iC = col('DETALLE DEL GASTO', 'DETALLE', 'CONCATENAR', 'CONCATENADO');
-    filas.slice(hi + 1).forEach((f, k) => {
-      const destino = norm(f[iD]); if (!destino) return;
-      const o = iO >= 0 ? norm(f[iO]) : '';
-      if (o && !o.includes('CONTADO') && !o.includes('CREDITO')) return errores.push(`${n}, fila ${hi + k + 2}: el pago «${tx(f[iO])}» no es válido (usa AL CONTADO o CREDITO)`);
-      out.set(tipo(n) + '|' + destino, { motivo: tipo(n), destino, nombre: tx(f[iD]).toUpperCase().replace(/\s+/g, ' '), agencia: iA >= 0 ? tx(f[iA]) : '', transporte: iT >= 0 ? tx(f[iT]).toUpperCase() : '', zona: iZ >= 0 ? tx(f[iZ]).toUpperCase() : '',
-        observacion: o ? (o.includes('CONTADO') ? 'AL CONTADO' : 'CREDITO') : '', concatenar: iC >= 0 ? tx(f[iC]) : '', fila: hi + k + 2, hoja: n });
-    });
-  });
-  return { filas: [...out.values()], errores };
-}
-$('#kSubir').onclick = () => $('#kFile').click();
-$('#kFile').onchange = async e => {
-  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  try {
-    await xlsxLib(); const { filas, errores } = leerAgencias(XLSX.read(await f.arrayBuffer(), { type: 'array' }));
-    if (!filas.length && !errores.length) return flash($('#kMsg'), 'No encontré destinos en las hojas DESPACHO o RECOJOS. Descarga el Excel de Agencias y úsalo como base.', 'err');
-    const existentes = new Map(catRows.map(r => [(r.motivo === 'RECOJO' ? 'RECOJO' : 'DESPACHO') + '|' + norm(r.destino), r])), campos = ['agencia', 'transporte', 'zona', 'observacion', 'concatenar'];
-    const cambios = [], cuenta = { DESPACHO: [0, 0], RECOJO: [0, 0] };   // [nuevos, actualizados]
-    filas.forEach(r => {
-      const ex = existentes.get(r.motivo + '|' + r.destino);
-      if (ex) {   // lo que viene vacío en el Excel no borra lo que ya hay
-        const nuevo = { ...ex }; campos.forEach(c => { if (r[c]) nuevo[c] = r[c]; });
-        if (campos.some(c => (nuevo[c] ?? '') !== (ex[c] ?? ''))) { cambios.push(nuevo); cuenta[r.motivo][1]++; }
-      } else if (!r.observacion) errores.push(`${r.hoja}, fila ${r.fila}: ${r.destino} es nuevo y le falta el pago (AL CONTADO o CREDITO)`);
-      else { cambios.push({ motivo: r.motivo, destino: r.nombre, agencia: r.agencia || null, transporte: r.transporte || null, zona: r.zona || null, observacion: r.observacion, concatenar: r.concatenar || (r.motivo === 'RECOJO' ? 'RECOJO' : 'ENVIO') + ' DE PEDIDOS ' + r.nombre }); cuenta[r.motivo][0]++; }
-    });
-    if (!cambios.length) return flash($('#kMsg'), errores.length ? errores.slice(0, 3).join('. ') : 'El Excel no trae cambios: todo ya está igual en Agencias.', errores.length ? 'err' : 'ok');
-    const res = ['DESPACHO', 'RECOJO'].filter(m => cuenta[m][0] || cuenta[m][1]).map(m => `${m === 'RECOJO' ? 'Recojo' : 'Despacho'}: ${cuenta[m][0]} ${cuenta[m][0] === 1 ? 'nuevo' : 'nuevos'} y ${cuenta[m][1]} ${cuenta[m][1] === 1 ? 'actualizado' : 'actualizados'}`).join('. ');
-    if (!await confirmar('Cargar el Excel de Agencias', res + '.' + (errores.length ? ` ${errores.length} ${errores.length === 1 ? 'fila se omite' : 'filas se omiten'}: ${errores.slice(0, 2).join('; ')}${errores.length > 2 ? '…' : ''}.` : '') + ' Lo que dejes vacío en el Excel no borra lo que ya hay.', 'Cargar')) return;
-    const { error } = await sb.from('agencias').upsert(cambios, { onConflict: 'destino,motivo' });
-    if (error) return flash($('#kMsg'), /motivo/.test(error.message) ? 'Falta ejecutar supabase_agencias_motivo.sql en Supabase.' : error.message, 'err');
-    toast(`${cambios.length} ${cambios.length === 1 ? 'destino guardado' : 'destinos guardados'} en Agencias`); cargarCatalogo();
-  } catch (err) { flash($('#kMsg'), 'No se pudo leer el archivo: ' + err.message, 'err'); }
-};
-$('#kSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; agMot = b.dataset.m; kSel.clear(); pintarCatalogo(catRows); };
-$('#kCopiar').onclick = async () => {
-  const filas = catRows.filter(r => r.motivo !== 'RECOJO').map(r => ({ ...r, motivo: 'RECOJO', concatenar: String(r.concatenar || '').replace(/^ENVIO\b/i, 'RECOJO') }));
-  if (!filas.length || !await confirmar('¿Copiar los destinos de Despacho?', `Se crearán ${filas.length} destinos de recojo con los mismos datos. Después puedes cambiar lo que sea distinto.`, 'Copiar')) return;
-  const { error } = await sb.from('agencias').insert(filas);
-  error ? flash($('#kMsg'), /motivo/.test(error.message) ? 'Falta ejecutar supabase_agencias_motivo.sql en Supabase.' : error.message, 'err') : (toast(`${filas.length} destinos copiados a Recojo`), cargarCatalogo());
-};
-$('#kTabla').addEventListener('change', async e => {
-  const tr = e.target.closest('tr'); if (!tr || !e.target.dataset.f) return;
-  const { error } = await sb.from('agencias').update({ [e.target.dataset.f]: e.target.value.trim() }).eq('destino', tr.dataset.n).eq('motivo', agMot);
-  error ? flash($('#kMsg'), error.message, 'err') : (flash($('#kMsg'), 'Guardado', 'ok'), cargarCatalogo());
-});
-$('#kTabla').addEventListener('click', async e => {
-  if (!e.target.dataset.del) return;
-  const n = e.target.closest('tr').dataset.n;
-  if (!await confirmar('¿Eliminar ' + n + '?', `Se quitará de la lista de ${agMot === 'RECOJO' ? 'recojo' : 'despacho'}. Los registros ya cargados no cambian.`, 'Eliminar', true)) return;
-  const { error } = await sb.from('agencias').delete().eq('destino', n).eq('motivo', agMot);
-  error ? flash($('#kMsg'), error.message, 'err') : cargarCatalogo();
-});
-$('#kNuevo').onclick = () => {
-  const unicos = k => [...new Set([...catalogo.values(), ...catalogoRec.values()].map(r => r[k]).filter(Boolean))].sort();
-  const ags = [...new Set([...$('#dlAgencias').options].map(o => o.value).concat(unicos('agencia')))].sort();
-  combo('#dstA', ags); combo('#dstT', unicos('transporte')); combo('#dstZ', unicos('zona'));
-  $('#dstDlg h3').textContent = 'Nuevo destino de ' + (agMot === 'RECOJO' ? 'recojo' : 'despacho'); $('#dstF').reset(); $('#dstE').className = 'msg'; $('#dstOk').disabled = false; $('#dstDlg').showModal(); $('#dstN').focus();
-};
-// lista con las opciones existentes y "Agregar nueva…", que muestra un campo para escribir
-function combo(sel, valores) {
-  const el = $(sel), n = $(sel + '_n');
-  el.innerHTML = '<option value="">Sin definir</option>' + valores.map(v => `<option>${esc(v)}</option>`).join('') + '<option value="__n">Agregar nueva…</option>';
-  n.classList.add('hide'); n.value = '';
-  el.onchange = () => { const nuevo = el.value === '__n'; n.classList.toggle('hide', !nuevo); if (nuevo) n.focus(); };
-}
-const comboVal = sel => { const v = $(sel).value; return v === '__n' ? $(sel + '_n').value.trim() : v; };
-$('#dstX').onclick = () => $('#dstDlg').close();
-$('#dstF').onsubmit = async e => {
-  e.preventDefault();
-  const n = norm($('#dstN').value); if (!n) return;
-  const nombre = $('#dstN').value.trim().toUpperCase().replace(/\s+/g, ' ');   // se guarda como se escribe (con Ñ)
-  if (catDe(agMot).has(n)) { $('#dstE').textContent = n + ' ya está en la lista de ' + (agMot === 'RECOJO' ? 'recojo' : 'despacho') + '.'; $('#dstE').className = 'msg err'; return; }
-  const v = id => $(id).value.trim(); $('#dstOk').disabled = true;
-  const { error } = await sb.from('agencias').insert({ destino: nombre, agencia: comboVal('#dstA') || null, transporte: comboVal('#dstT') || null, zona: comboVal('#dstZ') || null, observacion: $('#dstP').value, concatenar: (agMot === 'RECOJO' ? 'RECOJO' : 'ENVIO') + ' DE PEDIDOS ' + nombre, motivo: agMot });
-  $('#dstOk').disabled = false;
-  if (error) { $('#dstE').textContent = /motivo/.test(error.message) ? 'Falta ejecutar supabase_agencias_motivo.sql en Supabase.' : error.message; $('#dstE').className = 'msg err'; return; }
-  $('#dstDlg').close(); toast(nombre + ' agregado a ' + (agMot === 'RECOJO' ? 'recojo' : 'despacho')); cargarCatalogo();
-};
-
 // ---------- carga ----------
 $('#cPlantilla').onclick = async () => {
   await xlsxLib();
-  const wb = XLSX.utils.book_new(), cab = ['NODO', 'PEDIDOS', 'BULTO', 'CAJAS', 'TRANSPORTE'];
+  const wb = XLSX.utils.book_new(), cab = ['FECHA', 'NODO', 'PEDIDOS', 'BULTO', 'CAJAS', 'TRANSPORTE', 'PLACA', 'AGENCIA', 'MODO DE PAGO', 'ZONA'];
   [['DESPACHO', cab], ['RECOJOS', cab], ['DETALLE', HRN_COLS.map(c => c[1])]].forEach(([n, h]) => {
     const ws = XLSX.utils.aoa_to_sheet([h]); ws['!cols'] = h.map(x => ({ wch: Math.max(12, x.length + 2) })); XLSX.utils.book_append_sheet(wb, ws, n);
   });
   XLSX.writeFile(wb, 'plantilla_despacho.xlsx');
 };
 
+// fecha de una celda del Excel: número de serie, fecha, "dd/mm/aaaa" o "aaaa-mm-dd"; '' si no se reconoce
+function fechaDe(v) {
+  if (v instanceof Date && !isNaN(v)) return `${v.getFullYear()}-${String(v.getMonth() + 1).padStart(2, '0')}-${String(v.getDate()).padStart(2, '0')}`;
+  if (typeof v === 'number' && v > 20000 && v < 80000) return new Date(Math.round((v - 25569) * 864e5)).toISOString().slice(0, 10);
+  const t = String(v ?? '').trim(); let m;
+  if ((m = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+  if ((m = t.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2}|\d{4})$/))) return `${m[3].length === 2 ? '20' + m[3] : m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+  return '';
+}
 // lee la primera tabla con encabezados NODO y CAJAS de una hoja; null si la hoja no la tiene, [] si está vacía
 function tablaDeHoja(ws) {
   const filas = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
@@ -1300,11 +1094,14 @@ function tablaDeHoja(ws) {
     const iC = h.findIndex(x => x.includes('CAJA'));
     if (iN < 0 || iC < 0) continue;
     const iP = h.findIndex(x => x.includes('PEDIDO')), iB = h.findIndex(x => x.includes('BULTO')), iT = h.findIndex(x => x.startsWith('TRANSPORT'));
+    const iF = h.findIndex(x => x === 'FECHA'), iPl = h.findIndex(x => x.startsWith('PLACA')), iAg = h.findIndex(x => x.startsWith('AGENCIA')), iPg = h.findIndex(x => x.startsWith('PAGO') || x.includes('MODO DE PAGO') || x === 'OBSERVACION'), iZn = h.findIndex(x => x === 'ZONA');
+    const pagoDe = v => { const o = norm(v); return o.includes('CONTADO') ? 'CONTADO' : o.includes('CREDITO') ? 'CREDITO' : ''; }, txt = v => String(v ?? '').trim();
     const out = [];
     for (let j = i + 1; j < filas.length; j++) {
       const nodo = norm(filas[j][iN]);
       if (!nodo || nodo.startsWith('TOTAL')) break;
-      out.push({ nodo, pedidos: num(filas[j][iP]), bultos: num(filas[j][iB]), cajas: num(filas[j][iC]), transporte: norm(filas[j][iT]) });
+      out.push({ fecha: iF >= 0 ? fechaDe(filas[j][iF]) : '', placa: iPl >= 0 ? txt(filas[j][iPl]).toUpperCase() : '', nodo, pedidos: num(filas[j][iP]), bultos: num(filas[j][iB]), cajas: num(filas[j][iC]), transporte: norm(filas[j][iT]),
+        agencia: iAg >= 0 ? txt(filas[j][iAg]) : '', pago: iPg >= 0 ? pagoDe(filas[j][iPg]) : '', zona: iZn >= 0 ? txt(filas[j][iZn]).toUpperCase() : '' });
     }
     return out;
   }
@@ -1322,13 +1119,12 @@ function leerTabla(wb) {
   for (const n of hojas) { const f = tablaDeHoja(wb.Sheets[n]); if (f && f.length) return f.map(r => ({ ...r, motivo: 'DESPACHO' })); }
   return null;
 }
-// "ENVIO DE PEDIDOS X" del catálogo pasa a "RECOJO DE PEDIDOS X" cuando el motivo es recojo
-function detalleGasto(r, c) {
-  const d = (c && c.concatenar) || (r.motivo === 'RECOJO' ? 'RECOJO' : 'ENVIO') + ' DE PEDIDOS ' + r.nodo;
-  return r.motivo === 'RECOJO' ? d.replace(/^ENVIO\b/i, 'RECOJO') : d;
-}
+// detalle del gasto automático: "ENVIO DE PEDIDOS X" o "RECOJO DE PEDIDOS X" (se puede editar después en Registros)
+const detalleGasto = r => (r.motivo === 'RECOJO' ? 'RECOJO' : 'ENVIO') + ' DE PEDIDOS ' + r.nodo;
 
 let cArchivo = null, cFiltro = '';
+const cFechaDe = r => r.fecha || $('#cFecha').value;
+const cFechas = () => [...new Set(previa.map(cFechaDe).filter(Boolean))].sort();
 const cHojas = () => ({ despacho: previa.some(r => r.motivo === 'DESPACHO'), recojos: previa.some(r => r.motivo === 'RECOJO'), detalle: !!hrnCarga });
 function cChips() {
   const h = cArchivo ? cHojas() : null;
@@ -1345,13 +1141,10 @@ async function leerArchivo(f) {
     hrnCarga = null; await xlsxLib(); const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
     const filas = leerTabla(wb); hrnCarga = leerHrn(wb);
     if (!filas && !hrnCarga) return flash($('#cMsg'), 'No encontré filas en las hojas DESPACHO, RECOJOS o DETALLE. Descarga la plantilla y completa esas hojas.', 'err');
-    previa = (filas || []).map(r => {
-      const c = catDe(r.motivo).get(norm(r.nodo));
-      return { ...r, transporte: r.transporte || norm(c?.transporte), placa: '', agencia: c?.agencia || '',
-               modo_pago: c ? (norm(c.observacion).includes('CONTADO') ? 'CONTADO' : 'CREDITO') : 'CONTADO', en_catalogo: !!c,
-               detalle_gasto: detalleGasto(r, c) };
-    });
-    cArchivo = { nombre: f.name, kb: Math.max(1, Math.round(f.size / 1024)) }; cFiltro = '';
+    previa = (filas || []).map(r => ({ ...r, agencia: r.agencia || '', modo_pago: r.pago || '', zona: r.zona || '', detalle_gasto: detalleGasto(r) }));
+    const cuenta = {}; previa.forEach(r => { if (r.fecha) cuenta[r.fecha] = (cuenta[r.fecha] || 0) + 1; });
+    const masUsada = Object.keys(cuenta).sort((a, b) => cuenta[b] - cuenta[a] || (a < b ? -1 : 1))[0]; if (masUsada) $('#cFecha').value = masUsada;   // el Detalle y las filas sin FECHA usan la más repetida
+    cArchivo = { nombre: f.name, kb: Math.max(1, Math.round(f.size / 1024)) }; cFiltro = ''; listaAgencias();
     $('#cMsg').className = 'msg'; setPaso(2); pintarPrevia();
   } catch (err) { flash($('#cMsg'), 'No se pudo leer el archivo: ' + err.message, 'err'); }
 }
@@ -1368,10 +1161,12 @@ $('#cFile').onchange = e => { const f = e.target.files[0]; if (f) leerArchivo(f)
   $('#cOkIr').onclick = e => irA(e.currentTarget.dataset.go);
 }
 const ALERTA = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>';
+const cFalta = r => [!r.agencia && 'sin agencia', !r.modo_pago && 'sin pago'].filter(Boolean).join(' y ');
 function cAlertar() {
-  const sin = previa.filter(r => !r.agencia).length, a = $('#cAlerta');
-  a.classList.toggle('hide', !sin);
-  a.innerHTML = sin ? `${ALERTA}<span><b>${sin} ${sin === 1 ? 'nodo sin agencia' : 'nodos sin agencia'}.</b> Complétala aquí o agrega el nodo en Agencias, en la lista que corresponda.</span>${cFiltro === 'falta' ? '<button type="button" data-f="">Ver todos</button>' : '<button type="button" data-f="falta">Ver solo esos</button>'}` : '';
+  const sinAg = previa.filter(r => !r.agencia).length, sinPg = previa.filter(r => !r.modo_pago).length, a = $('#cAlerta'), n = previa.filter(r => cFalta(r)).length;
+  a.classList.toggle('hide', !n);
+  const partes = [sinAg && `${sinAg} ${sinAg === 1 ? 'nodo sin agencia' : 'nodos sin agencia'}`, sinPg && `${sinPg} ${sinPg === 1 ? 'nodo sin pago' : 'nodos sin pago'}`].filter(Boolean).join(' y ');
+  a.innerHTML = n ? `${ALERTA}<span><b>${partes}.</b> ${sinPg ? 'El pago es obligatorio: elígelo aquí. ' : ''}${sinAg ? 'La agencia se puede completar aquí o después en Registros.' : ''}</span>${cFiltro === 'falta' ? '<button type="button" data-f="">Ver todos</button>' : '<button type="button" data-f="falta">Ver solo esos</button>'}` : '';
 }
 function pintarPrevia() {
   $('#cDrop').classList.add('hide'); $('#cArch').classList.remove('hide'); $('#cPlantilla').classList.add('hide'); $('#cHow').classList.add('hide');
@@ -1388,10 +1183,11 @@ function pintarPrevia() {
   const hayAmbos = des.length && rec.length;
   $('#cSeg').classList.toggle('hide', !hayAmbos && cFiltro !== 'falta');
   $('#cSeg').innerHTML = [['', 'Todos', previa.length], ['DESPACHO', 'Despachos', des.length], ['RECOJO', 'Recojos', rec.length]].map(([v, t, n]) => `<button data-f="${v}" class="${cFiltro === v ? 'on' : ''}">${t} <small>${n}</small></button>`).join('');
-  const vis = previa.map((r, i) => [r, i]).filter(([r]) => cFiltro === 'falta' ? !r.agencia : !cFiltro || r.motivo === cFiltro);
-  $('#cTabla').innerHTML = '<tr><th>Nodo</th><th>Motivo</th><th>Transporte</th><th class="c">Pedidos</th><th class="c">Bultos</th><th class="c">Cajas</th><th>Placa</th><th>Agencia</th><th>Pago</th></tr>' +
+  const vis = previa.map((r, i) => [r, i]).filter(([r]) => cFiltro === 'falta' ? !!cFalta(r) : !cFiltro || r.motivo === cFiltro);
+  $('#cTabla').innerHTML = '<tr><th>Fecha</th><th>Nodo</th><th>Motivo</th><th>Transporte</th><th class="c">Pedidos</th><th class="c">Bultos</th><th class="c">Cajas</th><th>Placa</th><th>Agencia</th><th>Pago</th><th>Zona</th></tr>' +
     vis.map(([r, i]) => `<tr data-i="${i}">
-      <td data-c="nodo"><span class="nodo">${esc(r.nodo)}</span>${r.agencia ? '' : '<br><span class="cfalta">Sin agencia</span>'}</td>
+      <td data-c="fecha" data-l="Fecha"><input data-f="fecha" type="date" value="${cFechaDe(r)}"></td>
+      <td data-c="nodo"><span class="nodo">${esc(r.nodo)}</span>${cFalta(r) ? `<br><span class="cfalta">${mayus(cFalta(r))}</span>` : ''}</td>
       <td data-c="motivo">${motTag(r.motivo)}</td>
       <td data-c="trans" data-l="Transporte"><input data-f="transporte" value="${esc(r.transporte)}"></td>
       <td data-c="n" data-l="Pedidos"><input data-f="pedidos" type="number" value="${r.pedidos ?? ''}"></td>
@@ -1399,23 +1195,25 @@ function pintarPrevia() {
       <td data-c="n" data-l="Cajas"><input data-f="cajas" type="number" value="${r.cajas ?? ''}"></td>
       <td data-c="placa" data-l="Placa"><input data-f="placa" value="${esc(r.placa)}" placeholder="ABC-123"></td>
       <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" class="${r.agencia ? '' : 'vacia'}" value="${esc(r.agencia)}" placeholder="Escribe la agencia"></td>
-      <td data-c="pago" data-l="Pago"><select data-f="modo_pago" data-v="${r.modo_pago}">${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td></tr>`).join('');
+      <td data-c="pago" data-l="Pago"><select data-f="modo_pago" data-v="${r.modo_pago}" class="${r.modo_pago ? '' : 'vacia'}"><option value=""${r.modo_pago ? '' : ' selected'}>Elegir…</option>${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
+      <td data-c="zona" data-l="Zona"><input data-f="zona" value="${esc(r.zona)}" placeholder="SUR, CENTRO…"></td></tr>`).join('');
   $('#cPrev').classList.remove('hide');
   $('#cBarT').textContent = [des.length && `${des.length} ${des.length === 1 ? 'despacho' : 'despachos'}`, rec.length && `${rec.length} ${rec.length === 1 ? 'recojo' : 'recojos'}`, hrnCarga && `${fmtN(hrnCarga.length)} filas de detalle`].filter(Boolean).join(', ');
-  $('#cBarS').textContent = `Se guardarán con fecha ${fdmy($('#cFecha').value)}`;
+  const fs = cFechas(); $('#cBarS').textContent = fs.length > 1 ? `Se guardarán con ${fs.length} fechas: del ${fdmy(fs[0])} al ${fdmy(fs[fs.length - 1])}` : `Se guardarán con fecha ${fdmy(fs[0] || $('#cFecha').value)}`;
   $('#cBarra').hidden = false; $('#tab-cargar').classList.add('conbarra');
 }
-$('#cFecha').addEventListener('change', () => { if (cArchivo) $('#cBarS').textContent = `Se guardarán con fecha ${fdmy($('#cFecha').value)}`; });
+$('#cFecha').addEventListener('change', () => { if (cArchivo) pintarPrevia(); });
 $('#cSeg').onclick = e => { const b = e.target.closest('button'); if (b) { cFiltro = b.dataset.f; pintarPrevia(); } };
 $('#cAlerta').onclick = e => { const b = e.target.closest('button'); if (b) { cFiltro = b.dataset.f; pintarPrevia(); } };
 $('#cTabla').addEventListener('change', e => {
   const tr = e.target.closest('tr'); if (!tr || !e.target.dataset.f) return;
   const f = e.target.dataset.f, v = e.target.value, r = previa[tr.dataset.i];
-  r[f] = ['pedidos', 'bultos', 'cajas'].includes(f) ? num(v) : (f === 'modo_pago' ? v : v.trim());
-  if (f === 'agencia') {   // la marca de "sin agencia" y el aviso se actualizan sin recargar la tabla
-    e.target.classList.toggle('vacia', !r.agencia);
-    const td = tr.querySelector('td[data-c=nodo]'), tag = td.querySelector('.cfalta');
-    if (r.agencia && tag) { tag.previousElementSibling?.remove(); tag.remove(); } else if (!r.agencia && !tag) td.insertAdjacentHTML('beforeend', '<br><span class="cfalta">Sin agencia</span>');
+  r[f] = ['pedidos', 'bultos', 'cajas'].includes(f) ? num(v) : f === 'modo_pago' || f === 'fecha' ? v : ['zona', 'placa'].includes(f) ? v.trim().toUpperCase() : v.trim();
+  if (f === 'fecha') return pintarPrevia();
+  if (f === 'agencia' || f === 'modo_pago') {   // la marca y el aviso se actualizan sin recargar la tabla
+    e.target.classList.toggle('vacia', !r[f]);
+    const td = tr.querySelector('td[data-c=nodo]'), tag = td.querySelector('.cfalta'), t = cFalta(r);
+    if (!t) { if (tag) { tag.previousElementSibling?.remove(); tag.remove(); } } else if (tag) tag.textContent = mayus(t); else td.insertAdjacentHTML('beforeend', `<br><span class="cfalta">${mayus(t)}</span>`);
     cAlertar();
   }
 });
@@ -1436,28 +1234,33 @@ $('#cGuardar').onclick = async () => {
     catch (err) { flash($('#cMsg'), 'No se pudo guardar el detalle: ' + err.message + '. Vuelve a subir el archivo: las filas que ya entraron no se duplican.', 'err'); }
     $('#cGuardar').disabled = false; return;
   }
-  const repetidos = new Set(), vistos = new Set(); previa.forEach(r => { const k = norm(r.nodo) + '|' + r.motivo; if (vistos.has(k)) repetidos.add(r.nodo + (r.motivo === 'RECOJO' ? ' (recojo)' : '')); vistos.add(k); });
-  if (repetidos.size) return flash($('#cMsg'), `Hay nodos repetidos con el mismo motivo: ${[...repetidos].join(', ')}. Deja una sola fila por nodo y motivo.`, 'err');
+  if (previa.some(r => !cFechaDe(r))) return flash($('#cMsg'), 'Hay filas sin fecha. Elige la fecha del despacho o complétala en la tabla.', 'err');
+  const fechas = cFechas();
+  const repetidos = new Set(), vistos = new Set(); previa.forEach(r => { const k = cFechaDe(r) + '|' + norm(r.nodo) + '|' + r.motivo; if (vistos.has(k)) repetidos.add(r.nodo + (r.motivo === 'RECOJO' ? ' (recojo)' : '')); vistos.add(k); });
+  if (repetidos.size) return flash($('#cMsg'), `Hay nodos repetidos con el mismo motivo y fecha: ${[...repetidos].join(', ')}. Deja una sola fila por nodo, motivo y fecha.`, 'err');
+  const sinPago = previa.filter(r => !r.modo_pago);
+  if (sinPago.length) { cFiltro = 'falta'; pintarPrevia(); return flash($('#cMsg'), `Falta el modo de pago en ${sinPago.length} ${sinPago.length === 1 ? 'nodo' : 'nodos'}: ${sinPago.slice(0, 4).map(r => r.nodo).join(', ')}${sinPago.length > 4 ? '…' : ''}. Elígelo en la tabla.`, 'err'); }
   if (previa.some(r => !r.agencia) && !await confirmar('Hay nodos sin agencia', 'Puedes completarla después en Registros. ¿Guardar igual?', 'Guardar')) return;
   $('#cGuardar').disabled = true;
-  const { data: ya, error: eYa } = await sb.from('envios').select('nodo,motivo,liquidacion_id').eq('fecha', fecha);
+  const { data: ya, error: eYa } = await sb.from('envios').select('fecha,nodo,motivo,liquidacion_id').in('fecha', fechas);
   if (eYa) { $('#cGuardar').disabled = false; return flash($('#cMsg'), /motivo/.test(eYa.message) ? 'Falta ejecutar supabase_motivo.sql en Supabase.' : eYa.message, 'err'); }
-  const enviados = new Set((ya || []).filter(x => x.liquidacion_id).map(x => norm(x.nodo) + '|' + x.motivo)), nuevosN = previa.filter(r => !enviados.has(norm(r.nodo) + '|' + r.motivo));
-  if ((ya || []).length && !await confirmar(`Ya hay ${ya.length} registros del ${fdmy(fecha)}`, `Se actualizarán nodo, transporte, cantidades, placa, agencia y pago con lo de este archivo; el importe y la factura se conservan.` + (enviados.size ? ` ${enviados.size} ${enviados.size === 1 ? 'registro ya está enviado y no se tocará' : 'registros ya están enviados y no se tocarán'}.` : ''), 'Actualizar')) { $('#cGuardar').disabled = false; return; }
+  const clave = (f, n, m) => f + '|' + norm(n) + '|' + m, enviados = new Set((ya || []).filter(x => x.liquidacion_id).map(x => clave(String(x.fecha).slice(0, 10), x.nodo, x.motivo))), nuevosN = previa.filter(r => !enviados.has(clave(cFechaDe(r), r.nodo, r.motivo)));
+  const txtFecha = fechas.length > 1 ? `de ${fechas.length} fechas (${fdmy(fechas[0])} al ${fdmy(fechas[fechas.length - 1])})` : 'del ' + fdmy(fechas[0]);
+  if ((ya || []).length && !await confirmar(`Ya hay ${ya.length} ${ya.length === 1 ? 'registro' : 'registros'} ${txtFecha}`, `Se actualizarán nodo, transporte, cantidades, placa, agencia, pago y zona con lo de este archivo; el importe y la factura se conservan.` + (enviados.size ? ` ${enviados.size} ${enviados.size === 1 ? 'registro ya está enviado y no se tocará' : 'registros ya están enviados y no se tocarán'}.` : ''), 'Actualizar')) { $('#cGuardar').disabled = false; return; }
   if (!nuevosN.length) { $('#cGuardar').disabled = false; return flash($('#cMsg'), 'Todos los nodos de este archivo ya están enviados en una liquidación.', 'err'); }
-  const filas = nuevosN.map(r => ({ fecha, origen: 'LIMA', transporte: r.transporte, nodo: r.nodo, bultos: r.bultos, pedidos: r.pedidos, cajas: r.cajas,
-    placa: r.placa || null, agencia: r.agencia || null, detalle_gasto: r.detalle_gasto, modo_pago: r.modo_pago, motivo: r.motivo }));
+  const filas = nuevosN.map(r => ({ fecha: cFechaDe(r), origen: 'LIMA', transporte: r.transporte, nodo: r.nodo, bultos: r.bultos, pedidos: r.pedidos, cajas: r.cajas,
+    placa: r.placa || null, agencia: r.agencia || null, zona: r.zona || null, detalle_gasto: r.detalle_gasto, modo_pago: r.modo_pago, motivo: r.motivo }));
   const { error } = await sb.from('envios').upsert(filas, { onConflict: 'fecha,nodo,motivo' });
   $('#cGuardar').disabled = false;
   if (error) return flash($('#cMsg'), /motivo/.test(error.message) ? 'Falta ejecutar supabase_motivo.sql en Supabase.' : error.message, 'err');
-  $('#rDesde').value = fecha; $('#rHasta').value = fecha; buscarRegistros();
+  $('#rDesde').value = fechas[0]; $('#rHasta').value = fechas[fechas.length - 1]; buscarRegistros();
   let detalle = '';
   if (hrnCarga) {
     try { detalle = ` Detalle: ${hrnTexto(fecha, await guardarHrn(fecha, hrnCarga))}.`; }
     catch (err) { cReiniciar(); return flash($('#cMsg'), `El despacho se guardó, pero el detalle no: ${err.message}. Vuelve a subir el mismo archivo: las filas del detalle que ya entraron no se duplican.`, 'err'); }
   }
   const hayD = filas.some(r => r.motivo === 'DESPACHO'), hayR = filas.some(r => r.motivo === 'RECOJO');
-  cMostrarOk(hayD && hayR ? 'Despachos y recojos guardados' : hayR ? (filas.length === 1 ? 'Recojo guardado' : 'Recojos guardados') : (filas.length === 1 ? 'Despacho guardado' : 'Despachos guardados'), `${filas.length} ${filas.length === 1 ? 'registro' : 'registros'} del ${fdmy(fecha)}.${detalle} Falta completar importe y factura de cada uno.`, false);
+  cMostrarOk(hayD && hayR ? 'Despachos y recojos guardados' : hayR ? (filas.length === 1 ? 'Recojo guardado' : 'Recojos guardados') : (filas.length === 1 ? 'Despacho guardado' : 'Despachos guardados'), `${filas.length} ${filas.length === 1 ? 'registro' : 'registros'} ${txtFecha}.${detalle} Falta completar importe y factura de cada uno.`, false);
   previa = []; hrnCarga = null; $('#cFile').value = '';
 };
 cChips(); setPaso(1);
@@ -1510,7 +1313,7 @@ async function revisarFactura(file, r) {
   $('#fGuardar').disabled = true;
   $('#factDlg').showModal();
   try {
-    const R = await OCR.leer(file, { ref: r.fecha, nodos: [...catalogo.values(), ...catalogoRec.values()].map(c => norm(c.destino)),
+    const R = await OCR.leer(file, { ref: r.fecha, nodos: [...new Set(regBase.map(r => norm(r.nodo)))],
       progreso: (t, p) => { est.textContent = 'Leyendo la factura… ' + (p ? Math.round(p * 100) + '%' : t); } });
     const pon = (id, v) => { if (v !== '' && v != null) $('#' + id).value = v; };
     pon('fFactura', R.factura); pon('fImporte', R.importe); pon('fFecha', R.fecha); pon('fRuc', R.ruc);
@@ -1628,12 +1431,14 @@ async function buscarRegistros() {
   };
   let data; try { data = await traerTodo(crear); } catch (error) { conexion(false); return flash($('#rMsg'), error.message, 'err'); }
   conexion(true); rtUltimo = Date.now();
-  regBase = data;
+  regBase = data; listaAgencias();
   const { data: lqs } = await sb.from('liquidaciones').select('id,numero'); lqNumeros = new Map((lqs || []).map(x => [x.id, x.numero]));
   const ts = [...new Set(data.map(r => r.transporte).filter(Boolean))].sort(), sel = $('#rTrans').value;
   if (!sel) $('#rTrans').innerHTML = '<option value="">Todos</option>' + ts.map(t => `<option>${esc(t)}</option>`).join('');
   aplicarEstado();
 }
+// sugerencias de agencia al escribir: las ya usadas en los registros y la lista guardada
+function listaAgencias() { $('#dlAgencias').innerHTML = [...new Set([...agBase, ...regBase.map(r => r.agencia), ...previa.map(r => r.agencia)].filter(Boolean))].sort().map(n => `<option value="${esc(n)}">`).join(''); }
 // Un registro está terminado cuando tiene importe, N° de factura y la factura adjunta
 let regBase = [], estadoReg = '';
 const regEnviado = r => !!r.liquidacion_id;
@@ -1685,7 +1490,7 @@ $('#rTabla').addEventListener('click', async e => {
 // ---------- ventana para editar un registro ----------
 let rm = { id: null, orden: [] };
 const rmReg = () => regBase.find(x => x.id === rm.id);
-const rmLeer = () => ({ placa: $('#rmPlaca').value.trim() || null, importe: $('#rmImp').value === '' ? null : num($('#rmImp').value), factura: $('#rmFac').value.trim() || null, detalle_gasto: $('#rmDet').value.trim() || null });
+const rmLeer = () => ({ placa: $('#rmPlaca').value.trim() || null, importe: $('#rmImp').value === '' ? null : num($('#rmImp').value), factura: $('#rmFac').value.trim() || null, zona: $('#rmZona').value.trim().toUpperCase() || null, detalle_gasto: $('#rmDet').value.trim() || null });
 const rmSucio = () => { const r = rmReg(), v = rmLeer(); return !!r && !regEnviado(r) && Object.keys(v).some(k => (v[k] ?? '') != (r[k] ?? '')); };
 function rmNav() {
   const i = rm.orden.indexOf(rm.id), sin = i < 0 || i >= rm.orden.length - 1;
@@ -1697,8 +1502,8 @@ function abrirReg(id, orden) {
   const bloq = regEnviado(r);
   $('#rmSub').textContent = fdmy(r.fecha); $('#rmNodo').textContent = r.nodo;
   $('#rmMeta').innerHTML = motTag(r.motivo) + tbadge(r.transporte) + (r.agencia ? `<span class="tb">${esc(r.agencia)}</span>` : '') + (r.cajas != null ? `<span class="tb">${r.cajas} ${r.cajas === 1 ? 'caja' : 'cajas'}</span>` : '');
-  $('#rmPlaca').value = r.placa ?? ''; $('#rmImp').value = r.importe == null ? '' : Number(r.importe).toFixed(2); $('#rmFac').value = r.factura ?? ''; $('#rmDet').value = r.detalle_gasto ?? '';
-  ['#rmPlaca', '#rmImp', '#rmFac', '#rmDet'].forEach(q => $(q).disabled = bloq);
+  $('#rmPlaca').value = r.placa ?? ''; $('#rmImp').value = r.importe == null ? '' : Number(r.importe).toFixed(2); $('#rmFac').value = r.factura ?? ''; $('#rmZona').value = r.zona ?? ''; $('#rmDet').value = r.detalle_gasto ?? '';
+  ['#rmPlaca', '#rmImp', '#rmFac', '#rmZona', '#rmDet'].forEach(q => $(q).disabled = bloq);
   const av = $('#rmAv'); av.hidden = !bloq; av.textContent = bloq ? `Está en ${lqNumeros.has(r.liquidacion_id) ? lqCod(lqNumeros.get(r.liquidacion_id)) : 'una liquidación'}. Anula la liquidación para editarlo.` : '';
   $('#rmOk').hidden = $('#rmSig').hidden = bloq; $('#rmCancel').textContent = bloq ? 'Cerrar' : 'Cancelar';
   rmNav(); rmFoto(r); rmVivo();
@@ -1721,7 +1526,7 @@ function rmSync(r) {
   if (!$('#regDlg').open || rm.id !== r.id) return;
   $('#rmImp').value = r.importe == null ? '' : Number(r.importe).toFixed(2); $('#rmFac').value = r.factura ?? ''; rmFoto(r); rmVivo();
 }
-['#rmPlaca', '#rmImp', '#rmFac', '#rmDet'].forEach(q => $(q).addEventListener('input', rmVivo));
+['#rmPlaca', '#rmImp', '#rmFac', '#rmZona', '#rmDet'].forEach(q => $(q).addEventListener('input', rmVivo));
 $('#rmPrev').innerHTML = ICO.prev; $('#rmNext').innerHTML = ICO.next; $('#rmX').innerHTML = ICO.x;
 $('#rmAc').addEventListener('click', async e => {
   const b = e.target.closest('button[data-f]'), r = rmReg(); if (!b || !r) return;
@@ -1759,9 +1564,9 @@ $('#rmCancel').onclick = $('#rmX').onclick = async () => { if (rmSucio() && !awa
 $('#rExport').onclick = async () => {
   await xlsxLib();
   const serial = f => Math.round((Date.parse(f + 'T00:00:00Z') - Date.parse('1899-12-30T00:00:00Z')) / 86400000);
-  const aoa = [['MES','FECHA','ORIGEN','TRANSPORTE','NODOS','Cant. Bultos','Cant. Pedidos','Cant -CAJAS','PLACAS','AGENCIAS','DETALLE DEL GASTO','MODO DE PAGO','IMPORTE','OBSERVACIÓN','CONC','MOTIVO']]
+  const aoa = [['MES','FECHA','ORIGEN','TRANSPORTE','NODOS','Cant. Bultos','Cant. Pedidos','Cant -CAJAS','PLACAS','AGENCIAS','DETALLE DEL GASTO','MODO DE PAGO','IMPORTE','OBSERVACIÓN','CONC','MOTIVO','ZONA']]
     .concat(registros.map(r => [MESES[Number(r.fecha.slice(5, 7)) - 1], serial(r.fecha), r.origen, r.transporte, r.nodo, r.bultos, r.pedidos, r.cajas,
-      r.placa, r.agencia, r.detalle_gasto, r.modo_pago, r.importe, r.factura, serial(r.fecha) + r.nodo, r.motivo === 'RECOJO' ? 'RECOJO' : 'DESPACHO']));
+      r.placa, r.agencia, r.detalle_gasto, r.modo_pago, r.importe, r.factura, serial(r.fecha) + r.nodo, r.motivo === 'RECOJO' ? 'RECOJO' : 'DESPACHO', r.zona]));
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   ws['!cols'] = aoa[0].map(() => ({ wch: 16 }));
   aoa.slice(1).forEach((_, i) => { const c = ws['B' + (i + 2)]; if (c) c.z = 'dd-mmm'; });
@@ -2094,9 +1899,10 @@ function kPasa(e) {
   if (zo && zonaEnv(e) !== zo) return false;
   return true;
 }
-function poblarFiltros() {
-  const todos = [...catalogo.values(), ...catalogoRec.values()], ags = [...new Set(todos.map(c => c.agencia).filter(Boolean))].sort(), zs = [...new Set(todos.map(c => c.zona).filter(Boolean))].sort();
-  const ag = $('#kAgencia').value, zo = $('#kZona').value;
+function poblarFiltros(lista) {
+  const ag = $('#kAgencia').value, zo = $('#kZona').value, L = lista || [];
+  const ags = [...new Set([...L.map(e => e.agencia), ag && ag !== '(sin agencia)' ? ag : ''].filter(Boolean))].sort(), zs = [...new Set([...L.map(e => e.zona), zo && zo !== '(sin zona)' ? zo : ''].filter(Boolean))].sort();
+  if (!lista && $('#kAgencia').options.length > 2) return;   // sin datos nuevos se conservan las opciones
   $('#kAgencia').innerHTML = '<option value="">Todas</option>' + ags.map(a => `<option>${esc(a)}</option>`).join('') + '<option>(sin agencia)</option>'; $('#kAgencia').value = ag;
   $('#kZona').innerHTML = '<option value="">Todas</option>' + zs.map(a => `<option>${esc(a)}</option>`).join('') + '<option>(sin zona)</option>'; $('#kZona').value = zo;
 }
@@ -2104,7 +1910,7 @@ async function periodoPrevio(desde, hasta, trans) {
   if (!desde || !hasta) return { total: 0, pedidos: 0, bultos: 0, cajas: 0 };
   const d0 = new Date(desde + 'T00:00:00'), d1 = new Date(hasta + 'T00:00:00'), n = Math.round((d1 - d0) / 86400000) + 1;
   const pf = isoLocal(new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() - n)), pt = isoLocal(new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() - 1));
-  const rows = await traerTodo(() => { let q = sb.from('envios').select('nodo,motivo,agencia,modo_pago,pedidos,bultos,cajas,importe').gte('fecha', pf).lte('fecha', pt).order('id'); if (trans) q = q.eq('transporte', trans); return q; });
+  const rows = await traerTodo(() => { let q = sb.from('envios').select('nodo,motivo,agencia,zona,modo_pago,pedidos,bultos,cajas,importe').gte('fecha', pf).lte('fecha', pt).order('id'); if (trans) q = q.eq('transporte', trans); return q; });
   const r = { total: 0, pedidos: 0, bultos: 0, cajas: 0 };
   rows.filter(kPasa).forEach(e => { const i = Number(e.importe) || 0; if (i > 0) { r.total += i; r.pedidos += Number(e.pedidos) || 0; r.bultos += Number(e.bultos) || 0; r.cajas += Number(e.cajas) || 0; } });
   return r;
@@ -2136,7 +1942,7 @@ function hallazgosKpi(R, envios) {
   const nod = [...R.nodos].filter(([, v]) => v.cajas).map(([k, v]) => ({ k, t: v.costo / v.cajas })), med = mediana(nod.map(x => x.t)), caros = nod.filter(x => nod.length >= 4 && x.t > med * 2).sort((a, b) => b.t - a.t);
   if (caros.length) out.push(['w', '', `${caros.length} ${caros.length === 1 ? 'nodo paga' : 'nodos pagan'} más del doble de la tarifa mediana por caja`, `${caros.slice(0, 3).map(x => `${x.k} ${fmt(x.t)}`).join(', ')}. La mediana es ${fmt(med)}.`, 'Ver nodos', 'nodo']);
   const sinAg = envios.filter(e => !e.agencia);
-  if (sinAg.length) out.push(['w', '', `${sinAg.length} ${sinAg.length === 1 ? 'registro sin agencia asignada' : 'registros sin agencia asignada'}`, `${[...new Set(sinAg.map(e => e.nodo))].slice(0, 4).join(', ')}${new Set(sinAg.map(e => e.nodo)).size > 4 ? '…' : ''}: agrégalos al catálogo de Agencias.`, 'Revisar', 'cal']);
+  if (sinAg.length) out.push(['w', '', `${sinAg.length} ${sinAg.length === 1 ? 'registro sin agencia asignada' : 'registros sin agencia asignada'}`, `${[...new Set(sinAg.map(e => e.nodo))].slice(0, 4).join(', ')}${new Set(sinAg.map(e => e.nodo)).size > 4 ? '…' : ''}: completa la agencia en Registros.`, 'Revisar', 'cal']);
   const sinFac = envios.filter(e => !e.factura && Number(e.importe) > 0), mFac = sinFac.reduce((s, e) => s + Number(e.importe), 0);
   if (sinFac.length) out.push(['w', '', `${fmt(mFac)} (${Math.round(mFac / T * 100)}%) sin N° de factura`, `${sinFac.length} de ${R.conImporte} registros aún no tienen su factura registrada.`, 'Revisar', 'cal']);
   const cu = [...R.cuentas].filter(([k]) => !k.startsWith('(')).sort((a, b) => b[1].costo - a[1].costo)[0];
@@ -2153,8 +1959,8 @@ function calidadKpi(R, envios) {
     item('', '', 'Registros con importe', 'Sin importe no entran a ningún KPI.', sinImp.length, 'registros', 'Ir a Registros') +
     item('', '#fffbeb', 'Con N° de factura', `${fmt(sinFac.reduce((s, e) => s + (Number(e.importe) || 0), 0))} aún sin número de factura.`, sinFac.length, 'registros', 'Completar en Registros') +
     item('', '', 'Con foto de factura adjunta', 'La lectura automática rellena factura e importe desde la foto.', sinAdj.length, 'registros', 'Adjuntar fotos') +
-    item('', '#fef2f2', 'Con agencia asignada', `${esc([...new Set(sinAg.map(e => e.nodo))].join(', ') || 'Todos los nodos tienen agencia')}${sinAg.length ? ': faltan en el catálogo de agencias.' : '.'}`, sinAg.length, 'catalogo', 'Completar catálogo') +
-    item('', '', 'Con zona', 'Necesaria para el análisis por zona y la matriz transporte × zona.', sinZona.length, 'catalogo', 'Completar catálogo') +
+    item('', '#fef2f2', 'Con agencia asignada', `${esc([...new Set(sinAg.map(e => e.nodo))].join(', ') || 'Todos los nodos tienen agencia')}${sinAg.length ? ': completa la agencia en Registros.' : '.'}`, sinAg.length, 'registros', 'Ir a Registros') +
+    item('', '', 'Con zona', 'Necesaria para el análisis por zona y la matriz transporte × zona. Se completa con Editar en Registros.', sinZona.length, 'registros', 'Ir a Registros') +
     `<div class="cq-i"><div class="tx"><b>Importe repartido entre cuentas</b><span>${R.sinHrn ? `${fmt(R.sinHrn)} sin cuenta: falta el detalle de ${R.sinHrnNodos.size} ${R.sinHrnNodos.size === 1 ? 'nodo' : 'nodos'}.` : 'Todo el costo está asignado a una cuenta.'}</span></div><div class="mt"><div class="tr"><i style="width:${hrnPc}%;background:${hrnPc >= 95 ? 'var(--grn)' : 'var(--amb)'}"></i></div><small>${hrnPc.toFixed(0)}% asignado</small></div><button class="b sec" data-go="detalle">Cargar detalle</button></div>`;
   $('#dotCal').className = (sinImp.length || sinFac.length || sinAdj.length || sinAg.length || sinZona.length || R.sinHrn) ? 'dotw' : '';
 }
@@ -2333,7 +2139,7 @@ async function calcularKpis(silencioso) {
   if (silencioso !== true) $('#kpCards').innerHTML = Array(4).fill('<div class="kpi sk"><span></span><b></b><small></small></div>').join('');
   try {
     let envios = await traerTodo(() => {
-      let q = sb.from('envios').select('id,fecha,nodo,motivo,transporte,agencia,pedidos,bultos,cajas,importe,modo_pago,factura,factura_archivo').order('id');
+      let q = sb.from('envios').select('id,fecha,nodo,motivo,transporte,agencia,zona,pedidos,bultos,cajas,importe,modo_pago,factura,factura_archivo').order('id');
       if (desde) q = q.gte('fecha', desde); if (hasta) q = q.lte('fecha', hasta); if (trans) q = q.eq('transporte', trans);
       return q;
     });
@@ -2341,6 +2147,7 @@ async function calcularKpis(silencioso) {
     kMeta = meta;
     if (mi !== kSeq) return;
     if (!trans) pintarTransSeg([...new Set(envios.map(e => e.transporte).filter(Boolean))].sort());
+    poblarFiltros(envios);
     envios = envios.filter(kPasa); kpEnvios = envios;
     const R = calcularKpi(envios, hrn, 'bultos');
     kpiResultado = R;
@@ -2575,7 +2382,7 @@ $('#lqParF').onsubmit = async e => {
 // ---------- tiempo real: los cambios de otros usuarios aparecen solos ----------
 let rtCanal = null, rtCaido = false, rtUltimo = Date.now(); const rtTimers = {};
 const rtEspera = (clave, fn, ms) => { clearTimeout(rtTimers[clave]); rtTimers[clave] = setTimeout(fn, ms); };
-const pestanaActual = () => ['cargar', 'registros', 'liquidaciones', 'kpis', 'detalle', 'catalogo'].find(t => !$('#tab-' + t).classList.contains('hide'));
+const pestanaActual = () => ['cargar', 'registros', 'liquidaciones', 'kpis', 'detalle'].find(t => !$('#tab-' + t).classList.contains('hide'));
 // ¿el registro entra en los filtros que tengo puestos en Registros?
 const rtCumple = r => { const d = $('#rDesde').value, h = $('#rHasta').value, t = $('#rTrans').value, p = $('#rPago').value, m = $('#rMot').value, n = $('#rNodo').value.trim();
   return (!d || r.fecha >= d) && (!h || r.fecha <= h) && (!t || r.transporte === t) && (!p || r.modo_pago === p) && (!m || (r.motivo || 'DESPACHO') === m) && (!n || norm(r.nodo).includes(norm(n))); };
@@ -2603,13 +2410,11 @@ function rtEnvio(p) {
   rtRefrescarVista();
 }
 function rtLiq() { rtUltimo = Date.now(); rtEspera('reg', buscarRegistros, 500); rtRefrescarVista(); }
-function rtAgencia() { rtEspera('cat', () => { if (!$('#kTabla').contains(document.activeElement)) cargarCatalogo(); }, 700); }
 function iniciarTiempoReal() {
   if (rtCanal) return;
   rtCanal = sb.channel('red-troncal')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'envios' }, rtEnvio)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'liquidaciones' }, rtLiq)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'agencias' }, rtAgencia)
     .subscribe(estado => {
       if (estado === 'SUBSCRIBED') { if (rtCaido) { rtCaido = false; buscarRegistros(); rtRefrescarVista(); } }
       else if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(estado)) rtCaido = true;
