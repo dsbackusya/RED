@@ -655,6 +655,15 @@
     .cbarra .in { gap:8px } .cbarra .res span { display:none } .cbarra .res b { font-size:14px } .cbarra .b { padding:10px 14px } #cCancelar { display:none }
     #tab-cargar.conbarra { padding-bottom:150px }
   }
+  .kacc { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px; padding:10px 14px; border-radius:14px; background:#e8f1fc; color:var(--pri); font-size:14px; font-weight:600 } .kacc span { flex:1; min-width:120px }
+  .kacc .b.sec { background:var(--card); color:var(--ink) }
+  #kTabla th[data-c=chk], #kTabla td[data-c=chk] { width:44px; padding-left:16px; padding-right:0 } #kTabla td[data-c=chk] input, #kTabla th[data-c=chk] input { width:18px; height:18px; padding:0; margin:0; cursor:pointer; accent-color:var(--pri) }
+  #kTabla tr.sel td { background:#f0f6fd }
+  @media (max-width:760px) {
+    #kTabla tr[data-n] { position:relative } #kTabla td[data-c=chk] { position:absolute; top:16px; right:16px; width:auto; padding:0 } #kTabla td[data-c=chk] input { width:24px !important; min-width:24px !important; height:24px; padding:0; background:none; accent-color:var(--pri) }
+    #kTabla td[data-c=destino] { padding-right:40px } #kTabla tr.sel { box-shadow:inset 0 0 0 2px var(--pri) } #kTabla tr.sel td { background:none }
+    .kacc { position:sticky; bottom:calc(76px + env(safe-area-inset-bottom)); z-index:20; box-shadow:0 8px 24px rgba(0,0,0,.2); background:#fff }
+  }
   .ico { width:1.1em; height:1.1em; vertical-align:-.2em; flex:none } .ar { display:inline-block; vertical-align:0; margin-left:2px } .nb .x svg { display:grid; place-items:center }
   .pag button .ico { width:14px; height:14px; vertical-align:-2px }
 </style>
@@ -919,6 +928,7 @@
     <input type="file" id="kFile" accept=".xlsx,.xls,.csv" class="hide">
     <div id="kMsg" class="msg"></div>
     <p class="hint" id="kHint"></p>
+    <div class="kacc hide" id="kAcc"><span id="kAccT"></span><button type="button" class="b sec" id="kAccQ">Quitar selección</button><button type="button" class="b red" id="kAccE">Eliminar seleccionados</button></div>
   </div>
   <div class="card empty hide" id="kVacio"><b></b><span></span><button type="button" class="b" id="kCopiar">Copiar los destinos de Despacho</button></div>
   <div class="tw" id="kTw"><table id="kTabla"></table></div>
@@ -1054,6 +1064,7 @@ const sb = supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
 let catalogo = new Map();   // despachos: nodo normalizado -> fila
 let catalogoRec = new Map();   // recojos
 let catRows = [], agMot = 'DESPACHO';
+const kSel = new Set();   // destinos marcados para eliminar (de la lista abierta)
 const catDe = m => m === 'RECOJO' ? catalogoRec : catalogo;
 const zonaEnv = e => ((catDe(e.motivo).get(norm(e.nodo)) || catalogo.get(norm(e.nodo)) || {}).zona) || '(sin zona)';
 let previa = [];            // filas de la carga en curso
@@ -1127,8 +1138,10 @@ function pintarCatalogo(rows) {
   $('#kHint').textContent = agMot === 'RECOJO' ? 'Estos datos completan los nodos de la hoja RECOJOS al cargar. Los cambios se guardan al salir de la celda.' : 'Estos datos completan los nodos de la hoja DESPACHO al cargar. Los cambios se guardan al salir de la celda.';
   const vacio = !vis.length; $('#kVacio').classList.toggle('hide', !vacio); $('#kTw').classList.toggle('hide', vacio);
   if (vacio) { $('#kVacio b').textContent = agMot === 'RECOJO' ? 'Aún no hay destinos de recojo' : 'Aún no hay destinos de despacho'; $('#kVacio span').textContent = agMot === 'RECOJO' ? 'Agrégalos uno por uno, o copia los de Despacho y ajusta lo que cambie.' : 'Agrega el primer destino.'; $('#kCopiar').classList.toggle('hide', agMot !== 'RECOJO' || !des.length); }
-  $('#kTabla').innerHTML = '<tr><th>Destino</th><th>Agencia</th><th>Transporte</th><th>Zona</th><th>Observación</th><th>Detalle del gasto</th><th></th></tr>' +
-    vis.map(r => `<tr data-n="${esc(r.destino)}">
+  [...kSel].forEach(n => { if (!vis.some(r => r.destino === n)) kSel.delete(n); });
+  $('#kTabla').innerHTML = '<tr><th data-c="chk"><input type="checkbox" id="kTodos" aria-label="Seleccionar todos"></th><th>Destino</th><th>Agencia</th><th>Transporte</th><th>Zona</th><th>Observación</th><th>Detalle del gasto</th><th></th></tr>' +
+    vis.map(r => `<tr data-n="${esc(r.destino)}"${kSel.has(r.destino) ? ' class="sel"' : ''}>
+      <td data-c="chk"><input type="checkbox" data-sel="${esc(r.destino)}" aria-label="Seleccionar ${esc(r.destino)}"${kSel.has(r.destino) ? ' checked' : ''}></td>
       <td data-c="destino"><b>${esc(r.destino)}</b></td>
       <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" title="${esc(r.agencia)}" value="${esc(r.agencia)}"></td>
       <td data-c="trans" data-l="Transporte"><input data-f="transporte" value="${esc(r.transporte)}"></td>
@@ -1136,7 +1149,38 @@ function pintarCatalogo(rows) {
       <td data-c="pago" data-l="Modo de pago"><select data-f="observacion" data-v="${r.observacion}">${OBS.map(p => `<option${p === r.observacion ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
       <td data-c="concat" data-l="Detalle del gasto"><input data-f="concatenar" style="min-width:260px" value="${esc(r.concatenar)}"></td>
       <td data-c="del"><button class="b sec" data-del="1">Eliminar</button></td></tr>`).join('');
+  kBarra();
 }
+// selección múltiple: casillas por fila, "seleccionar todo" y Mayús para marcar un rango
+function kBarra() {
+  const n = kSel.size, filas = [...document.querySelectorAll('#kTabla input[data-sel]')], todos = $('#kTodos');
+  $('#kAcc').classList.toggle('hide', !n);
+  $('#kAccT').textContent = `${n} ${n === 1 ? 'destino seleccionado' : 'destinos seleccionados'}`;
+  if (todos) { todos.checked = !!filas.length && filas.every(c => c.checked); todos.indeterminate = n > 0 && !todos.checked; }
+  document.querySelectorAll('#kTabla tr[data-n]').forEach(tr => tr.classList.toggle('sel', kSel.has(tr.dataset.n)));
+}
+let kUltimo = null;
+$('#kTabla').addEventListener('click', e => {
+  const c = e.target.closest('input[data-sel]'); if (!c) return;
+  const filas = [...document.querySelectorAll('#kTabla input[data-sel]')], i = filas.indexOf(c);
+  if (e.shiftKey && kUltimo !== null && filas[kUltimo]) { const [a, b] = [Math.min(i, kUltimo), Math.max(i, kUltimo)]; filas.slice(a, b + 1).forEach(x => { x.checked = c.checked; c.checked ? kSel.add(x.dataset.sel) : kSel.delete(x.dataset.sel); }); }
+  else c.checked ? kSel.add(c.dataset.sel) : kSel.delete(c.dataset.sel);
+  kUltimo = i; kBarra();
+});
+$('#kTabla').addEventListener('change', e => {
+  if (e.target.id !== 'kTodos') return;
+  document.querySelectorAll('#kTabla input[data-sel]').forEach(c => { c.checked = e.target.checked; e.target.checked ? kSel.add(c.dataset.sel) : kSel.delete(c.dataset.sel); }); kBarra();
+});
+$('#kAccQ').onclick = () => { kSel.clear(); document.querySelectorAll('#kTabla input[data-sel]').forEach(c => c.checked = false); kBarra(); };
+$('#kAccE').onclick = async () => {
+  const nombres = [...kSel], n = nombres.length; if (!n) return;
+  if (!await confirmar(`¿Eliminar ${n} ${n === 1 ? 'destino' : 'destinos'}?`, `Se quitarán de la lista de ${agMot === 'RECOJO' ? 'recojo' : 'despacho'}. Los registros ya cargados no cambian.`, 'Eliminar', true)) return;
+  $('#kAccE').disabled = true; let error = null;
+  for (let i = 0; i < nombres.length && !error; i += 100) ({ error } = await sb.from('agencias').delete().in('destino', nombres.slice(i, i + 100)).eq('motivo', agMot));
+  $('#kAccE').disabled = false;
+  if (error) return flash($('#kMsg'), error.message, 'err');
+  kSel.clear(); toast(`${n} ${n === 1 ? 'destino eliminado' : 'destinos eliminados'}`); cargarCatalogo();
+};
 // ---- Excel de Agencias: descargar la lista actual o cargar una para actualizar muchos destinos de una vez ----
 const AG_COLS = ['DESTINO', 'AGENCIA', 'TRANSPORTE', 'ZONA', 'OBSERVACION', 'DETALLE DEL GASTO'];
 $('#kBajar').onclick = async () => {
@@ -1190,7 +1234,7 @@ $('#kFile').onchange = async e => {
     toast(`${cambios.length} ${cambios.length === 1 ? 'destino guardado' : 'destinos guardados'} en Agencias`); cargarCatalogo();
   } catch (err) { flash($('#kMsg'), 'No se pudo leer el archivo: ' + err.message, 'err'); }
 };
-$('#kSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; agMot = b.dataset.m; pintarCatalogo(catRows); };
+$('#kSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; agMot = b.dataset.m; kSel.clear(); pintarCatalogo(catRows); };
 $('#kCopiar').onclick = async () => {
   const filas = catRows.filter(r => r.motivo !== 'RECOJO').map(r => ({ ...r, motivo: 'RECOJO', concatenar: String(r.concatenar || '').replace(/^ENVIO\b/i, 'RECOJO') }));
   if (!filas.length || !await confirmar('¿Copiar los destinos de Despacho?', `Se crearán ${filas.length} destinos de recojo con los mismos datos. Después puedes cambiar lo que sea distinto.`, 'Copiar')) return;
