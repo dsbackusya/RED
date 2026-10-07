@@ -567,6 +567,41 @@
     #lqHist td:last-child { display:flex !important; gap:10px } #lqHist td:last-child .lnk { flex:1; min-height:44px; border-radius:12px; background:var(--head); text-decoration:none; font-size:15px; color:var(--pri) } #lqHist td:last-child .lnk[data-a=anular] { background:var(--badbg); color:var(--bad) !important }
     #lqHist td:first-child { font-size:17px }
   }
+
+  /* Registros en escritorio: todas las columnas caben (ancho fijo, textos largos con "…", acciones como íconos) */
+  @media (min-width:761px) {
+    main:has(#tab-registros:not(.hide)) { max-width:1680px }
+    #tab-registros .tw { overflow-x:auto }
+    #rTabla { table-layout:fixed; width:100%; min-width:1180px }
+    #rTabla th, #rTabla td { padding-left:8px; padding-right:8px; overflow:hidden; text-overflow:ellipsis }
+    #rTabla th:nth-child(1) { width:78px } #rTabla th:nth-child(2) { width:94px } #rTabla th:nth-child(3) { width:76px } #rTabla th:nth-child(4) { width:112px }
+    #rTabla th:nth-child(5), #rTabla th:nth-child(6), #rTabla th:nth-child(7) { width:56px; text-align:center } #rTabla th:nth-child(8) { width:92px }
+    #rTabla th:nth-child(11) { width:100px } #rTabla th:nth-child(12) { width:88px } #rTabla th:nth-child(13) { width:122px } #rTabla th:nth-child(14) { width:100px } #rTabla th:nth-child(15) { width:44px }
+    #rTabla td input, #rTabla td select { min-width:0 !important; width:100%; text-overflow:ellipsis }
+    #rTabla td input.chip { width:100%; min-width:0 } #rTabla td.n input { min-width:0 }
+    #rTabla td.adj { min-width:0; display:table-cell; white-space:nowrap } #rTabla td.adj .thumb { vertical-align:middle } #rTabla td.adj .tx { display:none } #rTabla td.adj .ic { display:inline }
+    #rTabla td.adj a { text-decoration:none; margin-right:2px } #rTabla td.adj .lnk { text-decoration:none; font-size:16px; color:var(--mut); padding:2px 5px; border-radius:6px; line-height:1 } #rTabla td.adj .lnk:hover { background:var(--head); color:var(--ink) }
+    #rTabla td.adj [data-act=quitar]:hover { color:var(--bad) } #rTabla td.adj > button.b { padding:6px 10px; font-size:12px }
+    #rTabla .del .tx { display:none } #rTabla .del { padding:6px; border-radius:8px } #rTabla th.c { text-align:center }
+    #rTabla td[data-c=nodo] .nodo { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+    #rTabla td .tb { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+  }
+  @media (max-width:760px) { #rTabla td.adj .ic { display:none } #rTabla td.adj .tx { display:inline } #rTabla .del .tx { display:inline } }
+
+  @media (min-width:761px) {
+    #rTabla th:nth-child(1) { width:74px } #rTabla th:nth-child(2) { width:90px } #rTabla th:nth-child(3) { width:84px } #rTabla th:nth-child(4) { width:106px }
+    #rTabla th:nth-child(5) { width:60px } #rTabla th:nth-child(6) { width:68px } #rTabla th:nth-child(7) { width:58px } #rTabla th:nth-child(8) { width:86px }
+    #rTabla th:nth-child(11) { width:100px } #rTabla th:nth-child(12) { width:86px } #rTabla th:nth-child(13) { width:118px } #rTabla th:nth-child(14) { width:92px } #rTabla th:nth-child(15) { width:44px }
+  }
+  /* en pantallas medianas se oculta "Detalle del gasto" (es automático) para que la agencia se lea completa */
+  @media (min-width:761px) and (max-width:1499px) { #rTabla th:nth-child(10), #rTabla td[data-c=detalle] { display:none } #rTabla { min-width:1100px } }
+
+  @media (min-width:761px) {
+    #rTabla th:nth-child(12) { width:96px } #rTabla th:nth-child(13) { width:130px } #rTabla th:nth-child(14) { width:106px }
+    #rTabla input[type=number]::-webkit-inner-spin-button, #rTabla input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0 } #rTabla input[type=number] { -moz-appearance:textfield; appearance:textfield }
+    #rTabla td.adj .thumb { width:26px; height:26px } #rTabla td.n input { padding-right:4px }
+  }
+  @media (min-width:761px) { #rTabla th:nth-child(8) { width:96px } #rTabla td input.chip { font-size:11px; padding-left:6px; padding-right:6px } #rTabla td input, #rTabla td select { font-size:13px } #rTabla td[data-c=agencia] input { padding-left:6px; padding-right:4px } }
 </style>
 </head>
 <body>
@@ -991,7 +1026,7 @@ function pintarCatalogo(rows) {
   $('#kTabla').innerHTML = '<tr><th>Destino</th><th>Agencia</th><th>Transporte</th><th>Zona</th><th>Observación</th><th>Concatenar</th><th></th></tr>' +
     rows.map(r => `<tr data-n="${esc(r.destino)}">
       <td data-c="destino"><b>${esc(r.destino)}</b></td>
-      <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" value="${esc(r.agencia)}"></td>
+      <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" title="${esc(r.agencia)}" value="${esc(r.agencia)}"></td>
       <td data-c="trans" data-l="Transporte"><input data-f="transporte" value="${esc(r.transporte)}"></td>
       <td data-c="zona" data-l="Zona"><input data-f="zona" value="${esc(r.zona)}"></td>
       <td data-c="pago" data-l="Modo de pago"><select data-f="observacion" data-v="${r.observacion}">${OBS.map(p => `<option${p === r.observacion ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
@@ -1130,7 +1165,7 @@ function adjuntoHtml(r) {
   const fijo = regEnviado(r);
   if (!r.factura_archivo) return '<button class="b sec" data-act="adjuntar">📎 Adjuntar</button>';
   const u = esc(urlAdjunto(r.factura_archivo));
-  return `<a href="${u}" target="_blank" rel="noopener">${esImagen(r.factura_archivo) ? `<img class="thumb" src="${u}" alt="Factura">` : '📄'} Ver</a>${fijo ? '' : '&nbsp;&nbsp;<button class="lnk" data-act="adjuntar">Cambiar</button>&nbsp;&nbsp;<button class="lnk" data-act="quitar">Quitar</button>'}`;
+  return `<a href="${u}" target="_blank" rel="noopener" title="Ver factura">${esImagen(r.factura_archivo) ? `<img class="thumb" src="${u}" alt="Factura">` : '📄'}<span class="tx"> Ver</span></a>${fijo ? '' : '<button class="lnk" data-act="adjuntar" title="Cambiar foto"><span class="ic">↻</span><span class="tx">Cambiar</span></button><button class="lnk" data-act="quitar" title="Quitar foto"><span class="ic">×</span><span class="tx">Quitar</span></button>'}`;
 }
 let adjId = null;
 $('#adjFile').onchange = async e => {
@@ -1253,13 +1288,13 @@ function filaRegistro(r) {
       <td class="n" data-c="importe" data-l="Importe"><input class="mono imp" data-f="importe" type="number" step="0.01" value="${r.importe == null ? '' : Number(r.importe).toFixed(2)}" placeholder="0.00"${L}></td>
       <td data-c="factura" data-l="N° de factura"><input class="mono" data-f="factura" value="${esc(r.factura)}" placeholder="F001-0000"${L}></td>
       <td class="adj" data-c="adj" data-l="Factura adjunta">${adjuntoHtml(r)}</td>
-      <td class="c" data-c="del"><button class="del" data-del="1"${L}>${TRASH} Eliminar</button></td></tr>`;
+      <td class="c" data-c="del"><button class="del" data-del="1"${L} title="Eliminar registro" aria-label="Eliminar registro">${TRASH}<span class="tx"> Eliminar</span></button></td></tr>`;
 }
 function pintarTablaRegistros() {
   const N = registros.length, paginas = Math.max(1, Math.ceil(N / pag.size));
   pag.n = Math.min(Math.max(1, pag.n), paginas);
   const ini = (pag.n - 1) * pag.size, vista = registros.slice(ini, ini + pag.size);
-  $('#rTabla').innerHTML = '<tr><th>Fecha</th><th>Estado</th><th>Transporte</th><th>Nodo</th><th class="c">Bultos</th><th class="c">Pedidos</th><th class="c">Cajas</th><th>Placa</th><th>Agencia</th><th>Detalle del gasto</th><th class="c">Pago</th><th class="num">Importe</th><th>Factura</th><th>Adjunto</th><th class="c">Acciones</th></tr>' + (vista.map(filaRegistro).join('') || '<tr><td colspan="14"><div class="empty"><b>Sin registros en este rango</b><span>Ajusta las fechas o sube un despacho en «Cargar despacho».</span></div></td></tr>');
+  $('#rTabla').innerHTML = '<tr><th>Fecha</th><th>Estado</th><th>Transporte</th><th>Nodo</th><th class="c">Bultos</th><th class="c">Pedidos</th><th class="c">Cajas</th><th>Placa</th><th>Agencia</th><th>Detalle del gasto</th><th class="c">Pago</th><th class="num">Importe</th><th>Factura</th><th>Adjunto</th><th class="c" aria-label="Acciones"></th></tr>' + (vista.map(filaRegistro).join('') || '<tr><td colspan="14"><div class="empty"><b>Sin registros en este rango</b><span>Ajusta las fechas o sube un despacho en «Cargar despacho».</span></div></td></tr>');
   const nums = []; for (let i = 1; i <= paginas; i++) if (i === 1 || i === paginas || Math.abs(i - pag.n) <= 1) nums.push(i); else if (nums[nums.length - 1] !== '…') nums.push('…');
   $('#rPag').innerHTML = `<div class="l"><span>Filas por página:</span><select id="rSize" aria-label="Filas por página">${[15, 25, 50, 100].map(v => `<option${v === pag.size ? ' selected' : ''}>${v}</option>`).join('')}</select><span>Mostrando <b>${N ? ini + 1 : 0}-${Math.min(N, ini + pag.size)}</b> de <b>${N}</b> registros</span></div>
     <div class="r"><button data-p="prev"${pag.n <= 1 ? ' disabled' : ''}>‹</button>${nums.map(n => n === '…' ? '<span>…</span>' : `<button data-p="${n}" class="${n === pag.n ? 'on' : ''}">${n}</button>`).join('')}<button data-p="next"${pag.n >= paginas ? ' disabled' : ''}>›</button></div>`;
