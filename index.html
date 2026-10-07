@@ -1956,19 +1956,19 @@ async function lqExcel(filas, L) {
   ws.getCell('G61').value = { formula: 'SUM(G14:G60)', result: filas.reduce((x, r) => x + Number(r.importe), 0) };
   return wb.xlsx.writeBuffer();
 }
-// carpeta de una liquidación: Excel + fotos de las facturas
+// agrega al ZIP el Excel de una liquidación (suelto, afuera) y sus fotos (todas juntas en la carpeta FACTURAS)
 async function lqCarpeta(zip, filas, L) {
-  const cod = lqCod(L.numero), dir = zip.folder(cod), fotos = dir.folder('facturas'), usados = new Set();
+  const fotos = zip.folder('FACTURAS'); zip.__usados = zip.__usados || new Set();
   // nombre del Excel: FORMATO RENDICIÓN - AÑO MES - DÍA (fecha del despacho); si hay otro igual en el ZIP, se numera
   const [fy, fm, fd] = String(filas[0].fecha).slice(0, 10).split('-'), mes = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'][Number(fm) - 1];
-  const base = `FORMATO RENDICIÓN - ${fy} ${mes} - ${fd}`, previos = Object.keys(zip.files).filter(n => n.endsWith('.xlsx') && n.split('/').pop().startsWith(base)).length;
-  dir.file(base + (previos ? ` (${previos + 1})` : '') + '.xlsx', await lqExcel(filas, L));
+  const base = `FORMATO RENDICIÓN - ${fy} ${mes} - ${fd}`, previos = Object.keys(zip.files).filter(n => !n.includes('/') && n.endsWith('.xlsx') && n.startsWith(base)).length;
+  zip.file(base + (previos ? ` (${previos + 1})` : '') + '.xlsx', await lqExcel(filas, L));
   const cola = [...filas]; let falla = 0;
   await Promise.all(Array.from({ length: 5 }, async () => {
     while (cola.length) {
       const r = cola.shift(), { data, error } = await sb.storage.from(BUCKET).download(r.factura_archivo);
       if (error || !data) { falla++; continue; }
-      fotos.file(lqNombreFoto(r, usados), data);
+      fotos.file(lqNombreFoto(r, zip.__usados), data);
     }
   }));
   return falla;
