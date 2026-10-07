@@ -1160,7 +1160,7 @@ function leerAgencias(wb) {
       const destino = norm(f[iD]); if (!destino) return;
       const o = iO >= 0 ? norm(f[iO]) : '';
       if (o && !o.includes('CONTADO') && !o.includes('CREDITO')) return errores.push(`${n}, fila ${hi + k + 2}: el pago «${tx(f[iO])}» no es válido (usa AL CONTADO o CREDITO)`);
-      out.set(tipo(n) + '|' + destino, { motivo: tipo(n), destino, agencia: iA >= 0 ? tx(f[iA]) : '', transporte: iT >= 0 ? tx(f[iT]).toUpperCase() : '', zona: iZ >= 0 ? tx(f[iZ]).toUpperCase() : '',
+      out.set(tipo(n) + '|' + destino, { motivo: tipo(n), destino, nombre: tx(f[iD]).toUpperCase().replace(/\s+/g, ' '), agencia: iA >= 0 ? tx(f[iA]) : '', transporte: iT >= 0 ? tx(f[iT]).toUpperCase() : '', zona: iZ >= 0 ? tx(f[iZ]).toUpperCase() : '',
         observacion: o ? (o.includes('CONTADO') ? 'AL CONTADO' : 'CREDITO') : '', concatenar: iC >= 0 ? tx(f[iC]) : '', fila: hi + k + 2, hoja: n });
     });
   });
@@ -1180,7 +1180,7 @@ $('#kFile').onchange = async e => {
         const nuevo = { ...ex }; campos.forEach(c => { if (r[c]) nuevo[c] = r[c]; });
         if (campos.some(c => (nuevo[c] ?? '') !== (ex[c] ?? ''))) { cambios.push(nuevo); cuenta[r.motivo][1]++; }
       } else if (!r.observacion) errores.push(`${r.hoja}, fila ${r.fila}: ${r.destino} es nuevo y le falta el pago (AL CONTADO o CREDITO)`);
-      else { cambios.push({ motivo: r.motivo, destino: r.destino, agencia: r.agencia || null, transporte: r.transporte || null, zona: r.zona || null, observacion: r.observacion, concatenar: r.concatenar || (r.motivo === 'RECOJO' ? 'RECOJO' : 'ENVIO') + ' DE PEDIDOS ' + r.destino }); cuenta[r.motivo][0]++; }
+      else { cambios.push({ motivo: r.motivo, destino: r.nombre, agencia: r.agencia || null, transporte: r.transporte || null, zona: r.zona || null, observacion: r.observacion, concatenar: r.concatenar || (r.motivo === 'RECOJO' ? 'RECOJO' : 'ENVIO') + ' DE PEDIDOS ' + r.nombre }); cuenta[r.motivo][0]++; }
     });
     if (!cambios.length) return flash($('#kMsg'), errores.length ? errores.slice(0, 3).join('. ') : 'El Excel no trae cambios: todo ya está igual en Agencias.', errores.length ? 'err' : 'ok');
     const res = ['DESPACHO', 'RECOJO'].filter(m => cuenta[m][0] || cuenta[m][1]).map(m => `${m === 'RECOJO' ? 'Recojo' : 'Despacho'}: ${cuenta[m][0]} ${cuenta[m][0] === 1 ? 'nuevo' : 'nuevos'} y ${cuenta[m][1]} ${cuenta[m][1] === 1 ? 'actualizado' : 'actualizados'}`).join('. ');
@@ -1227,12 +1227,13 @@ $('#dstX').onclick = () => $('#dstDlg').close();
 $('#dstF').onsubmit = async e => {
   e.preventDefault();
   const n = norm($('#dstN').value); if (!n) return;
+  const nombre = $('#dstN').value.trim().toUpperCase().replace(/\s+/g, ' ');   // se guarda como se escribe (con Ñ)
   if (catDe(agMot).has(n)) { $('#dstE').textContent = n + ' ya está en la lista de ' + (agMot === 'RECOJO' ? 'recojo' : 'despacho') + '.'; $('#dstE').className = 'msg err'; return; }
   const v = id => $(id).value.trim(); $('#dstOk').disabled = true;
-  const { error } = await sb.from('agencias').insert({ destino: n, agencia: comboVal('#dstA') || null, transporte: comboVal('#dstT') || null, zona: comboVal('#dstZ') || null, observacion: $('#dstP').value, concatenar: (agMot === 'RECOJO' ? 'RECOJO' : 'ENVIO') + ' DE PEDIDOS ' + n, motivo: agMot });
+  const { error } = await sb.from('agencias').insert({ destino: nombre, agencia: comboVal('#dstA') || null, transporte: comboVal('#dstT') || null, zona: comboVal('#dstZ') || null, observacion: $('#dstP').value, concatenar: (agMot === 'RECOJO' ? 'RECOJO' : 'ENVIO') + ' DE PEDIDOS ' + nombre, motivo: agMot });
   $('#dstOk').disabled = false;
   if (error) { $('#dstE').textContent = /motivo/.test(error.message) ? 'Falta ejecutar supabase_agencias_motivo.sql en Supabase.' : error.message; $('#dstE').className = 'msg err'; return; }
-  $('#dstDlg').close(); toast(n + ' agregado a ' + (agMot === 'RECOJO' ? 'recojo' : 'despacho')); cargarCatalogo();
+  $('#dstDlg').close(); toast(nombre + ' agregado a ' + (agMot === 'RECOJO' ? 'recojo' : 'despacho')); cargarCatalogo();
 };
 
 // ---------- carga ----------
