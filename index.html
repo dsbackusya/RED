@@ -121,7 +121,7 @@
   .aviso { background:var(--warnbg); color:var(--warn); border-radius:9px; padding:7px 10px; margin:6px 0; font-size:12px }
   .okbox { background:var(--okbg); color:var(--ok); border-radius:9px; padding:7px 10px; margin:6px 0; font-size:12px }
   @media (max-width:760px) { .fd { grid-template-columns:1fr } .fd-img { max-height:34vh } }
-  #factDlg { width:min(860px,94vw) } #factDlg .fd { grid-template-columns:1fr 1fr } #factDlg .fd-form { padding:28px; display:flex; flex-direction:column }
+  #factDlg { width:min(860px,94vw) } #factDlg .fd { grid-template-columns:minmax(0,1fr) minmax(0,1fr); height:min(640px,88vh); max-height:none } #factDlg .fd-form { padding:28px; display:flex; flex-direction:column }
   #factDlg h3 { font-size:21px; font-weight:700; letter-spacing:-.02em; margin:0 0 4px } #factDlg .fd-sub { color:var(--mut); font-size:13px; margin:0 0 22px }
   #factDlg .fcampo { margin-bottom:16px } #factDlg .fcampo label { display:block; font-size:12.5px; font-weight:600; color:var(--mut) }
   #factDlg .fcampo input { display:block; width:100%; margin-top:5px; padding:11px 13px; font-size:17px; border:0; border-radius:10px; background:var(--head); color:var(--ink) }
@@ -137,12 +137,12 @@
   #factDlg .fd-pie { margin-top:auto; padding-top:14px; display:flex; justify-content:flex-end; gap:10px }
   #factDlg .fd-pie .b { white-space:nowrap }
   #factDlg .b:disabled { opacity:.45; cursor:not-allowed }
-  #factDlg .fd-img { position:relative; overflow:hidden } #factDlg .fd-sc { overflow:auto; max-height:90vh; height:100%; cursor:zoom-in } #factDlg .fd-sc.z { cursor:grab } #factDlg .fd-sc.arr { cursor:grabbing; user-select:none }
+  #factDlg .fd-img { position:relative; overflow:hidden } #factDlg .fd-sc { position:absolute; inset:0; overflow:auto } #factDlg .fd-sc.z { cursor:grab } #factDlg .fd-sc.arr { cursor:grabbing; user-select:none }
   #factDlg .fd-img img { max-width:none; -webkit-user-drag:none; user-select:none }
   #factDlg .fd-zoom { position:absolute; right:12px; bottom:12px; display:flex; align-items:center; gap:2px; padding:3px; border-radius:99px; background:rgba(40,40,42,.78); backdrop-filter:blur(10px); color:#fff }
   #factDlg .fd-zoom button { width:30px; height:30px; border:0; border-radius:50%; background:none; color:#fff; font-size:17px; line-height:1; cursor:pointer } #factDlg .fd-zoom button:hover:not(:disabled) { background:rgba(255,255,255,.2) } #factDlg .fd-zoom button:disabled { opacity:.35; cursor:default }
   #factDlg .fd-zoom span { min-width:42px; text-align:center; font-size:12px; font-variant-numeric:tabular-nums }
-  @media (max-width:760px) { #factDlg .fd-sc { max-height:34vh } #factDlg .fd { grid-template-columns:minmax(0,1fr) } #factDlg .fd-form { padding:20px 18px } #factDlg .fd-pie .b { flex:1 }
+  @media (max-width:760px) { #factDlg .fd { grid-template-columns:minmax(0,1fr); grid-template-rows:34vh minmax(0,1fr); height:auto; max-height:92vh } #factDlg .fd-img { max-height:none } #factDlg .fd-form { padding:20px 18px } #factDlg .fd-pie .b { flex:1 }
     #factDlg .fd-pie { position:sticky; bottom:0; background:var(--card); padding-bottom:4px } }
   .ctl { margin-bottom:14px }
   .chk { flex-direction:row; align-items:center; gap:6px; padding-bottom:7px; font-weight:500 }
