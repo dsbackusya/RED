@@ -774,7 +774,7 @@
   <div id="cS1">
     <div class="card">
       <div class="csube">
-        <label>Fecha del despacho<input type="date" id="cFecha"></label>
+        <label>Fecha por defecto<input type="date" id="cFecha"></label>
         <div>
           <div class="cdrop" id="cDrop" role="button" tabindex="0" aria-label="Elegir el Excel del día"><div class="ic" id="cIcSube"></div><div><b>Arrastra el Excel aquí</b><span>o elige un archivo de tu equipo</span></div><button type="button" class="b" id="cElegir">Elegir archivo</button></div>
           <div class="carch hide" id="cArch"><div class="ic" id="cIcDoc"></div><div><b id="cArchN"></b><span id="cArchS"></span></div><button type="button" class="b sec" id="cCambiar">Cambiar</button></div>
@@ -784,8 +784,8 @@
       <details class="how" id="cHow"><summary>¿Cómo debe ser el Excel?</summary>
         <ul>
           <li>Hojas <b>DESPACHO</b> y <b>RECOJOS</b>: columnas FECHA, NODO, PEDIDOS, BULTO, CAJAS, TRANSPORTE, PLACA, AGENCIA, MODO DE PAGO (CONTADO o CREDITO) y ZONA.</li>
-          <li>Hoja <b>DETALLE</b>: una fila por bulto del despacho.</li>
-          <li>Puedes subir solo las hojas que necesites. La FECHA puede ir vacía: se usa la fecha de arriba. Si la ZONA va vacía, se completa con la última zona que tuvo ese nodo. Lo que falte lo completas en la pantalla de revisión.</li>
+          <li>Hoja <b>DETALLE</b>: una fila por bulto, con su FECHA en la primera columna.</li>
+          <li>Puedes subir solo las hojas que necesites. En las tres hojas, la FECHA de cada fila define con qué fecha se guarda; si va vacía, se usa la fecha por defecto de arriba. Si la ZONA va vacía, se completa con la última zona que tuvo ese nodo. Lo que falte lo completas en la pantalla de revisión.</li>
         </ul>
       </details>
       <div id="cMsg" class="msg"></div>
@@ -1148,7 +1148,7 @@ function conexion(ok) { $('#estado').className = 'estado' + (ok ? '' : ' mal'); 
 $('#cPlantilla').onclick = async () => {
   await xlsxLib();
   const wb = XLSX.utils.book_new(), cab = ['FECHA', 'NODO', 'PEDIDOS', 'BULTO', 'CAJAS', 'TRANSPORTE', 'PLACA', 'AGENCIA', 'MODO DE PAGO', 'ZONA'];
-  [['DESPACHO', cab], ['RECOJOS', cab], ['DETALLE', HRN_COLS.map(c => c[1])]].forEach(([n, h]) => {
+  [['DESPACHO', cab], ['RECOJOS', cab], ['DETALLE', ['FECHA', ...HRN_COLS.map(c => c[1])]]].forEach(([n, h]) => {
     const ws = XLSX.utils.aoa_to_sheet([h]); ws['!cols'] = h.map(x => ({ wch: Math.max(12, x.length + 2) })); XLSX.utils.book_append_sheet(wb, ws, n);
   });
   XLSX.writeFile(wb, 'plantilla_despacho.xlsx');
@@ -1159,7 +1159,7 @@ function fechaDe(v) {
   if (v instanceof Date && !isNaN(v)) return `${v.getFullYear()}-${String(v.getMonth() + 1).padStart(2, '0')}-${String(v.getDate()).padStart(2, '0')}`;
   if (typeof v === 'number' && v > 20000 && v < 80000) return new Date(Math.round((v - 25569) * 864e5)).toISOString().slice(0, 10);
   const t = String(v ?? '').trim(); let m;
-  if ((m = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+  if ((m = t.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/))) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
   if ((m = t.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2}|\d{4})$/))) return `${m[3].length === 2 ? '20' + m[3] : m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
   return '';
 }
@@ -1172,7 +1172,7 @@ function tablaDeHoja(ws) {
     const iC = h.findIndex(x => x.includes('CAJA'));
     if (iN < 0 || iC < 0) continue;
     const iP = h.findIndex(x => x.includes('PEDIDO')), iB = h.findIndex(x => x.includes('BULTO')), iT = h.findIndex(x => x.startsWith('TRANSPORT'));
-    const iF = h.findIndex(x => x === 'FECHA'), iPl = h.findIndex(x => x.startsWith('PLACA')), iAg = h.findIndex(x => x.startsWith('AGENCIA')), iPg = h.findIndex(x => x.startsWith('PAGO') || x.includes('MODO DE PAGO') || x === 'OBSERVACION'), iZn = h.findIndex(x => x === 'ZONA');
+    const iF = h.findIndex(x => ['FECHA', 'FECHA DESPACHO', 'FECHA DE DESPACHO', 'FECHA RECOJO', 'FECHA DE RECOJO'].includes(x)), iPl = h.findIndex(x => x.startsWith('PLACA')), iAg = h.findIndex(x => x.startsWith('AGENCIA')), iPg = h.findIndex(x => x.startsWith('PAGO') || x.includes('MODO DE PAGO') || x === 'OBSERVACION'), iZn = h.findIndex(x => x === 'ZONA');
     const pagoDe = v => { const o = norm(v); return o.includes('CONTADO') ? 'CONTADO' : o.includes('CREDITO') ? 'CREDITO' : ''; }, txt = v => String(v ?? '').trim();
     const out = [];
     for (let j = i + 1; j < filas.length; j++) {
@@ -1203,6 +1203,8 @@ const detalleGasto = r => (r.motivo === 'RECOJO' ? 'RECOJO' : 'ENVIO') + ' DE PE
 let cArchivo = null, cFiltro = '';
 const cFechaDe = r => r.fecha || $('#cFecha').value;
 const cFechas = () => [...new Set(previa.map(cFechaDe).filter(Boolean))].sort();
+const cFechasTodas = () => [...new Set([...previa.map(cFechaDe), ...(hrnCarga || []).map(r => r.fecha_reporte || $('#cFecha').value)].filter(Boolean))].sort();
+const cSinFecha = () => previa.filter(r => !r.fecha).length + (hrnCarga || []).filter(r => !r.fecha_reporte).length;
 const cHojas = () => ({ despacho: previa.some(r => r.motivo === 'DESPACHO'), recojos: previa.some(r => r.motivo === 'RECOJO'), detalle: !!hrnCarga });
 function cChips() {
   const h = cArchivo ? cHojas() : null;
@@ -1226,7 +1228,7 @@ async function leerArchivo(f) {
       (await traerTodo(() => sb.from('envios').select('nodo,zona').not('zona', 'is', null).order('fecha', { ascending: false }).order('id'))).forEach(x => { const k = norm(x.nodo); if (!conocidas.has(k)) conocidas.set(k, x.zona); });
       previa.forEach(r => { if (!r.zona && conocidas.has(norm(r.nodo))) { r.zona = conocidas.get(norm(r.nodo)); rellenas++; } });
     } catch (e) { /* sin conexión o sin la columna: la zona se escribe a mano */ }
-    const cuenta = {}; previa.forEach(r => { if (r.fecha) cuenta[r.fecha] = (cuenta[r.fecha] || 0) + 1; });
+    const cuenta = {}; [...previa.map(r => r.fecha), ...(hrnCarga || []).map(r => r.fecha_reporte)].forEach(f => { if (f) cuenta[f] = (cuenta[f] || 0) + 1; });
     const masUsada = Object.keys(cuenta).sort((a, b) => cuenta[b] - cuenta[a] || (a < b ? -1 : 1))[0]; if (masUsada) $('#cFecha').value = masUsada;   // el Detalle y las filas sin FECHA usan la más repetida
     cArchivo = { nombre: f.name, kb: Math.max(1, Math.round(f.size / 1024)) }; cFiltro = ''; listaAgencias();
     $('#cMsg').className = 'msg'; setPaso(2); pintarPrevia();
@@ -1271,7 +1273,7 @@ function pintarPrevia() {
   const vis = previa.map((r, i) => [r, i]).filter(([r]) => cFiltro === 'falta' ? !!cFalta(r) : !cFiltro || r.motivo === cFiltro);
   $('#cTabla').innerHTML = '<tr><th>Fecha</th><th>Nodo</th><th>Motivo</th><th>Transporte</th><th class="c">Pedidos</th><th class="c">Bultos</th><th class="c">Cajas</th><th>Placa</th><th>Agencia</th><th>Pago</th><th>Zona</th></tr>' +
     vis.map(([r, i]) => `<tr data-i="${i}">
-      <td data-c="fecha" data-l="Fecha"><input data-f="fecha" type="date" value="${cFechaDe(r)}"></td>
+      <td data-c="fecha" data-l="Fecha"><input data-f="fecha" type="date" class="${r.fecha ? '' : 'vacia'}" value="${cFechaDe(r)}"></td>
       <td data-c="nodo"><span class="nodo">${esc(r.nodo)}</span>${cFalta(r) ? `<br><span class="cfalta">${mayus(cFalta(r))}</span>` : ''}</td>
       <td data-c="motivo">${motTag(r.motivo)}</td>
       <td data-c="trans" data-l="Transporte"><input data-f="transporte" value="${esc(r.transporte)}"></td>
@@ -1284,7 +1286,7 @@ function pintarPrevia() {
       <td data-c="zona" data-l="Zona"><input data-f="zona" value="${esc(r.zona)}" placeholder="SUR, CENTRO…"></td></tr>`).join('');
   $('#cPrev').classList.remove('hide');
   $('#cBarT').textContent = [des.length && `${des.length} ${des.length === 1 ? 'despacho' : 'despachos'}`, rec.length && `${rec.length} ${rec.length === 1 ? 'recojo' : 'recojos'}`, hrnCarga && `${fmtN(hrnCarga.length)} filas de detalle`].filter(Boolean).join(', ');
-  const fs = cFechas(); $('#cBarS').textContent = fs.length > 1 ? `Se guardarán con ${fs.length} fechas: del ${fdmy(fs[0])} al ${fdmy(fs[fs.length - 1])}` : `Se guardarán con fecha ${fdmy(fs[0] || $('#cFecha').value)}`;
+  const fs = cFechasTodas(), sf = cSinFecha(); $('#cBarS').textContent = (fs.length > 1 ? `Se guardarán con ${fs.length} fechas: del ${fdmy(fs[0])} al ${fdmy(fs[fs.length - 1])}` : `Se guardarán con fecha ${fdmy(fs[0] || $('#cFecha').value)}`) + (sf ? ` · ${sf} ${sf === 1 ? 'fila sin FECHA usa' : 'filas sin FECHA usan'} la fecha por defecto (${fdmy($('#cFecha').value)})` : '');
   $('#cBarra').hidden = false; $('#tab-cargar').classList.add('conbarra');
 }
 $('#cFecha').addEventListener('change', () => { if (cArchivo) pintarPrevia(); });
@@ -1312,7 +1314,7 @@ const mayus = t => t.charAt(0).toUpperCase() + t.slice(1);
 
 $('#cGuardar').onclick = async () => {
   const fecha = $('#cFecha').value;
-  if (!fecha) return flash($('#cMsg'), 'Elige la fecha del despacho', 'err');
+  if (!fecha) return flash($('#cMsg'), 'Elige la fecha por defecto: se usa en las filas que no traen FECHA.', 'err');
   if (!previa.length) {   // solo detalle
     $('#cGuardar').disabled = true;
     try { cMostrarOk('Detalle guardado', mayus(hrnTexto(fecha, await guardarHrn(fecha, hrnCarga))) + '.', true); previa = []; hrnCarga = null; $('#cFile').value = ''; }
@@ -1341,7 +1343,7 @@ $('#cGuardar').onclick = async () => {
   $('#rDesde').value = fechas[0]; $('#rHasta').value = fechas[fechas.length - 1]; buscarRegistros();
   let detalle = '';
   if (hrnCarga) {
-    try { detalle = ` Detalle: ${hrnTexto(fecha, await guardarHrn(fecha, hrnCarga))}.`; }
+    try { detalle = ` Detalle: ${hrnTexto($('#cFecha').value, await guardarHrn($('#cFecha').value, hrnCarga))}.`; }
     catch (err) { cReiniciar(); return flash($('#cMsg'), `El despacho se guardó, pero el detalle no: ${err.message}. Vuelve a subir el mismo archivo: las filas del detalle ya cargadas no se duplicarán.`, 'err'); }
   }
   const hayD = filas.some(r => r.motivo === 'DESPACHO'), hayR = filas.some(r => r.motivo === 'RECOJO');
@@ -1777,12 +1779,14 @@ function leerHrn(wb) {
     if (hi < 0) continue;
     const mapa = filas[hi].map(h => hrnPorHeader.get(norm(h)) || null);
     if (!mapa.some(c => c && c[0] === 'nodo')) continue;
+    const iFecha = filas[hi].findIndex(h => ['FECHA', 'FECHA REPORTE', 'FECHA DE REPORTE'].includes(norm(h)));   // fecha con la que se guarda cada fila
     const out = [];
     for (const f of filas.slice(hi + 1)) {
       if (!mapa.some((c, i) => c && f[i] !== '' && f[i] != null)) continue;
       const r = {};
       HRN_COLS.forEach(c => r[c[0]] = null);
       mapa.forEach((c, i) => { if (c) r[c[0]] = valorHrn(f[i], c[2]); });
+      r.fecha_reporte = iFecha >= 0 ? fechaDe(f[iFecha]) : '';
       if (r.nodo) r.nodo = norm(r.nodo);
       if (r.pedido_cliente || r.lpn) out.push(r);
     }
@@ -1793,17 +1797,21 @@ function leerHrn(wb) {
 
 // acumulable: nunca se borra lo anterior; solo se agregan las filas que aún no están en esa fecha
 async function guardarHrn(fecha, filas) {
-  const clave = r => r.lpn ? 'L|' + r.lpn : 'P|' + [r.pedido_cliente, r.nodo, r.roll_contenedor, r.bultos].join('|');
-  const ya = await traerTodo(() => sb.from('hrn_detalle').select('lpn,pedido_cliente,nodo,roll_contenedor,bultos').eq('fecha_reporte', fecha).order('id'));
-  const existentes = new Set(ya.map(clave)), nuevas = filas.filter(r => !existentes.has(clave(r)));
+  const clave = r => (r.fecha_reporte || fecha) + '|' + (r.lpn ? 'L|' + r.lpn : 'P|' + [r.pedido_cliente, r.nodo, r.roll_contenedor, r.bultos].join('|'));
+  const fechas = [...new Set(filas.map(r => r.fecha_reporte || fecha))].sort();
+  let ya = []; for (let i = 0; i < fechas.length; i += 30) ya = ya.concat(await traerTodo(() => sb.from('hrn_detalle').select('fecha_reporte,lpn,pedido_cliente,nodo,roll_contenedor,bultos').in('fecha_reporte', fechas.slice(i, i + 30)).order('id')));
+  const existentes = new Set(ya.map(r => clave({ ...r, fecha_reporte: String(r.fecha_reporte).slice(0, 10) }))), nuevas = filas.filter(r => !existentes.has(clave(r)));
   for (let i = 0; i < nuevas.length; i += 400) {
-    const lote = nuevas.slice(i, i + 400).map(r => ({ ...r, fecha_reporte: fecha }));
+    const lote = nuevas.slice(i, i + 400).map(r => ({ ...r, fecha_reporte: r.fecha_reporte || fecha }));
     const { error } = await sb.from('hrn_detalle').insert(lote); if (error) throw error;
   }
   hrnCargado = false;
-  return { nuevas: nuevas.length, repetidas: filas.length - nuevas.length };
+  return { nuevas: nuevas.length, repetidas: filas.length - nuevas.length, fechas };
 }
-const hrnTexto = (f, x) => x.nuevas ? `${x.nuevas === 1 ? 'se agregó 1 fila' : 'se agregaron ' + x.nuevas + ' filas'} al ${fdmy(f)}` + (x.repetidas ? `; ${x.repetidas} ya ${x.repetidas === 1 ? 'estaba cargada' : 'estaban cargadas'}` : '') : `no hay filas nuevas: las ${x.repetidas} ya estaban cargadas en el ${fdmy(f)}`;
+const hrnTexto = (f, x) => {
+  const donde = x.fechas && x.fechas.length > 1 ? `en ${x.fechas.length} fechas (${fdmy(x.fechas[0])} al ${fdmy(x.fechas[x.fechas.length - 1])})` : `al ${fdmy(x.fechas && x.fechas[0] || f)}`;
+  return x.nuevas ? `${x.nuevas === 1 ? 'se agregó 1 fila' : 'se agregaron ' + x.nuevas + ' filas'} ${donde}` + (x.repetidas ? `; ${x.repetidas} ya ${x.repetidas === 1 ? 'estaba cargada' : 'estaban cargadas'}` : '') : `no hay filas nuevas: las ${x.repetidas} ya estaban cargadas ${donde.replace(/^al /, 'en el ')}`;
+};
 let hrnCargado = false, hrnVista = [], hrnMostrar = 100;
 const HRN_VIS = ['fecha_reporte', 'pedido_cliente', 'lpn', 'cuenta_procedencia', 'descripcion_cuenta', 'nodo', 'bultos', 'roll_contenedor', 'peso', 'volumen', 'fecha_recepcion'];
 // consulta del Detalle con los filtros de la pantalla (columnas visibles para ver; todas para exportar)
