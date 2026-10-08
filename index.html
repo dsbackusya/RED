@@ -755,7 +755,8 @@
   .kg-hero { grid-column:span 5; min-height:310px; display:flex; flex-direction:column }
   .kg-evo { grid-column:span 4 } .kg-flota { grid-column:span 3; grid-row:span 2; display:flex; flex-direction:column; container-type:inline-size }
   .kg-trs { grid-column:span 3 } .kg-rank { grid-column:span 6 }
-  .kg-arte { position:absolute !important; right:-4px; top:8px; width:min(56%, 340px); height:auto; pointer-events:none; user-select:none }
+  .kg-arte { position:absolute !important; right:-2px; top:6px; width:clamp(180px, 40%, 270px); height:auto; pointer-events:none; user-select:none; z-index:0 }
+  .kg-cifra, .kg-mez, .kg-ley { position:relative; z-index:1 }
   .kg-hero > h3, .kg-hero > .kg-h { max-width:48% }
   .kg-cifra { margin-top:auto; padding-top:28px }
   .kg-n { font-size:56px; font-weight:700; letter-spacing:-.04em; line-height:1 } .kg-n small { font-size:26px; font-weight:600; color:var(--mut); margin-right:6px; letter-spacing:-.02em }
@@ -765,6 +766,7 @@
   .kg-mez .a, .kg-mez .b { height:100%; display:flex; align-items:center; padding:0 24px; font-weight:700; font-size:22px; letter-spacing:-.02em; white-space:nowrap; min-width:0 }
   .kg-mez .a { background:repeating-linear-gradient(135deg, rgba(255,255,255,.22) 0 2px, transparent 2px 9px), linear-gradient(90deg, var(--kn), var(--kn2)); color:#fff; justify-content:flex-end; border-radius:99px }
   .kg-mez .b { flex:1; justify-content:center; color:var(--mut); font-size:18px; font-weight:600 }
+  .kg-mez .s { padding:0 10px; font-size:16px; justify-content:center } .kg-mez .s small { display:none }
   .kg-mez small { font-size:12.5px; font-weight:500; opacity:.85; margin-left:8px }
   .kg-ley { display:flex; justify-content:space-between; gap:10px; margin-top:10px; font-size:12.5px; color:var(--mut); padding:0 6px; flex-wrap:wrap }
   .kg-ley span::before { content:""; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; background:var(--kn2) } .kg-ley span + span::before { background:#c7ccd6 }
@@ -775,7 +777,7 @@
   .kg-top { display:flex; align-items:center; gap:12px; margin-top:14px; padding:10px 12px; border-radius:99px; background:var(--head) }
   .kg-top .p { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg, var(--kn2), var(--kn)); color:#fff; display:grid; place-items:center; flex:none } .kg-top .p svg { width:18px; height:18px }
   .kg-top b { display:block; font-size:14px; line-height:1.2 } .kg-top small { color:var(--mut); font-size:12px } .kg-top .tg { margin-left:auto; font-size:12px; font-weight:600; padding:4px 12px; border-radius:99px; background:var(--warnbg); color:var(--warn); white-space:nowrap }
-  .kg-line { margin-top:8px }
+  .kg-line { margin-top:8px } .kg-al { grid-column:span 12 } .kg-alg { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:4px 40px; margin-top:10px } .kg-alg .kg-hl + .kg-hl::before { display:none } .kg-alg .kg-hl { padding:8px 0 }
   .kg-hl { display:flex; gap:12px; position:relative; padding:8px 0; border-radius:10px } .kg-hl[data-kt], .kg-hl[data-go] { cursor:pointer } .kg-hl[data-kt]:hover b, .kg-hl[data-go]:hover b { color:var(--pri) }
   .kg-hl + .kg-hl::before { content:""; position:absolute; left:6px; top:-10px; height:20px; border-left:1.5px dashed rgba(0,0,0,.18) }
   .kg-hl i { width:13px; height:13px; border-radius:50%; flex:none; margin-top:5px; border:2px solid #c7ccd6; background:#fff } .kg-hl i.w { border-color:#f59e0b; background:#f59e0b } .kg-hl i.r { border-color:var(--bad); background:var(--bad) } .kg-hl i.g { border-color:var(--ok); background:var(--ok) } .kg-hl i.b { border-color:var(--kn2); background:var(--kn2) }
@@ -2308,7 +2310,7 @@ const KG_IC = {
 // evolución diaria: barras por día y curva del promedio móvil de 7 días
 function kgEvoSvg(dias) {
   const d = dias.filter(x => x.costo > 0); if (!d.length) return '';
-  const W = 360, H = 150, pad = 6, base = H - 20, n = d.length, mx = Math.max(...d.map(x => x.costo)) * 1.06, step = (W - pad * 2) / n, bw = Math.max(3, Math.min(22, step * .68));
+  const W = 360, H = 196, pad = 6, base = H - 20, n = d.length, mx = Math.max(...d.map(x => x.costo)) * 1.06, step = (W - pad * 2) / n, bw = Math.max(3, Math.min(22, step * .68));
   const X = i => pad + i * step + (step - bw) / 2, Y = v => base - v / mx * (base - 14), imax = d.reduce((m, x, i) => x.costo > d[m].costo ? i : m, 0);
   let g = '<defs><linearGradient id="kgb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a5db8"/><stop offset="1" stop-color="#0b3d82"/></linearGradient><linearGradient id="kgl" x1="0" x2="1"><stop offset="0" stop-color="#5aaa2a"/><stop offset="1" stop-color="#1a5db8"/></linearGradient></defs>';
   [0, .5, 1].forEach(t => { const y = base - t * (base - 14); g += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="rgba(0,0,0,.06)"/>`; });
@@ -2365,16 +2367,17 @@ function pintarResumen(R, dias, prev, envios) {
   const trs = [...R.transportes].sort((a, b) => b[1].costo - a[1].costo);
   const hero = `<section class="kg-c kg-hero"><h3 class="kg-t">Costo del período</h3><p class="kg-h">${R.conImporte} ${R.conImporte === 1 ? 'registro con importe' : 'registros con importe'}</p><img class="kg-arte" src="costos_arte.webp" alt="" aria-hidden="true">
     <div class="kg-cifra"><div class="kg-n"><small>S/</small>${kgNum(R.total)}</div><div class="kg-d">${kgDelta(R.total, prev.total)}${prev.total ? `<span>frente al período anterior (${fmt(prev.total)})</span>` : ''}<span>${fmtN(R.pedidos)} pedidos</span></div></div>
-    <div class="kg-mez">${sumaCD ? `${pc ? `<div class="a" style="width:${pc}%">${pc} %<small>contado</small></div>` : ''}${pc < 100 ? `<div class="b">${100 - pc} %<small>crédito</small></div>` : ''}` : '<div class="b">Sin pagos registrados</div>'}</div>
+    <div class="kg-mez">${sumaCD ? `${pc ? `<div class="a${pc < 25 ? ' s' : ''}" style="width:${pc}%">${pc} %<small>contado</small></div>` : ''}${pc < 100 ? `<div class="b${100 - pc < 25 ? ' s' : ''}">${100 - pc} %<small>crédito</small></div>` : ''}` : '<div class="b">Sin pagos registrados</div>'}</div>
     <div class="kg-ley"><span>Contado ${fmt(conta)}</span><span>Crédito ${fmt(cred)}</span></div>${metaHtml(R)}</section>`;
-  const hl = (kHall.length ? kHall : [{ c: 'g', t: 'Sin observaciones', d: 'No se detectaron alertas en este período.' }]).slice(0, 4);
   const evo = `<section class="kg-c kg-evo"><h3 class="kg-t">Evolución diaria</h3><p class="kg-h">Costo de cada día y promedio móvil de 7 días</p><span class="kg-ico">${KG_IC.barras}</span>
     ${kgEvoSvg(dias)}${mxd && costos.length > 1 ? `<div class="kg-top"><span class="p">${KG_IC.alerta}</span><div><b>Día de mayor costo</b><small>${fdmy(mxd.fecha)} · ${fmt(mxd.costo)}</small></div><span class="tg">${Math.round(mxd.costo / R.total * 100)} %</span></div>` : ''}
-    <div class="kg-line">${hl.map(h => `<div class="kg-hl"${h.kt ? ` data-kt="${h.kt}"` : h.go ? ` data-go="${h.go}"` : ''}><i class="${h.c}"></i><div><b>${esc(h.t)}</b><small>${esc(h.d)}</small></div></div>`).join('')}</div></section>`;
+    </section>`;
+  const alertas = kHall.length ? `<section class="kg-c kg-al"><h3 class="kg-t">Alertas</h3><p class="kg-h">Lo que conviene revisar en este período</p>
+    <div class="kg-alg">${kHall.slice(0, 6).map(h => `<div class="kg-hl"${h.kt ? ` data-kt="${h.kt}"` : h.go ? ` data-go="${h.go}"` : ''}><i class="${h.c}"></i><div><b>${esc(h.t)}</b><small>${esc(h.d)}</small></div></div>`).join('')}</div></section>` : '';
   const tot = trs.reduce((x, [, v]) => x + v.costo, 0) || 1;
   const trans = `<section class="kg-c kg-trs"><h3 class="kg-t">Transportes</h3><p class="kg-h">Quién concentra el costo</p><div class="kg-trl">${trs.map(([k, v], i) => { const nm = k.startsWith('(') ? 'Sin transporte' : k, pct = Math.round(v.costo / tot * 100), col = KG_COL[i % KG_COL.length];
     return `<div class="kg-tr"><span class="kg-av" style="background:${col}">${esc(nm.slice(0, 2).toUpperCase())}</span><div class="t"><b title="${esc(nm)}">${esc(nm)}</b><small>${v.n} ${v.n === 1 ? 'registro' : 'registros'}</small><div class="kg-mini"><i style="width:${Math.max(3, pct)}%;background:${col}"></i></div></div><div class="m"><b>${fmt(v.costo)}</b><small>${pct} %</small></div></div>`; }).join('')}</div></section>`;
-  $('#kgrid').innerHTML = hero + evo + kgFlota(R, envios, prev) + trans + kgRanking(R, envios);
+  $('#kgrid').innerHTML = hero + evo + kgFlota(R, envios, prev) + trans + kgRanking(R, envios) + alertas;
 }
 $('#kgrid').addEventListener('click', e => {
   const u = e.target.closest('[data-ut]'); if (u) { kgTipo = u.dataset.ut; if (kRes) pintarResumen(kRes.R, kRes.dias, kRes.prev, kRes.envios); return; }
