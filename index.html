@@ -752,6 +752,8 @@
   .kg-hero { grid-column:span 5; min-height:310px; display:flex; flex-direction:column }
   .kg-evo { grid-column:span 4 } .kg-flota { grid-column:span 3; grid-row:span 2; display:flex; flex-direction:column; container-type:inline-size }
   .kg-trs { grid-column:span 3 } .kg-rank { grid-column:span 6 }
+  .kg-arte { position:absolute !important; right:-4px; top:8px; width:min(56%, 340px); height:auto; pointer-events:none; user-select:none }
+  .kg-hero > h3, .kg-hero > .kg-h { max-width:48% }
   .kg-cifra { margin-top:auto; padding-top:28px }
   .kg-n { font-size:56px; font-weight:700; letter-spacing:-.04em; line-height:1 } .kg-n small { font-size:26px; font-weight:600; color:var(--mut); margin-right:6px; letter-spacing:-.02em }
   .kg-d { margin-top:8px; color:var(--mut); font-size:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap }
@@ -809,6 +811,7 @@
     .kg-flota .kg-tit { grid-column:1/-1 } .kg-trs { grid-column:span 5 } .kg-rank { grid-column:span 7 } .kg-cam { margin:0 } .kg-cam img { width:100% } .kg-uh { margin-top:0 }
   }
   @media (max-width:820px) {
+    .kg-arte { width:46%; top:6px } .kg-hero { min-height:340px }
     .kg-hero, .kg-evo, .kg-trs, .kg-rank { grid-column:span 12 } .kg-flota { display:flex; grid-column:span 12 } .kg-cam { margin:-2px -22px 4px -10px } .kg-cam img { width:106% }
     .kg-c { padding:20px 18px; border-radius:22px } .kg-n { font-size:44px } .kg-mez { height:62px } .kg-mez .a { font-size:19px; padding:0 18px } .kg-mez small { display:none }
     .kg-row { grid-template-columns:minmax(0,1.4fr) minmax(0,1.3fr) auto; padding:11px 12px } .kg-row .ped, .kg-row .tar { display:none } .kg-row.hd { padding:2px 12px }
@@ -2351,7 +2354,7 @@ function pintarResumen(R, dias, prev, envios) {
   const conta = dias.reduce((x, d) => x + d.contado, 0), cred = dias.reduce((x, d) => x + d.credito, 0), sumaCD = conta + cred, pc = sumaCD ? Math.round(conta / sumaCD * 100) : 0;
   const costos = dias.filter(d => d.costo > 0), mxd = costos.length ? costos.reduce((a, b) => b.costo > a.costo ? b : a) : null;
   const trs = [...R.transportes].sort((a, b) => b[1].costo - a[1].costo);
-  const hero = `<section class="kg-c kg-hero"><h3 class="kg-t">Costo del período</h3><p class="kg-h">${R.conImporte} ${R.conImporte === 1 ? 'registro con importe' : 'registros con importe'}</p><span class="kg-ico">${KG_IC.linea}</span>
+  const hero = `<section class="kg-c kg-hero"><h3 class="kg-t">Costo del período</h3><p class="kg-h">${R.conImporte} ${R.conImporte === 1 ? 'registro con importe' : 'registros con importe'}</p><img class="kg-arte" src="costos_arte.webp" alt="" aria-hidden="true">
     <div class="kg-cifra"><div class="kg-n"><small>S/</small>${kgNum(R.total)}</div><div class="kg-d">${kgDelta(R.total, prev.total)}${prev.total ? `<span>frente al período anterior (${fmt(prev.total)})</span>` : ''}<span>${fmtN(R.pedidos)} pedidos</span></div></div>
     <div class="kg-mez">${sumaCD ? `${pc ? `<div class="a" style="width:${pc}%">${pc} %<small>contado</small></div>` : ''}${pc < 100 ? `<div class="b">${100 - pc} %<small>crédito</small></div>` : ''}` : '<div class="b">Sin pagos registrados</div>'}</div>
     <div class="kg-ley"><span>Contado ${fmt(conta)}</span><span>Crédito ${fmt(cred)}</span></div>${metaHtml(R)}</section>`;
