@@ -581,7 +581,7 @@
   .rmenu { position:fixed; z-index:70; background:#fff; border-radius:12px; padding:5px; min-width:180px; box-shadow:0 10px 34px rgba(0,0,0,.2) } .rmenu[hidden] { display:none }
   .rmenu button { display:flex; width:100%; gap:9px; align-items:center; font:inherit; font-size:13px; border:0; background:none; padding:9px 10px; border-radius:8px; cursor:pointer; color:var(--bad); text-align:left } .rmenu button:hover:not(:disabled) { background:var(--badbg) } .rmenu button:disabled { opacity:.45; cursor:not-allowed } .rmenu svg { width:15px; height:15px }
   @media (min-width:761px) {
-    #tab-registros .tw { overflow-x:auto }
+    #tab-registros .tw { overflow-x:auto; overflow-y:visible; max-height:none }   /* sin barra de desplazamiento vertical propia: la página se desplaza */
     #rTabla tr[data-id].ok td:first-child { box-shadow:inset 3px 0 0 #34c759 } #rTabla tr[data-id].w td:first-child { box-shadow:inset 3px 0 0 #f59e0b } #rTabla tr[data-id].e td:first-child { box-shadow:inset 3px 0 0 var(--pri) }
     #rTabla { table-layout:fixed; width:100%; min-width:1090px }
     #rTabla th, #rTabla td { padding-left:8px; padding-right:8px; overflow:hidden; text-overflow:ellipsis }
