@@ -250,7 +250,10 @@
   .hero .goal { margin-top:10px } .hero .goal .tr { height:7px; border-radius:99px; background:rgba(255,255,255,.18); overflow:hidden } .hero .goal .tr i { display:block; height:100%; border-radius:99px }
   .hero .goal .tx { display:flex; justify-content:space-between; font-size:11px; color:#b6c4dc; margin-top:4px } .hero .goal .px { font-size:11px; color:#b6c4dc; margin-top:3px } .hero .goal .px b { display:inline; font-size:11px; margin:0; color:#fff; letter-spacing:0 }
   .hero .goal small { color:#b6c4dc; font-size:11px } .hero .link { color:#93c5fd; padding:0 }
-  .cal { display:grid; grid-template-columns:repeat(7, 1fr); gap:6px } .cal .dw { font-size:10px; font-weight:700; color:#94a3b8; text-align:center; text-transform:uppercase }
+  .cal { display:grid; grid-template-columns:repeat(7, 1fr); gap:6px } #calCard { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:20px 40px } #calCard .cal { gap:8px } #calCard .cal .d { min-height:56px }
+  #calTop { margin-top:12px } .kt-r { display:grid; grid-template-columns:96px minmax(0,1fr); gap:12px; align-items:center; padding:9px 0; border-top:1px solid var(--line); font-size:13.5px } .kt-r:first-child { border-top:0 } .kt-r .d b { display:block; font-weight:600; line-height:1.2 } .kt-r .d small { color:var(--mut); font-size:12px }
+  .kt-r .kg-bar { display:flex; align-items:center; gap:10px } .kt-r .kg-bar span { flex:1; height:6px; border-radius:99px; background:rgba(0,0,0,.08); overflow:hidden } .kt-r .kg-bar i { display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#0b3d82,#1a5db8) } .kt-r .kg-bar b { font-weight:600; white-space:nowrap }
+  @media (max-width:900px) { #calCard { grid-template-columns:minmax(0,1fr) } } .cal .dw { font-size:10px; font-weight:700; color:#94a3b8; text-align:center; text-transform:uppercase }
   .cal .d { min-height:48px; border-radius:8px; padding:5px 7px; font-size:11px; display:flex; flex-direction:column; justify-content:space-between; border:1px solid var(--line); background:var(--card) }
   .cal .d b { font-size:11px; font-variant-numeric:tabular-nums } .cal .d.z { background:var(--head); color:#cbd5e1 } .cal .e { border:0 }
   .ramp { display:flex; align-items:center; gap:6px; font-size:10px; color:var(--mut); margin-top:8px } .ramp i { display:block; width:34px; height:8px; border-radius:3px }
@@ -984,10 +987,7 @@
   </div>
   <div id="kp-res">
     <div class="kgrid" id="kgrid"></div>
-    <div class="cgrid" style="margin-top:14px">
-      <div class="card"><h3>Calendario de costos</h3><p class="hint">Cada día se colorea según su costo. Clic en un día para ver sus registros.</p><div class="cal" id="calGrid"></div><div class="ramp" id="calRamp"></div></div>
-      <div class="card"><h3>Costo promedio por día de la semana</h3><p class="hint">Permite identificar los días de mayor costo de despacho.</p><svg id="calDow" class="csvg" viewBox="0 0 320 150" width="100%"></svg></div>
-    </div>
+    <div class="card" id="calCard" style="margin-top:14px"><div class="cc-l">    <h3>Calendario de costos</h3><p class="hint">Cada día se colorea según su costo. Clic en un día para ver sus registros.</p><div class="cal" id="calGrid"></div><div class="ramp" id="calRamp"></div></div><div class="cc-r"><h3>Días de mayor costo</h3><p class="hint">Los cinco días que más pesaron en el período.</p><div id="calTop"></div></div></div>
     <details class="dt card" style="margin-top:14px"><summary>Detalle por día <span id="nDias"></span></summary><div class="tw"><table id="kpDias"></table></div></details>
   </div>
   <div id="kp-cuenta" class="hide">
@@ -2500,6 +2500,8 @@ $('#kLink').onclick = () => { history.replaceState(null, '', '#kpis?' + kParams(
 
 // ---------- resumen y calendario ----------
 function calendarioKpi(dias) {
+  { const top = dias.filter(d => d.costo > 0).sort((a, b) => b.costo - a.costo).slice(0, 5), mx = top.length ? top[0].costo : 1;
+    $('#calTop').innerHTML = top.length ? top.map(d => `<div class="kt-r"><span class="d"><b>${fdmy(d.fecha).slice(0, 5)}</b><small>${new Date(d.fecha + 'T00:00:00').toLocaleDateString('es-PE', { weekday: 'long' })}</small></span><span class="kg-bar"><span><i style="width:${Math.max(3, d.costo / mx * 100)}%"></i></span><b>${fmt(d.costo)}</b></span></div>`).join('') : '<p class="hint">Sin datos en este rango.</p>'; }
   const mapa = new Map(dias.map(d => [d.fecha, d])), d0 = new Date($('#kDesde').value + 'T00:00:00'), d1 = new Date($('#kHasta').value + 'T00:00:00'), cost = dias.filter(d => d.costo > 0);
   if (isNaN(d0) || isNaN(d1) || (d1 - d0) / 86400000 > 92) { $('#calGrid').innerHTML = '<p class="hint" style="grid-column:1/-1">El calendario se muestra para rangos de hasta 3 meses.</p>'; $('#calRamp').innerHTML = ''; }
   else {
@@ -2509,9 +2511,6 @@ function calendarioKpi(dias) {
     $('#calGrid').innerHTML = h;
     $('#calRamp').innerHTML = 'Menos <i style="background:rgba(37,99,235,.1)"></i><i style="background:rgba(37,99,235,.25)"></i><i style="background:rgba(37,99,235,.4)"></i><i style="background:rgba(37,99,235,.6)"></i> Más';
   }
-  // (mejores y peores días: ya se ven en el calendario)
-  const sem = [1, 2, 3, 4, 5, 6, 0].map(w => { const v = cost.filter(d => new Date(d.fecha + 'T00:00:00').getDay() === w).map(d => d.costo); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0; }), ms = Math.max(...sem, 1);
-  $('#calDow').innerHTML = cost.length ? sem.map((v, i) => `<rect x="${12 + i * 43}" y="${118 - v / ms * 92}" width="32" height="${v / ms * 92}" rx="4" fill="#93c5fd"/><text x="${28 + i * 43}" y="138" text-anchor="middle">${['L', 'M', 'X', 'J', 'V', 'S', 'D'][i]}</text>${v ? `<text x="${28 + i * 43}" y="${112 - v / ms * 92}" text-anchor="middle" style="font-weight:700;fill:var(--ink)">${Math.round(v)}</text>` : ''}`).join('') : '';
 }
 
 // ---------- informe PDF (se imprime / guarda como PDF desde el navegador) ----------
