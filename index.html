@@ -954,7 +954,7 @@
 
 <section id="tab-liquidaciones" class="hide">
   <div class="top">
-    <div><h1>Liquidaciones</h1><div class="sub">Genera el Excel de rendición y las fotos de las facturas</div></div>
+    <div><h1>Liquidaciones</h1><div class="sub">Genera el Excel de rendición y las fotos de las facturas. Solo se liquidan los registros al contado</div></div>
     <div class="acts"><button class="b sec" id="lqPar">Datos del formato</button></div>
   </div>
   <div id="lqSetup" class="card hide"><h3>Falta un paso en Supabase</h3><p class="hint">Ejecuta el archivo <b>supabase_liquidacion.sql</b> en el SQL Editor de Supabase y recarga la página.</p></div>
@@ -972,8 +972,6 @@
         <div class="rx-fb"><button type="button" class="rx-tk" data-pop="lqp-trans" data-lk="trans" aria-haspopup="true"></button><div class="rx-pop" id="lqp-trans"></div></div>
         <span class="rx-pt">·</span>
         <div class="rx-fb"><button type="button" class="rx-tk" data-pop="lqp-mot" data-lk="mot" aria-haspopup="true"></button><div class="rx-pop" id="lqp-mot"></div></div>
-        <span class="rx-pt">·</span>
-        <div class="rx-fb"><button type="button" class="rx-tk" data-pop="lqp-pago" data-lk="pago" aria-haspopup="true"></button><div class="rx-pop" id="lqp-pago"></div></div>
         <button type="button" class="rx-limp" id="lqLimp" hidden>Quitar filtros</button>
       </div>
       <div class="rx-res" id="lqCuenta"></div>
@@ -982,7 +980,6 @@
     <div hidden>
       <select id="lqTrans"><option value="">Todos</option></select>
       <select id="lqMot"><option value="">Todos</option><option value="DESPACHO">Despacho</option><option value="RECOJO">Recojo</option></select>
-      <select id="lqPago"><option value="">Todos</option><option value="CONTADO">Contado</option><option value="CREDITO">Crédito</option></select>
     </div>
     <div id="lqVListos">
       <div class="card tcard">
@@ -2492,9 +2489,8 @@ const lqLimite = () => Number(lqPar.limite) || 1500;
 let lqSeq = 0, lqOcupado = false;
 async function lqBuscar(opc) {
   const mi = ++lqSeq, crear = () => {
-    let q = sb.from('envios').select('*').is('liquidacion_id', null).order('fecha').order('transporte').order('nodo').order('id');
+    let q = sb.from('envios').select('*').is('liquidacion_id', null).eq('modo_pago', 'CONTADO').order('fecha').order('transporte').order('nodo').order('id');
     if ($('#lqTrans').value) q = q.eq('transporte', $('#lqTrans').value);
-    if ($('#lqPago').value) q = q.eq('modo_pago', $('#lqPago').value);
     if ($('#lqMot').value) q = q.eq('motivo', $('#lqMot').value);
     return q;
   };
@@ -2528,8 +2524,7 @@ const lqElegidos = () => lqBase().filter(r => lqSel.has(r.id));
 const lqFechaTxt = f => `${diaC(f)} ${f.slice(0, 4)}`;
 const LFIL = {
   trans: { sel: '#lqTrans', def: 'todos los transportes', txt: v => v },
-  mot: { sel: '#lqMot', def: 'despachos y recojos', txt: v => v === 'DESPACHO' ? 'solo despachos' : 'solo recojos', ops: [['', 'Despachos y recojos'], ['DESPACHO', 'Solo despachos'], ['RECOJO', 'Solo recojos']] },
-  pago: { sel: '#lqPago', def: 'todos los métodos de pago', txt: v => v === 'CONTADO' ? 'al contado' : 'a crédito', ops: [['', 'Todos los métodos de pago'], ['CONTADO', 'Al contado'], ['CREDITO', 'A crédito']] }
+  mot: { sel: '#lqMot', def: 'despachos y recojos', txt: v => v === 'DESPACHO' ? 'solo despachos' : 'solo recojos', ops: [['', 'Despachos y recojos'], ['DESPACHO', 'Solo despachos'], ['RECOJO', 'Solo recojos']] }
 };
 const lqOpciones = k => k === 'per' ? [['', 'Todas las fechas'], ...[...new Set(lqLista.map(lqF))].sort().map(f => [f, lqFechaTxt(f)])] : k === 'trans' ? [['', 'Todos los transportes'], ...[...$('#lqTrans').options].filter(o => o.value).map(o => [o.value, o.value])] : LFIL[k].ops;
 function lqFrase() {
@@ -2561,10 +2556,10 @@ function lqPintar() {
     const cuenta = {}; elegidos.forEach(r => { const k = norm(r.factura); cuenta[k] = (cuenta[k] || 0) + 1; });
     const repetidas = Object.keys(cuenta).filter(k => cuenta[k] > 1), grandes = elegidos.filter(r => Number(r.importe) > lim).length;
     $('#lqAviso').innerHTML = [repetidas.length && `<b>N° de factura repetido:</b> ${repetidas.map(esc).join(', ')}. Revisa que no se pague dos veces.`, grandes && `${grandes} ${grandes === 1 ? 'registro supera' : 'registros superan'} el máximo y ${grandes === 1 ? 'irá' : 'irán'} solo en su archivo.`].filter(Boolean).join('<br>');
-    $('#lqTabla').innerHTML = `<tr><th data-c="chk"></th><th data-c="fecha">Fecha</th><th data-c="nodo">Nodo</th><th data-c="factura">Factura</th><th data-c="pago">Pago</th><th class="num" data-c="importe">Importe</th><th data-c="arch">Archivo</th></tr>` +
+    $('#lqTabla').innerHTML = `<tr><th data-c="chk"></th><th data-c="fecha">Fecha</th><th data-c="nodo">Nodo</th><th data-c="factura">Factura</th><th class="num" data-c="importe">Importe</th><th data-c="arch">Archivo</th></tr>` +
       (mostrar.map(r => { const a = idx.get(r.id);
-        return `<tr data-id="${r.id}" class="${lqSel.has(r.id) ? 'sel' : ''}"><td data-c="chk"><input type="checkbox" data-id="${r.id}" ${lqSel.has(r.id) ? 'checked' : ''} aria-label="Incluir ${esc(r.nodo)}"></td><td data-c="fecha">${fdmy(r.fecha)}</td><td data-c="nodo"><div class="nodo">${esc(r.nodo)}${r.motivo === 'RECOJO' ? '<span class="tb rec">Recojo</span>' : ''}</div><div class="meta">${esc(r.transporte || '')}</div></td><td data-c="factura">${esc(r.factura)}</td><td data-c="pago"><span class="pgo ${esc(r.modo_pago)}">${r.modo_pago === 'CREDITO' ? 'Crédito' : 'Contado'}</span></td><td class="num" data-c="importe"><b>${fmt(r.importe)}</b></td><td data-c="arch">${a ? `<span class="lq-arch"><i>${a}</i>Archivo ${a}</span>` : '<span class="lq-arch nn"><i>—</i>No incluido</span>'}</td><td data-c="meta">${[diaC(lqF(r)), r.factura, r.modo_pago === 'CREDITO' ? 'Crédito' : 'Contado', a ? 'Archivo ' + a : ''].filter(Boolean).map(esc).join(' · ')}</td></tr>`; }).join('') ||
-        `<tr><td colspan="7"><div class="empty"><b>No hay registros listos para liquidar</b><span>Un registro está listo cuando tiene importe, N° de factura y foto, y aún no fue enviado.</span></div></td></tr>`);
+        return `<tr data-id="${r.id}" class="${lqSel.has(r.id) ? 'sel' : ''}"><td data-c="chk"><input type="checkbox" data-id="${r.id}" ${lqSel.has(r.id) ? 'checked' : ''} aria-label="Incluir ${esc(r.nodo)}"></td><td data-c="fecha">${fdmy(r.fecha)}</td><td data-c="nodo"><div class="nodo">${esc(r.nodo)}${r.motivo === 'RECOJO' ? '<span class="tb rec">Recojo</span>' : ''}</div><div class="meta">${esc(r.transporte || '')}</div></td><td data-c="factura">${esc(r.factura)}</td><td class="num" data-c="importe"><b>${fmt(r.importe)}</b></td><td data-c="arch">${a ? `<span class="lq-arch"><i>${a}</i>Archivo ${a}</span>` : '<span class="lq-arch nn"><i>—</i>No incluido</span>'}</td><td data-c="meta">${[diaC(lqF(r)), r.factura, a ? 'Archivo ' + a : ''].filter(Boolean).map(esc).join(' · ')}</td></tr>`; }).join('') ||
+        `<tr><td colspan="6"><div class="empty"><b>No hay registros listos para liquidar</b><span>Un registro está listo cuando tiene importe, N° de factura y foto, y aún no fue enviado.</span></div></td></tr>`);
     const pie = $('#lqPieL'); pie.hidden = !lqLista.length; pie.innerHTML = `<span>Un archivo por fecha de despacho · máximo ${fmt(lim)} por archivo</span><button type="button" id="lqCambiar">Cambiar máximo</button>`;
     const bm = $('#lqBarM'); bm.hidden = !lqLista.length;
     bm.innerHTML = `<div><b>${fmt(total)}</b><small>${elegidos.length} ${elegidos.length === 1 ? 'registro' : 'registros'} · ${nArch}</small></div><button type="button" class="lq-go" id="lqDescargarM" ${elegidos.length && !lqOcupado ? '' : 'disabled'}>${lqOcupado ? 'Preparando…' : 'Descargar'}</button>`;
