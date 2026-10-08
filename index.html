@@ -657,6 +657,7 @@
   #regDlg .rm-th { width:74px; height:74px; border-radius:10px; background:var(--head); display:grid; place-items:center; color:var(--mut); flex:none; overflow:hidden } #regDlg .rm-th img { width:100%; height:100%; object-fit:cover } #regDlg .rm-th .ico { width:26px; height:26px }
   #regDlg .rm-tx { flex:1; min-width:0 } #regDlg .rm-tx b { display:block; font-size:14px; color:var(--ink) } #regDlg .rm-tx span { font-size:12px; color:var(--mut) }
   #regDlg .rm-ac { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end }
+  #regDlg .rm-dup { color:var(--bad); font-size:12.5px; font-weight:500; line-height:1.35 } #rmFac.dup { box-shadow:inset 0 0 0 1.5px var(--bad); background:var(--badbg) }
   #regDlg .rm-av { grid-column:1/-1; background:var(--warnbg); color:var(--warn); border-radius:12px; padding:10px 13px; font-size:13px }
   #regDlg .rm-f { padding:18px 26px 22px; display:flex; gap:8px; justify-content:flex-end; align-items:center } #regDlg .rm-f .sp { flex:1; color:var(--mut); font-size:13px }
   @media (max-width:760px) {
@@ -732,12 +733,6 @@
       <div class="fgrid">
         <label>N° de factura<input id="fFactura" autocomplete="off"></label>
         <label>Importe total (S/)<input id="fImporte" type="number" step="0.01"></label>
-        <label>Fecha de emisión<input id="fFecha" type="date"></label>
-        <label>RUC de la agencia<input id="fRuc" maxlength="11" autocomplete="off"></label>
-        <label>N° de guía de remisión<input id="fGuia" autocomplete="off"></label>
-        <label>Destino en la factura<input id="fDestino" autocomplete="off"></label>
-        <label>Bultos<input id="fBultos" type="number"></label>
-        <label>Peso (kg)<input id="fPeso" type="number" step="0.01"></label>
       </div>
       <div id="fAvisos"></div>
       <p class="hint">Lectura automática gratuita: revisa cada dato contra la foto antes de guardar.</p>
@@ -1033,7 +1028,7 @@
     <div class="rm-av" id="rmAv" hidden></div>
     <label>Placa<input id="rmPlaca" placeholder="ABC-123"></label>
     <label class="imp">Importe<input id="rmImp" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00"></label>
-    <label class="full">N° de factura<input id="rmFac" placeholder="F001-0000"></label>
+    <label class="full">N° de factura<input id="rmFac" placeholder="F001-0000"><small class="rm-dup" id="rmDup" hidden></small></label>
     <label class="full">Detalle del gasto<input id="rmDet"></label>
     <div class="rm-foto"><div class="rm-th" id="rmTh"></div><div class="rm-tx"><b id="rmTt"></b><span id="rmTs"></span></div><div class="rm-ac" id="rmAc"></div></div>
   </div>
@@ -1417,7 +1412,7 @@ $('#adjFile').onchange = async e => {
 
 // ---------- lectura automática de la factura (OCR gratuito) + revisión ----------
 let fReg = null, fUrl = null;
-const FCAMPOS = ['fFactura', 'fImporte', 'fFecha', 'fRuc', 'fGuia', 'fDestino', 'fBultos', 'fPeso'];
+const FCAMPOS = ['fFactura', 'fImporte'];
 function cerrarFactura() { $('#factDlg').close(); if (fUrl) { URL.revokeObjectURL(fUrl); fUrl = null; } }
 async function revisarFactura(file, r) {
   fReg = r;
@@ -1433,8 +1428,7 @@ async function revisarFactura(file, r) {
     const R = await OCR.leer(file, { ref: r.fecha, nodos: [...new Set(regBase.map(r => norm(r.nodo)))],
       progreso: (t, p) => { est.textContent = 'Leyendo la factura… ' + (p ? Math.round(p * 100) + '%' : t); } });
     const pon = (id, v) => { if (v !== '' && v != null) $('#' + id).value = v; };
-    pon('fFactura', R.factura); pon('fImporte', R.importe); pon('fFecha', R.fecha); pon('fRuc', R.ruc);
-    pon('fGuia', R.guia); pon('fDestino', R.destino); pon('fBultos', R.bultos); pon('fPeso', R.peso);
+    pon('fFactura', R.factura); pon('fImporte', R.importe);
     FCAMPOS.forEach(id => { if (!$('#' + id).value) $('#' + id).parentElement.classList.add('dud'); });
     $('#fTexto').textContent = R.texto || '';
     est.className = 'okbox';
@@ -1444,6 +1438,7 @@ async function revisarFactura(file, r) {
       ? `<div class="okbox">El destino de la factura coincide con este registro (${esc(r.nodo)}).</div>`
       : `<div class="aviso">Atención: la factura menciona ${esc(vistos.slice(0, 3).join(', '))} y este registro es ${esc(r.nodo)}.</div>`;
     const av = [...R.aviso];
+    if (R.factura) { const o = await facturaRepetida(R.factura, r.id); if (o) av.push(textoRepetida(R.factura, o) + ' No se podrá guardar con ese número.'); }
     if (r.importe != null && R.importe != null && Math.abs(Number(r.importe) - R.importe) > 0.01) av.push(`El registro ya tiene importe S/ ${Number(r.importe).toFixed(2)}; se reemplazará si guardas.`);
     $('#fAvisos').innerHTML = av.map(a => `<div class="aviso">${esc(a)}</div>`).join('');
   } catch (err) {
@@ -1456,8 +1451,11 @@ $('#factDlg').addEventListener('close', () => { if (fUrl) { URL.revokeObjectURL(
 $('#fGuardar').onclick = async () => {
   if (!fReg) return;
   const v = id => $('#' + id).value.trim(), nn = id => { const x = v(id); return x === '' ? null : num(x); };
-  const cambios = { factura: v('fFactura') || null, importe: nn('fImporte'), factura_fecha: v('fFecha') || null, factura_ruc: v('fRuc') || null,
-    factura_guia: v('fGuia') || null, factura_destino: v('fDestino') || null, factura_bultos: nn('fBultos'), factura_peso: nn('fPeso') };
+  const cambios = { factura: v('fFactura') || null, importe: nn('fImporte') };
+  if (facturaCambio(cambios.factura, fReg)) {
+    $('#fGuardar').disabled = true; const o = await facturaRepetida(cambios.factura, fReg.id); $('#fGuardar').disabled = false;
+    if (o) { $('#fEstado').className = 'aviso'; $('#fEstado').textContent = textoRepetida(cambios.factura, o) + ' Corrige el número para poder guardar.'; return; }
+  }
   $('#fGuardar').disabled = true;
   marcarMio(fReg.id);
   const { error } = await sb.from('envios').update(cambios).eq('id', fReg.id);
@@ -1719,7 +1717,7 @@ function abrirReg(id, orden) {
   ['#rmPlaca', '#rmImp', '#rmFac', '#rmDet'].forEach(q => $(q).disabled = bloq);
   const av = $('#rmAv'); av.hidden = !bloq; av.textContent = bloq ? `Está en ${lqNumeros.has(r.liquidacion_id) ? lqCod(lqNumeros.get(r.liquidacion_id)) : 'una liquidación'}. Anula la liquidación para editarlo.` : '';
   $('#rmOk').hidden = $('#rmSig').hidden = bloq; $('#rmCancel').textContent = bloq ? 'Cerrar' : 'Cancelar';
-  rmNav(); rmFoto(r); rmVivo();
+  rm.dup = null; clearTimeout(rmDupT); rmDupSeq++; rmMostrarDup(); rmFoto(r); rmVivo();
   if (!$('#regDlg').open) $('#regDlg').showModal();
 }
 function rmVivo() {
@@ -1751,10 +1749,35 @@ $('#rmAc').addEventListener('click', async e => {
   await sb.storage.from(BUCKET).remove([r.factura_archivo]);
   r.factura_archivo = null; refrescarAdjunto(r); flash($('#rMsg'), 'Adjunto quitado', 'ok');
 });
+// Un N° de factura no puede repetirse: devuelve el otro registro que ya lo usa (o null si está libre)
+async function facturaRepetida(factura, id) {
+  const f = String(factura || '').trim(); if (!f) return null;
+  const { data, error } = await sb.from('envios').select('id,nodo,fecha').ilike('factura', f.replace(/[\\%_]/g, '\\$&')).neq('id', id).limit(1);
+  return !error && data && data[0] || null;
+}
+const facturaCambio = (nueva, r) => !!nueva && String(nueva).trim().toUpperCase() !== String(r.factura || '').trim().toUpperCase();
+const textoRepetida = (f, o) => `El N° de factura ${f} ya está registrado en ${o.nodo} (${fdmy(o.fecha)}). No se puede repetir.`;
+let rmDupSeq = 0, rmDupT = null;
+function rmMostrarDup() {
+  const o = rm.dup; $('#rmDup').hidden = !o; $('#rmFac').classList.toggle('dup', !!o);
+  $('#rmDup').textContent = o ? textoRepetida($('#rmFac').value.trim(), o) : '';
+  if (o) $('#rmOk').disabled = $('#rmSig').disabled = true; else { $('#rmOk').disabled = false; rmNav(); }
+}
+async function rmChequearFactura() {
+  const r = rmReg(); if (!r) return; const v = $('#rmFac').value.trim(), mi = ++rmDupSeq;
+  const otro = facturaCambio(v, r) ? await facturaRepetida(v, r.id) : null;
+  if (mi !== rmDupSeq) return;
+  rm.dup = otro; rmMostrarDup();
+}
+$('#rmFac').addEventListener('input', () => { clearTimeout(rmDupT); rmDupT = setTimeout(rmChequearFactura, 400); });
 async function guardarReg(siguiente) {
   const r = rmReg(); if (!r || regEnviado(r)) return;
   const v = rmLeer();
   if (v.importe != null && v.importe < 0) return toast('El importe no puede ser negativo', 'err');
+  if (facturaCambio(v.factura, r)) {
+    $('#rmOk').disabled = $('#rmSig').disabled = true; const o = await facturaRepetida(v.factura, r.id); rm.dup = o; rmMostrarDup();
+    if (o) { $('#rmFac').focus(); return toast(textoRepetida(v.factura, o), 'err'); }
+  }
   if (rmSucio()) {
     $('#rmOk').disabled = $('#rmSig').disabled = true;
     marcarMio(r.id);
