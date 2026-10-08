@@ -572,7 +572,7 @@
   #rTabla .imp { font-weight:700; font-size:15px; font-variant-numeric:tabular-nums; white-space:nowrap; text-align:right } #rTabla .imp small { display:block; font-weight:500; font-size:11.5px; color:var(--mut); margin-top:1px }
   #rTabla .imp.falta { color:var(--warn); font-weight:600; font-size:13px }
   .rest { position:relative; display:inline-block; min-width:140px }
-  .rest .lb { font-size:12.5px; font-weight:600 } .rest .lb.ok { color:var(--ok) } .rest .lb.w { color:var(--warn) } .rest .lb.e { color:var(--pri) }
+  .rest .lb { font-size:12.5px; font-weight:600 } .rest .lb.ok { color:var(--ok) } .rest .lb.w { color:var(--warn) } .rest .lb.e { color:var(--pri) } .rest .lb.c { color:var(--mut) }
   .rest .bar { display:flex; gap:3px; margin-top:6px } .rest .bar i { flex:1; height:4px; border-radius:99px; background:#e0e0e6 } .rest .bar i.h { background:#34c759 } .rest .bar i.n { background:#f59e0b } .rest .bar i.v { background:var(--pri) }
   .rest .tip { display:none }
   .rtip { position:fixed; z-index:80; width:190px; background:#1d1d1f; color:#fff; border-radius:12px; padding:10px 12px; font-size:12px; box-shadow:0 10px 30px rgba(0,0,0,.25); pointer-events:none } .rtip[hidden] { display:none }
@@ -1552,18 +1552,18 @@ const lqCod = n => 'LIQ-' + String(n).padStart(4, '0');
 // avance del registro: importe, factura, foto y enviado
 const PASOS = ['Importe', 'Factura', 'Foto', 'Enviado'];
 const regPasos = r => [Number(r.importe) > 0, !!r.factura, !!r.factura_archivo, regEnviado(r)];
-const regFalta = r => regEnviado(r) ? ['e', 'Enviado' + (lqNumeros.has(r.liquidacion_id) ? ' ' + lqCod(lqNumeros.get(r.liquidacion_id)) : '')] : !(Number(r.importe) > 0) ? ['w', 'Falta importe'] : !r.factura ? ['w', 'Falta factura'] : !r.factura_archivo ? ['w', 'Falta foto'] : ['ok', 'Lista para liquidar'];
+const regFalta = r => regEnviado(r) ? ['e', 'Enviado' + (lqNumeros.has(r.liquidacion_id) ? ' ' + lqCod(lqNumeros.get(r.liquidacion_id)) : '')] : !(Number(r.importe) > 0) ? ['w', 'Falta importe'] : !r.factura ? ['w', 'Falta factura'] : !r.factura_archivo ? ['w', 'Falta foto'] : regNoLiq(r) ? ['c', r.modo_pago === 'CREDITO' ? 'Completo · crédito' : 'Completo'] : ['ok', 'Lista para liquidar'];
 function stepper(r, grande) {
-  const p = regPasos(r), sig = p.findIndex(x => !x);
+  const p = regPasos(r), sig = p.findIndex((x, i) => !x && !(i === 3 && regNoLiq(r)));
   return '<div class="stp' + (grande ? ' g' : '') + '">' + p.map((h, i) => {
     const punto = `<span class="pt ${h ? (i === 3 ? 'env' : 'hecho') : i === sig ? 'sig' : ''}" title="${PASOS[i]}">${ICO.check}</span>`;
     return (grande ? `<div class="it${h ? ' hecho' : ''}">${punto}<span>${PASOS[i]}</span></div>` : punto) + (i < 3 ? `<span class="ln${h ? ' hecho' : ''}"></span>` : '');
   }).join('') + '</div>';
 }
 function celdaEstado(r) {
-  const [k, t] = regFalta(r), p = regPasos(r), sig = p.findIndex(x => !x);
+  const [k, t] = regFalta(r), p = regPasos(r), sig = p.findIndex((x, i) => !x && !(i === 3 && regNoLiq(r)));
   const bar = p.map((h, i) => `<i class="${h ? (i === 3 ? 'v' : 'h') : i === sig && k === 'w' ? 'n' : ''}"></i>`).join('');
-  const tip = p.map((h, i) => `<div><span>${PASOS[i]}</span><span class="${h ? 'y' : 'n'}">${h ? 'Listo' : i === 3 ? 'Pendiente' : 'Falta'}</span></div>`).join('');
+  const tip = p.map((h, i) => `<div><span>${PASOS[i]}</span><span class="${h ? 'y' : 'n'}">${h ? 'Listo' : i === 3 ? (regNoLiq(r) ? 'No aplica' : 'Pendiente') : 'Falta'}</span></div>`).join('');
   return `<div class="rest"><div class="lb ${k}">${t}</div><div class="bar">${bar}</div><div class="tip">${tip}</div></div>`;
 }
 function filaRegistro(r) {
@@ -1623,7 +1623,9 @@ function listaAgencias() { $('#dlAgencias').innerHTML = [...new Set([...agBase, 
 let regBase = [], estadoReg = '';
 const regEnviado = r => !!r.liquidacion_id;
 const regListo = r => Number(r.importe) > 0 && !!r.factura && !!r.factura_archivo;
-const regTerminado = r => regListo(r) && !regEnviado(r);
+// Solo se liquidan los registros al contado: los de crédito nunca pasan a "listos para liquidar"
+const regNoLiq = r => r.modo_pago !== 'CONTADO';
+const regTerminado = r => regListo(r) && !regEnviado(r) && !regNoLiq(r);
 let lqNumeros = new Map();
 const contarEstados = () => pintarResumenRegistros();
 function aplicarEstado() {
