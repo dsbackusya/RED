@@ -741,6 +741,78 @@
   }
   .ico { width:1.1em; height:1.1em; vertical-align:-.2em; flex:none } .ar { display:inline-block; vertical-align:0; margin-left:2px } .nb .x svg { display:grid; place-items:center }
   .pag button .ico { width:14px; height:14px; vertical-align:-2px }
+
+  /* ===== Costos: resumen en tarjetas ===== */
+  .kgrid { --kn:#0b3d82; --kn2:#1a5db8; --kv:#5aaa2a; display:grid; grid-template-columns:repeat(12, minmax(0, 1fr)); gap:18px; margin-bottom:18px }
+  .kg-c { position:relative; background:var(--card); border-radius:26px; padding:24px 26px; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 30px rgba(11,61,130,.05); min-width:0 }
+  .kg-c::before { content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% -10%, rgba(26,93,184,.13), rgba(26,93,184,0) 62%); pointer-events:none }
+  .kg-c > * { position:relative }
+  .kg-t { margin:0; font-size:19px; font-weight:600; letter-spacing:-.02em; line-height:1.25 } .kg-h { color:var(--mut); font-size:13px; margin:2px 0 0 }
+  .kg-ico { position:absolute; right:22px; top:20px; width:36px; height:36px; border-radius:50%; background:rgba(11,61,130,.08); color:var(--kn); display:grid; place-items:center } .kg-ico svg { width:17px; height:17px }
+  .kg-hero { grid-column:span 5; min-height:310px; display:flex; flex-direction:column }
+  .kg-evo { grid-column:span 4 } .kg-flota { grid-column:span 3; grid-row:span 2; display:flex; flex-direction:column; container-type:inline-size }
+  .kg-trs { grid-column:span 3 } .kg-rank { grid-column:span 6 }
+  .kg-cifra { margin-top:auto; padding-top:28px }
+  .kg-n { font-size:56px; font-weight:700; letter-spacing:-.04em; line-height:1 } .kg-n small { font-size:26px; font-weight:600; color:var(--mut); margin-right:6px; letter-spacing:-.02em }
+  .kg-d { margin-top:8px; color:var(--mut); font-size:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap }
+  .kg-tag { font-size:12px; font-weight:600; padding:2px 10px; border-radius:99px; white-space:nowrap } .kg-tag.up { background:var(--badbg); color:var(--bad) } .kg-tag.dn { background:var(--okbg); color:var(--ok) } .kg-tag.eq { background:rgba(0,0,0,.06); color:var(--mut) }
+  .kg-mez { margin-top:22px; height:74px; border-radius:99px; background:var(--head); overflow:hidden; display:flex }
+  .kg-mez .a, .kg-mez .b { height:100%; display:flex; align-items:center; padding:0 24px; font-weight:700; font-size:22px; letter-spacing:-.02em; white-space:nowrap; min-width:0 }
+  .kg-mez .a { background:repeating-linear-gradient(135deg, rgba(255,255,255,.22) 0 2px, transparent 2px 9px), linear-gradient(90deg, var(--kn), var(--kn2)); color:#fff; justify-content:flex-end; border-radius:99px }
+  .kg-mez .b { flex:1; justify-content:center; color:var(--mut); font-size:18px; font-weight:600 }
+  .kg-mez small { font-size:12.5px; font-weight:500; opacity:.85; margin-left:8px }
+  .kg-ley { display:flex; justify-content:space-between; gap:10px; margin-top:10px; font-size:12.5px; color:var(--mut); padding:0 6px; flex-wrap:wrap }
+  .kg-ley span::before { content:""; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; background:var(--kn2) } .kg-ley span + span::before { background:#c7ccd6 }
+  .kg-hero .goal { margin-top:14px } .kg-hero .goal .tr { height:6px; border-radius:99px; background:var(--head); overflow:hidden } .kg-hero .goal .tr i { display:block; height:100%; border-radius:99px }
+  .kg-hero .goal .tx { display:flex; justify-content:space-between; font-size:12.5px; color:var(--mut); margin-top:5px } .kg-hero .goal .px, .kg-hero .goal small { font-size:12.5px; color:var(--mut); margin-top:3px } .kg-hero .goal .px b { color:var(--ink) }
+  .kg-hero .link { color:var(--pri); padding:0; background:none; border:0; font:inherit; font-size:12.5px; cursor:pointer }
+  .kg-evo > svg { display:block; width:100%; height:auto; margin-top:8px }
+  .kg-top { display:flex; align-items:center; gap:12px; margin-top:14px; padding:10px 12px; border-radius:99px; background:var(--head) }
+  .kg-top .p { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg, var(--kn2), var(--kn)); color:#fff; display:grid; place-items:center; flex:none } .kg-top .p svg { width:18px; height:18px }
+  .kg-top b { display:block; font-size:14px; line-height:1.2 } .kg-top small { color:var(--mut); font-size:12px } .kg-top .tg { margin-left:auto; font-size:12px; font-weight:600; padding:4px 12px; border-radius:99px; background:var(--warnbg); color:var(--warn); white-space:nowrap }
+  .kg-line { margin-top:8px }
+  .kg-hl { display:flex; gap:12px; position:relative; padding:8px 0; border-radius:10px } .kg-hl[data-kt], .kg-hl[data-go] { cursor:pointer } .kg-hl[data-kt]:hover b, .kg-hl[data-go]:hover b { color:var(--pri) }
+  .kg-hl + .kg-hl::before { content:""; position:absolute; left:6px; top:-10px; height:20px; border-left:1.5px dashed rgba(0,0,0,.18) }
+  .kg-hl i { width:13px; height:13px; border-radius:50%; flex:none; margin-top:5px; border:2px solid #c7ccd6; background:#fff } .kg-hl i.w { border-color:#f59e0b; background:#f59e0b } .kg-hl i.r { border-color:var(--bad); background:var(--bad) } .kg-hl i.g { border-color:var(--ok); background:var(--ok) } .kg-hl i.b { border-color:var(--kn2); background:var(--kn2) }
+  .kg-hl b { display:block; font-size:13.5px; font-weight:600; line-height:1.3 } .kg-hl small { color:var(--mut); font-size:12px; display:block; line-height:1.35 }
+  .kg-seg { display:inline-flex; background:var(--head); border-radius:99px; padding:3px; max-width:100%; overflow-x:auto; scrollbar-width:none } .kg-seg::-webkit-scrollbar { display:none }
+  .kg-seg button { border:0; background:none; padding:4px 13px; border-radius:99px; font:inherit; font-size:12.5px; font-weight:500; color:var(--mut); cursor:pointer; white-space:nowrap; min-height:0 } .kg-seg button.on { background:#fff; color:var(--ink); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,.12) }
+  .kg-tit { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap }
+  .kg-cam { position:relative; margin:-2px -26px 4px -10px; padding:0 0 10px }
+  .kg-cam img { position:relative; z-index:1; display:block; width:106%; max-width:none }
+  .kg-cam .halo { position:absolute; left:4%; right:0; top:8%; bottom:10%; border-radius:50%; background:radial-gradient(closest-side, rgba(26,93,184,.18), rgba(26,93,184,0)) }
+  .kg-cam .suelo { position:absolute; left:10%; right:6%; bottom:20px; height:22px; border-radius:50%; background:radial-gradient(closest-side, rgba(11,61,130,.28), rgba(11,61,130,0)); filter:blur(3px) }
+  .kg-uh { display:flex; align-items:flex-end; justify-content:space-between; gap:10px; margin-top:auto; padding-top:10px }
+  .kg-un { font-size:44px; font-weight:700; letter-spacing:-.04em; line-height:1; display:flex; align-items:baseline; gap:4px; white-space:nowrap } .kg-un small { font-size:20px; font-weight:600; color:var(--mut); letter-spacing:-.02em } .kg-un em { font-style:normal; font-size:13px; font-weight:500; color:var(--mut); letter-spacing:0; margin-left:6px }
+  .kg-sts { position:relative; display:flex; flex-direction:column; gap:12px; padding-top:16px }
+  .kg-sts::before { content:""; position:absolute; left:28px; top:44px; bottom:34px; border-left:1.5px dashed rgba(0,0,0,.16) }
+  .kg-st { position:relative; display:flex; align-items:center; gap:14px; background:var(--head); border-radius:99px; padding:9px 14px 9px 10px }
+  .kg-st .i { width:38px; height:38px; border-radius:50%; background:#fff; color:var(--kn); display:grid; place-items:center; flex:none; box-shadow:0 1px 2px rgba(0,0,0,.08) } .kg-st .i svg { width:18px; height:18px }
+  .kg-st > div { flex:1; min-width:0 } .kg-st small { display:block; color:var(--mut); font-size:12px; line-height:1.2; white-space:nowrap } .kg-st b { font-size:17px; font-weight:600; letter-spacing:-.02em; white-space:nowrap }
+  @container (max-width:250px) { .kg-st .kg-tag, .kg-uh .kg-tag { display:none } }
+  .kg-tr { display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid var(--line) } .kg-trl > .kg-tr:first-child { border-top:0; margin-top:6px }
+  .kg-av { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; color:#fff; font-weight:700; font-size:14px; flex:none }
+  .kg-tr .t { flex:1; min-width:0 } .kg-tr b { display:block; font-size:14.5px; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .kg-tr small { color:var(--mut); font-size:12px }
+  .kg-tr .m { text-align:right; white-space:nowrap } .kg-tr .m b { font-size:15px; overflow:visible }
+  .kg-mini { height:4px; border-radius:99px; background:var(--head); margin-top:5px; overflow:hidden } .kg-mini i { display:block; height:100%; border-radius:99px }
+  .kg-rh { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap }
+  .kg-rows { margin-top:10px }
+  .kg-row { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1.5fr) .6fr .9fr .9fr; gap:10px; align-items:center; background:var(--head); border-radius:14px; padding:11px 14px; margin-bottom:6px; font-size:13.5px }
+  .kg-row.hd { background:none; padding:2px 14px; margin:0; font-size:12px; font-weight:600; color:var(--mut) } .kg-row .n { text-align:right } .kg-row b { font-weight:600; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .kg-row small { color:var(--mut); font-size:11.5px; display:block; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+  .kg-bar { display:flex; align-items:center; gap:10px } .kg-bar span { flex:1; height:6px; border-radius:99px; background:rgba(0,0,0,.08); overflow:hidden; min-width:30px } .kg-bar i { display:block; height:100%; border-radius:99px; background:linear-gradient(90deg, var(--kn), var(--kn2)) } .kg-bar b { flex:none; overflow:visible }
+  .kg-pill { font-size:11.5px; font-weight:600; padding:3px 11px; border-radius:99px; white-space:nowrap; justify-self:start } .kg-pill.g { background:var(--okbg); color:var(--ok) } .kg-pill.a { background:var(--warnbg); color:var(--warn) } .kg-pill.r { background:var(--badbg); color:var(--bad) }
+  .kg-ver { display:block; width:100%; text-align:center; margin-top:8px; padding:6px; font:inherit; font-size:13.5px; color:var(--pri); font-weight:500; cursor:pointer; background:none; border:0 }
+  .kg-vacio { grid-column:1/-1; text-align:center; padding:48px 24px } .kg-vacio b { display:block; font-size:17px } .kg-vacio span { color:var(--mut); font-size:14px }
+  .kg-sk { grid-column:span 4; min-height:220px; border-radius:26px; background:linear-gradient(90deg, var(--head), rgba(0,0,0,.09), var(--head)); background-size:200% 100%; animation:shm 1.2s linear infinite }
+  @media (max-width:1180px) {
+    .kg-hero { grid-column:span 7 } .kg-evo { grid-column:span 5 } .kg-flota { grid-column:span 12; grid-row:auto; display:grid; grid-template-columns:1fr 1fr; gap:6px 24px; align-items:center }
+    .kg-flota .kg-tit { grid-column:1/-1 } .kg-trs { grid-column:span 5 } .kg-rank { grid-column:span 7 } .kg-cam { margin:0 } .kg-cam img { width:100% } .kg-uh { margin-top:0 }
+  }
+  @media (max-width:820px) {
+    .kg-hero, .kg-evo, .kg-trs, .kg-rank { grid-column:span 12 } .kg-flota { display:flex; grid-column:span 12 } .kg-cam { margin:-2px -22px 4px -10px } .kg-cam img { width:106% }
+    .kg-c { padding:20px 18px; border-radius:22px } .kg-n { font-size:44px } .kg-mez { height:62px } .kg-mez .a { font-size:19px; padding:0 18px } .kg-mez small { display:none }
+    .kg-row { grid-template-columns:minmax(0,1.4fr) minmax(0,1.3fr) auto; padding:11px 12px } .kg-row .ped, .kg-row .tar { display:none } .kg-row.hd { padding:2px 12px }
+  }
 </style>
 </head>
 <body>
@@ -895,16 +967,11 @@
     <div class="active" id="kAct"></div>
     <div id="kpMsg" class="msg"></div>
   </div>
-  <div class="kpis" id="kpCards"></div>
-  <div class="insw"><div class="nbs" id="kpAlertas"></div><div class="ins" id="kpHall"></div></div>
   <div class="ktabs" id="kpTabs">
     <button data-v="res" class="on">Resumen</button><button data-v="cuenta">Cuentas <small id="nCta"></small></button><button data-v="nodo">Nodos <small id="nNodo"></small></button><button data-v="age">Agencias <small id="nAge"></small></button><button data-v="zona">Transporte y zona</button><button data-v="cal">Calidad de datos<span id="dotCal"></span></button>
   </div>
   <div id="kp-res">
-    <div class="cgrid">
-      <div class="card"><h3>Evolución diaria del costo</h3><p class="hint">Cada barra es el costo del día. La línea es el promedio móvil de 7 días con envíos.</p><svg id="resLine" class="csvg" viewBox="0 0 900 250" width="100%" style="max-height:290px"></svg></div>
-      <div class="card"><h3>Dónde se concentra el costo</h3><p class="hint">Top 5 de cada dimensión; clic para ver el detalle.</p><div id="resTops"></div></div>
-    </div>
+    <div class="kgrid" id="kgrid"></div>
     <div class="cgrid" style="margin-top:14px">
       <div class="card"><h3>Calendario de costos</h3><p class="hint">Cada día se colorea según su costo. Clic en un día para ver sus registros.</p><div class="cal" id="calGrid"></div><div class="ramp" id="calRamp"></div></div>
       <div class="card"><h3>Costo promedio por día de la semana</h3><p class="hint">Permite identificar los días de mayor costo de despacho.</p><svg id="calDow" class="csvg" viewBox="0 0 320 150" width="100%"></svg></div>
@@ -2199,47 +2266,128 @@ function poblarFiltros(lista) {
   $('#kZona').innerHTML = '<option value="">Todas</option>' + zs.map(a => `<option>${esc(a)}</option>`).join('') + '<option>(sin zona)</option>'; $('#kZona').value = zo;
 }
 async function periodoPrevio(desde, hasta, trans) {
-  if (!desde || !hasta) return { total: 0, pedidos: 0, bultos: 0, cajas: 0 };
+  const vacio = () => ({ total: 0, pedidos: 0, bultos: 0, cajas: 0 });
+  if (!desde || !hasta) return { ...vacio(), pp: { CONTADO: vacio(), CREDITO: vacio() } };
   const d0 = new Date(desde + 'T00:00:00'), d1 = new Date(hasta + 'T00:00:00'), n = Math.round((d1 - d0) / 86400000) + 1;
   const pf = isoLocal(new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() - n)), pt = isoLocal(new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() - 1));
   const rows = await traerTodo(() => { let q = sb.from('envios').select('nodo,motivo,agencia,zona,modo_pago,pedidos,bultos,cajas,importe').gte('fecha', pf).lte('fecha', pt).order('id'); if (trans) q = q.eq('transporte', trans); return q; });
-  const r = { total: 0, pedidos: 0, bultos: 0, cajas: 0 };
-  rows.filter(kPasa).forEach(e => { const i = Number(e.importe) || 0; if (i > 0) { r.total += i; r.pedidos += Number(e.pedidos) || 0; r.bultos += Number(e.bultos) || 0; r.cajas += Number(e.cajas) || 0; } });
+  const r = { total: 0, pedidos: 0, bultos: 0, cajas: 0, pp: { CONTADO: { total: 0, pedidos: 0, bultos: 0, cajas: 0 }, CREDITO: { total: 0, pedidos: 0, bultos: 0, cajas: 0 } } };
+  rows.filter(kPasa).forEach(e => { const i = Number(e.importe) || 0; if (i > 0) {
+    const p = Number(e.pedidos) || 0, b = Number(e.bultos) || 0, c = Number(e.cajas) || 0, q = r.pp[e.modo_pago === 'CONTADO' ? 'CONTADO' : 'CREDITO'];
+    r.total += i; r.pedidos += p; r.bultos += b; r.cajas += c; q.total += i; q.pedidos += p; q.bultos += b; q.cajas += c; } });
   return r;
 }
-const kDelta = (a, b) => { if (!b || !a) return ''; const d = (a - b) / b * 100, c = Math.abs(d) < 0.5 ? 'eq' : d > 0 ? 'up' : 'dn'; return `<span class="dl ${c}">${c === 'eq' ? '=' : flecha(d > 0)} ${Math.abs(d).toFixed(1)}%</span>`; };
-function pintarResumen(R, dias, prev, envios) {
-  const cpp = R.pedidos ? R.total / R.pedidos : 0, cpc = R.cajas ? R.total / R.cajas : 0, pcpp = prev.pedidos ? prev.total / prev.pedidos : 0, pcpc = prev.cajas ? prev.total / prev.cajas : 0;
-  const conta = dias.reduce((x, d) => x + d.contado, 0), cred = dias.reduce((x, d) => x + d.credito, 0), sumaCD = conta + cred, pc = sumaCD ? Math.round(conta / sumaCD * 100) : 0;
-  const con = envios.filter(e => Number(e.importe) > 0), nC = con.filter(e => e.modo_pago === 'CONTADO').length, nR = con.length - nC;
-  const costos = dias.filter(d => d.costo > 0), mn = costos.length ? costos.reduce((a, b) => b.costo < a.costo ? b : a) : null, mxd = costos.length ? costos.reduce((a, b) => b.costo > a.costo ? b : a) : null;
-    const corto = f => fdmy(f).slice(0, 5);
-  $('#kpCards').innerHTML = `
-  <div class="kpi hero"><span>Costo total</span><b>${fmt(R.total)}${kDelta(R.total, prev.total)}</b>
-    <small>${R.conImporte} ${R.conImporte === 1 ? 'registro con importe' : 'registros con importe'}. ${prev.total ? `Período anterior: ${fmt(prev.total)}.` : ''}</small>
-    ${costos.length > 1 ? `<div class="meta"><span>Mejor día <b>${fmt(mn.costo)}</b> (${corto(mn.fecha)})</span><span>Día más alto <b>${fmt(mxd.costo)}</b> (${corto(mxd.fecha)})</span></div>` : ''}${metaHtml(R)}</div>
-  <div class="kpi"><span>Costo por pedido</span><b>${cpp ? fmt(cpp) : '-'}</b><small>${fmtN(R.pedidos)} pedidos${kDelta(cpp, pcpp)}</small></div>
-  <div class="kpi"><span>Costo por caja</span><b>${cpc ? fmt(cpc) : '-'}</b><small>${fmtN(R.cajas)} cajas${kDelta(cpc, pcpc)}</small></div>
-  <div class="kpi cd"><span>Contado y crédito</span>
-    <div class="split"><i style="width:${pc}%;background:var(--grn)"></i><i style="flex:1;background:var(--ind)"></i></div>
-    <div class="cdr"><i style="background:var(--grn)"></i><span>Contado<small>${nC} ${nC === 1 ? 'registro' : 'registros'}</small></span><b>${fmt(conta)}</b><em>${pc}%</em></div>
-    <div class="cdr"><i style="background:var(--ind)"></i><span>Crédito<small>${nR} ${nR === 1 ? 'registro' : 'registros'}</small></span><b>${fmt(cred)}</b><em>${sumaCD ? 100 - pc : 0}%</em></div></div>
-`;
-  if (!R.conImporte) $('#kpCards').innerHTML = `<div class="card empty" style="grid-column:1/-1"><b>Aún no hay importes en este rango</b><span>Completa el importe de los registros para ver los costos.</span></div>`;
+const KG_COL = ['#1a5db8', '#5aaa2a', '#8e6ad8', '#e8912d', '#d6457a', '#2aa7b8'];
+let kRes = null, kHall = [], kgTipo = 'todo', kgRank = 'nodo';
+const kgNum = n => fmt(n).replace(/^S\/\s?/, '');
+// variación frente al período anterior: si el costo baja es buena noticia (verde)
+function kgDelta(a, b) {
+  if (!a || !b) return ''; const d = (a - b) / b * 100, c = Math.abs(d) < 0.5 ? 'eq' : d > 0 ? 'up' : 'dn';
+  return `<span class="kg-tag ${c}">${c === 'eq' ? 'Sin cambio' : (d > 0 ? '+' : '-') + Math.abs(d).toFixed(1) + ' %'}</span>`;
 }
+const KG_IC = {
+  linea: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',
+  barras: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>',
+  alerta: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>',
+  caja: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V4h8v3"/></svg>',
+  bulto: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>',
+  sol: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>'
+};
+// evolución diaria: barras por día y curva del promedio móvil de 7 días
+function kgEvoSvg(dias) {
+  const d = dias.filter(x => x.costo > 0); if (!d.length) return '';
+  const W = 360, H = 150, pad = 6, base = H - 20, n = d.length, mx = Math.max(...d.map(x => x.costo)) * 1.06, step = (W - pad * 2) / n, bw = Math.max(3, Math.min(22, step * .68));
+  const X = i => pad + i * step + (step - bw) / 2, Y = v => base - v / mx * (base - 14), imax = d.reduce((m, x, i) => x.costo > d[m].costo ? i : m, 0);
+  let g = '<defs><linearGradient id="kgb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a5db8"/><stop offset="1" stop-color="#0b3d82"/></linearGradient><linearGradient id="kgl" x1="0" x2="1"><stop offset="0" stop-color="#5aaa2a"/><stop offset="1" stop-color="#1a5db8"/></linearGradient></defs>';
+  [0, .5, 1].forEach(t => { const y = base - t * (base - 14); g += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="rgba(0,0,0,.06)"/>`; });
+  g += d.map((x, i) => `<rect x="${X(i).toFixed(1)}" y="${Y(x.costo).toFixed(1)}" width="${bw.toFixed(1)}" height="${(base - Y(x.costo)).toFixed(1)}" rx="${Math.min(7, bw / 2).toFixed(1)}" fill="${i === imax ? 'url(#kgb)' : 'rgba(26,93,184,.16)'}"><title>${fdmy(x.fecha)}, ${fmt(x.costo)}</title></rect>`).join('');
+  if (n > 1) {
+    const ma = d.map((_, i) => { const w = d.slice(Math.max(0, i - 6), i + 1); return w.reduce((a, b) => a + b.costo, 0) / w.length; });
+    g += `<path d="${ma.map((v, i) => (i ? 'L' : 'M') + (X(i) + bw / 2).toFixed(1) + ' ' + Y(v).toFixed(1)).join(' ')}" fill="none" stroke="url(#kgl)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+    g += `<circle cx="${(X(n - 1) + bw / 2).toFixed(1)}" cy="${Y(ma[n - 1]).toFixed(1)}" r="5" fill="#fff" stroke="#0b3d82" stroke-width="3"/>`;
+  }
+  const corto = f => fdmy(f).slice(0, 5), et = n === 1 ? [[W / 2, 'middle', d[0].fecha]] : [[pad, 'start', d[0].fecha], ...(n > 2 ? [[W / 2, 'middle', d[Math.floor((n - 1) / 2)].fecha]] : []), [W - pad, 'end', d[n - 1].fecha]];
+  g += et.map(([x, a, f]) => `<text x="${x}" y="${H - 4}" font-size="10" fill="#6e6e73" text-anchor="${a}">${corto(f)}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Costo por día">${g}</svg>`;
+}
+// costo por unidad según el tipo de pago elegido
+function kgUnidad(envios, prev, tipo) {
+  const L = envios.filter(e => Number(e.importe) > 0 && (tipo === 'todo' || (tipo === 'CONTADO' ? e.modo_pago === 'CONTADO' : e.modo_pago !== 'CONTADO')));
+  const t = L.reduce((x, e) => x + Number(e.importe), 0), p = L.reduce((x, e) => x + (Number(e.pedidos) || 0), 0), b = L.reduce((x, e) => x + (Number(e.bultos) || 0), 0), c = L.reduce((x, e) => x + (Number(e.cajas) || 0), 0);
+  const pv = tipo === 'todo' ? prev : (prev.pp && prev.pp[tipo]) || { total: 0, pedidos: 0, bultos: 0, cajas: 0 };
+  const r = (x, y) => y ? x / y : 0;
+  const liq = L.filter(regTerminado), sumLiq = liq.reduce((x, e) => x + Number(e.importe), 0);
+  return { cpp: r(t, p), cpc: r(t, c), cpb: r(t, b), dpp: kgDelta(r(t, p), r(pv.total, pv.pedidos)), dpc: kgDelta(r(t, c), r(pv.total, pv.cajas)), dpb: kgDelta(r(t, b), r(pv.total, pv.bultos)), n: L.length, liq: liq.length, sumLiq };
+}
+function kgFlota(R, envios, prev) {
+  const U = kgUnidad(envios, prev, kgTipo), v = x => x ? fmt(x) : '-', cred = kgTipo === 'CREDITO', rg = n => `${n} ${n === 1 ? 'registro' : 'registros'}`;
+  const st = (ic, t, val, tag) => `<div class="kg-st"><span class="i">${KG_IC[ic]}</span><div><small>${t}</small><b>${val}</b></div>${tag}</div>`;
+  return `<section class="kg-c kg-flota"><div class="kg-tit"><div><h3 class="kg-t">Costo por unidad</h3><p class="kg-h">Lo que cuesta mover cada unidad</p></div>
+      <div class="kg-seg" role="tablist" aria-label="Tipo de pago">${[['todo', 'Todo'], ['CONTADO', 'Contado'], ['CREDITO', 'Crédito']].map(([k, t]) => `<button type="button" data-ut="${k}" class="${kgTipo === k ? 'on' : ''}">${t}</button>`).join('')}</div></div>
+    <div class="kg-cam"><span class="halo"></span><img src="camion.webp" alt="Camión Dinet" loading="lazy"><span class="suelo"></span></div>
+    <div class="kg-uh"><div class="kg-un"><small>S/</small><span>${U.cpp ? kgNum(U.cpp) : '-'}</span><em>por pedido</em></div>${U.dpp}</div>
+    <div class="kg-sts">${st('caja', 'Tarifa por caja', v(U.cpc), U.dpc)}${st('bulto', 'Costo por bulto', v(U.cpb), U.dpb)}
+      ${cred ? st('sol', 'No se liquida', rg(U.n), '<span class="kg-tag eq">a crédito</span>') : st('sol', 'Por liquidar', fmt(U.sumLiq), `<span class="kg-tag eq">${rg(U.liq)}</span>`)}</div></section>`;
+}
+function kgRanking(R, envios) {
+  const T = R.total, vistas = { nodo: ['Nodos', R.nodos, 'cajas'], cuenta: ['Cuentas', R.cuentas, 'pedidos'], age: ['Agencias', R.agencias, 'cajas'] }, [tit, mapa, base] = vistas[kgRank];
+  const info = new Map(); envios.forEach(e => info.set(e.nodo, { t: e.transporte, z: zonaEnv(e) }));
+  const lista = [...mapa].filter(([k]) => kgRank !== 'cuenta' || (k !== SIN_HRN && !k.startsWith('('))), tarifa = v => base === 'cajas' ? (v.cajas ? v.costo / v.cajas : 0) : (v.pedidos ? v.costo / v.pedidos : 0);
+  const ref = kgRank === 'cuenta' ? (R.pedidos ? T / R.pedidos : 0) : mediana(lista.map(([, v]) => tarifa(v)).filter(Boolean));
+  const top = lista.sort((a, b) => b[1].costo - a[1].costo).slice(0, 5), mx = Math.max(...top.map(x => x[1].costo), 1);
+  const sub = (k, v) => kgRank === 'nodo' ? [info.get(k)?.t, info.get(k)?.z !== '(sin zona)' ? info.get(k)?.z : 'Sin zona'].filter(Boolean).join(' · ') : kgRank === 'cuenta' ? `${(R.cuentaNodos.get(k) || new Map()).size} nodos` : `${v.nodos.size} ${v.nodos.size === 1 ? 'nodo' : 'nodos'}`;
+  const est = x => !x || !ref ? '' : x <= ref * 1.3 ? '<span class="kg-pill g">En rango</span>' : x <= ref * 2 ? '<span class="kg-pill a">Alta</span>' : '<span class="kg-pill r">Muy alta</span>';
+  const hint = kgRank === 'cuenta' ? `El costo por pedido se compara con el promedio (${fmt(ref)})` : `La tarifa por caja se compara con la mediana (${fmt(ref)})`;
+  const nom = k => k.startsWith('(') ? 'Sin ' + k.slice(1, -1).toLowerCase().replace(/^sin /, '') : k;
+  return `<section class="kg-c kg-rank"><div class="kg-rh"><div><h3 class="kg-t">Dónde se concentra el costo</h3><p class="kg-h">${hint}</p></div>
+      <div class="kg-seg" role="tablist" aria-label="Agrupar por">${[['nodo', 'Nodos'], ['cuenta', 'Cuentas'], ['age', 'Agencias']].map(([k, t]) => `<button type="button" data-rk="${k}" class="${kgRank === k ? 'on' : ''}">${t}</button>`).join('')}</div></div>
+    <div class="kg-rows"><div class="kg-row hd"><span>${tit.slice(0, -1)}</span><span>Costo</span><span class="n ped">Pedidos</span><span class="n tar">${base === 'cajas' ? 'Tarifa por caja' : 'Costo por pedido'}</span><span>Estado</span></div>
+    ${top.map(([k, v]) => `<div class="kg-row"><span><b title="${esc(k)}">${esc(nom(k))}</b><small>${esc(sub(k, v))}</small></span><span class="kg-bar"><span><i style="width:${Math.max(3, v.costo / mx * 100)}%"></i></span><b>${fmt(v.costo)}</b></span><span class="n ped">${fmtN(v.pedidos)}</span><span class="n tar">${tarifa(v) ? fmt(tarifa(v)) : '-'}</span>${est(tarifa(v)) || '<span></span>'}</div>`).join('') || '<p class="kg-h">Sin datos en este rango.</p>'}</div>
+    ${lista.length > 5 ? `<button type="button" class="kg-ver" data-kt="${kgRank}">Ver los ${lista.length} ${tit.toLowerCase()}</button>` : ''}</section>`;
+}
+function pintarResumen(R, dias, prev, envios) {
+  kRes = { R, dias, prev, envios };
+  if (!R.conImporte) { $('#kgrid').innerHTML = `<div class="kg-c kg-vacio"><b>Aún no hay importes en este rango</b><span>Completa el importe de los registros para ver los costos.</span></div>`; return; }
+  const conta = dias.reduce((x, d) => x + d.contado, 0), cred = dias.reduce((x, d) => x + d.credito, 0), sumaCD = conta + cred, pc = sumaCD ? Math.round(conta / sumaCD * 100) : 0;
+  const costos = dias.filter(d => d.costo > 0), mxd = costos.length ? costos.reduce((a, b) => b.costo > a.costo ? b : a) : null;
+  const trs = [...R.transportes].sort((a, b) => b[1].costo - a[1].costo);
+  const hero = `<section class="kg-c kg-hero"><h3 class="kg-t">Costo del período</h3><p class="kg-h">${R.conImporte} ${R.conImporte === 1 ? 'registro con importe' : 'registros con importe'}</p><span class="kg-ico">${KG_IC.linea}</span>
+    <div class="kg-cifra"><div class="kg-n"><small>S/</small>${kgNum(R.total)}</div><div class="kg-d">${kgDelta(R.total, prev.total)}${prev.total ? `<span>frente al período anterior (${fmt(prev.total)})</span>` : ''}<span>${fmtN(R.pedidos)} pedidos</span></div></div>
+    <div class="kg-mez">${sumaCD ? `${pc ? `<div class="a" style="width:${pc}%">${pc} %<small>contado</small></div>` : ''}${pc < 100 ? `<div class="b">${100 - pc} %<small>crédito</small></div>` : ''}` : '<div class="b">Sin pagos registrados</div>'}</div>
+    <div class="kg-ley"><span>Contado ${fmt(conta)}</span><span>Crédito ${fmt(cred)}</span></div>${metaHtml(R)}</section>`;
+  const hl = (kHall.length ? kHall : [{ c: 'g', t: 'Sin observaciones', d: 'No se detectaron alertas en este período.' }]).slice(0, 4);
+  const evo = `<section class="kg-c kg-evo"><h3 class="kg-t">Evolución diaria</h3><p class="kg-h">Costo de cada día y promedio móvil de 7 días</p><span class="kg-ico">${KG_IC.barras}</span>
+    ${kgEvoSvg(dias)}${mxd && costos.length > 1 ? `<div class="kg-top"><span class="p">${KG_IC.alerta}</span><div><b>Día de mayor costo</b><small>${fdmy(mxd.fecha)} · ${fmt(mxd.costo)}</small></div><span class="tg">${Math.round(mxd.costo / R.total * 100)} %</span></div>` : ''}
+    <div class="kg-line">${hl.map(h => `<div class="kg-hl"${h.kt ? ` data-kt="${h.kt}"` : h.go ? ` data-go="${h.go}"` : ''}><i class="${h.c}"></i><div><b>${esc(h.t)}</b><small>${esc(h.d)}</small></div></div>`).join('')}</div></section>`;
+  const tot = trs.reduce((x, [, v]) => x + v.costo, 0) || 1;
+  const trans = `<section class="kg-c kg-trs"><h3 class="kg-t">Transportes</h3><p class="kg-h">Quién concentra el costo</p><div class="kg-trl">${trs.map(([k, v], i) => { const nm = k.startsWith('(') ? 'Sin transporte' : k, pct = Math.round(v.costo / tot * 100), col = KG_COL[i % KG_COL.length];
+    return `<div class="kg-tr"><span class="kg-av" style="background:${col}">${esc(nm.slice(0, 2).toUpperCase())}</span><div class="t"><b title="${esc(nm)}">${esc(nm)}</b><small>${v.n} ${v.n === 1 ? 'registro' : 'registros'}</small><div class="kg-mini"><i style="width:${Math.max(3, pct)}%;background:${col}"></i></div></div><div class="m"><b>${fmt(v.costo)}</b><small>${pct} %</small></div></div>`; }).join('')}</div></section>`;
+  $('#kgrid').innerHTML = hero + evo + kgFlota(R, envios, prev) + trans + kgRanking(R, envios);
+}
+$('#kgrid').addEventListener('click', e => {
+  const u = e.target.closest('[data-ut]'); if (u) { kgTipo = u.dataset.ut; if (kRes) pintarResumen(kRes.R, kRes.dias, kRes.prev, kRes.envios); return; }
+  const r = e.target.closest('[data-rk]'); if (r) { kgRank = r.dataset.rk; if (kRes) pintarResumen(kRes.R, kRes.dias, kRes.prev, kRes.envios); return; }
+  const g = e.target.closest('[data-go]'); if (g) irA(g.dataset.go);
+});
+// avisos y hallazgos: lo más grave primero
 function hallazgosKpi(R, envios) {
-  const out = [], T = R.total; if (!R.conImporte) { $('#kpHall').innerHTML = ''; return; }
+  const out = [], T = R.total; if (!R.conImporte) return out;
+  if (R.sinHrn) { const n = R.sinHrnNodos.size, f = [...R.sinHrnFechas].sort().map(x => fdmy(x).slice(0, 5)); out.push({ c: 'w', t: `${fmt(R.sinHrn)} sin cuenta asignada`, d: `Falta el detalle de ${n} ${n === 1 ? 'nodo' : 'nodos'} (${f.slice(0, 4).join(', ')}${f.length > 4 ? '…' : ''}).`, go: 'detalle' }); }
+  if (R.pendientes) out.push({ c: 'w', t: `${R.pendientes} ${R.pendientes === 1 ? 'registro sin importe' : 'registros sin importe'}`, d: `No ${R.pendientes === 1 ? 'entra' : 'entran'} al cálculo. Complétalos en Registros.`, go: 'registros' });
+  const rep = {}; envios.forEach(e => { const k = norm(e.factura); if (k) (rep[k] = rep[k] || []).push(e); });
+  const dup = Object.values(rep).filter(l => l.length > 1);
+  if (dup.length) out.push({ c: 'r', t: `Factura ${dup[0][0].factura} repetida`, d: `${[...new Set(dup[0].map(e => e.nodo))].slice(0, 3).join(', ')}${dup.length > 1 ? ` y ${dup.length - 1} más` : ''}: revisa que no se pague dos veces.`, go: 'registros' });
   const tr = [...R.transportes].filter(([, v]) => v.pedidos).map(([k, v]) => ({ k, cpp: v.costo / v.pedidos })).sort((a, b) => b.cpp - a.cpp);
-  if (tr.length > 1 && tr[0].cpp / tr[tr.length - 1].cpp >= 1.3) { const f = tr[0].cpp / tr[tr.length - 1].cpp; out.push([f >= 2 ? 'r' : 'w', '', `${tr[0].k} cuesta ${f.toFixed(1)}× más por pedido que ${tr[tr.length - 1].k}`, `${fmt(tr[0].cpp)} frente a ${fmt(tr[tr.length - 1].cpp)} por pedido.`, 'Ver transportes', 'trans']); }
+  if (tr.length > 1 && tr[0].cpp / tr[tr.length - 1].cpp >= 1.3) { const f = tr[0].cpp / tr[tr.length - 1].cpp; out.push({ c: f >= 2 ? 'r' : 'w', t: `${tr[0].k} cuesta ${f.toFixed(1)}× más por pedido que ${tr[tr.length - 1].k}`, d: `${fmt(tr[0].cpp)} frente a ${fmt(tr[tr.length - 1].cpp)} por pedido.`, kt: 'trans' }); }
   const nod = [...R.nodos].filter(([, v]) => v.cajas).map(([k, v]) => ({ k, t: v.costo / v.cajas })), med = mediana(nod.map(x => x.t)), caros = nod.filter(x => nod.length >= 4 && x.t > med * 2).sort((a, b) => b.t - a.t);
-  if (caros.length) out.push(['w', '', `${caros.length} ${caros.length === 1 ? 'nodo paga' : 'nodos pagan'} más del doble de la tarifa mediana por caja`, `${caros.slice(0, 3).map(x => `${x.k} ${fmt(x.t)}`).join(', ')}. La mediana es ${fmt(med)}.`, 'Ver nodos', 'nodo']);
+  if (caros.length) out.push({ c: 'w', t: `${caros.length} ${caros.length === 1 ? 'nodo paga' : 'nodos pagan'} más del doble de la tarifa mediana por caja`, d: `${caros.slice(0, 3).map(x => `${x.k} ${fmt(x.t)}`).join(', ')}. La mediana es ${fmt(med)}.`, kt: 'nodo' });
   const sinAg = envios.filter(e => !e.agencia);
-  if (sinAg.length) out.push(['w', '', `${sinAg.length} ${sinAg.length === 1 ? 'registro sin agencia asignada' : 'registros sin agencia asignada'}`, `${[...new Set(sinAg.map(e => e.nodo))].slice(0, 4).join(', ')}${new Set(sinAg.map(e => e.nodo)).size > 4 ? '…' : ''}: completa la agencia en Registros.`, 'Revisar', 'cal']);
+  if (sinAg.length) out.push({ c: 'w', t: `${sinAg.length} ${sinAg.length === 1 ? 'registro sin agencia asignada' : 'registros sin agencia asignada'}`, d: `${[...new Set(sinAg.map(e => e.nodo))].slice(0, 4).join(', ')}${new Set(sinAg.map(e => e.nodo)).size > 4 ? '…' : ''}: completa la agencia en Registros.`, kt: 'cal' });
   const sinFac = envios.filter(e => !e.factura && Number(e.importe) > 0), mFac = sinFac.reduce((s, e) => s + Number(e.importe), 0);
-  if (sinFac.length) out.push(['w', '', `${fmt(mFac)} (${Math.round(mFac / T * 100)}%) sin N° de factura`, `${sinFac.length} de ${R.conImporte} registros aún no tienen su factura registrada.`, 'Revisar', 'cal']);
+  if (sinFac.length) out.push({ c: 'w', t: `${fmt(mFac)} (${Math.round(mFac / T * 100)}%) sin N° de factura`, d: `${sinFac.length} de ${R.conImporte} registros aún no tienen su factura registrada.`, kt: 'cal' });
   const cu = [...R.cuentas].filter(([k]) => !k.startsWith('(')).sort((a, b) => b[1].costo - a[1].costo)[0];
-  if (cu && cu[1].costo / T >= 0.3) out.push(['b', '', `${cu[0]} concentra el ${Math.round(cu[1].costo / T * 100)}% del costo`, `${fmtN(cu[1].pedidos)} de ${fmtN(R.pedidos)} pedidos del período.`, 'Ver cuentas', 'cuenta']);
-  $('#kpHall').innerHTML = out.slice(0, 3).map(([c, i, t, d, a, go]) => `<div class="hl ${c}" data-kt="${go}"><i>${i}</i><div><b>${esc(t)}</b><span>${esc(d)}</span><em>${a}</em></div></div>`).join('');
+  if (cu && cu[1].costo / T >= 0.3) out.push({ c: 'b', t: `${cu[0]} concentra el ${Math.round(cu[1].costo / T * 100)}% del costo`, d: `${fmtN(cu[1].pedidos)} de ${fmtN(R.pedidos)} pedidos del período.`, kt: 'cuenta' });
+  const orden = { r: 0, w: 1, b: 2, g: 3 }; return out.sort((a, b) => orden[a.c] - orden[b.c]);
 }
 function calidadKpi(R, envios) {
   const n = envios.length; if (!n) { $('#calList').innerHTML = '<div class="empty"><b>Sin registros en este rango</b></div>'; $('#dotCal').className = ''; return; }
@@ -2339,21 +2487,6 @@ function kAplicar(qs) {
 $('#kLink').onclick = () => { history.replaceState(null, '', '#kpis?' + kParams()); (navigator.clipboard ? navigator.clipboard.writeText(location.href) : Promise.reject()).then(() => toast('Enlace copiado: abre estos mismos filtros', 'ok'), () => toast('No se pudo copiar el enlace', 'err')); };
 
 // ---------- resumen y calendario ----------
-function resumenKpi(R, dias) {
-  const cost = dias.filter(d => d.costo > 0);
-  if (!cost.length) { $('#resLine').innerHTML = ''; $('#resTops').innerHTML = '<div class="empty"><b>Sin datos en este rango</b></div>'; return; }
-  const W = 900, H = 250, m = { l: 44, r: 12, t: 12, b: 26 }, vals = cost.map(d => d.costo), mx = Math.max(...vals) * 1.1, bw = (W - m.l - m.r) / vals.length, Y = v => H - m.b - v / mx * (H - m.t - m.b);
-  let g = ''; for (let i = 0; i <= 4; i++) { const v = mx * i / 4; g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${m.l - 6}" y="${Y(v) + 3}" text-anchor="end">${v.toFixed(0)}</text>`; }
-  const paso = Math.ceil(vals.length / 16);
-  g += vals.map((v, i) => `<rect x="${m.l + i * bw + 2}" y="${Y(v)}" width="${Math.max(2, bw - 4)}" height="${H - m.b - Y(v)}" rx="3" fill="#bfdbfe"><title>${fdmy(cost[i].fecha)}, ${fmt(v)}</title></rect>${i % paso === 0 ? `<text x="${m.l + i * bw + bw / 2}" y="${H - 8}" text-anchor="middle">${cost[i].fecha.slice(8)}</text>` : ''}`).join('');
-  if (vals.length > 1) { const ma = vals.map((_, i) => { const w = vals.slice(Math.max(0, i - 6), i + 1); return w.reduce((a, b) => a + b, 0) / w.length; });
-    g += `<path d="${ma.map((v, i) => (i ? 'L' : 'M') + (m.l + i * bw + bw / 2).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ')}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round"/>`; }
-  $('#resLine').innerHTML = g;
-  const top = (mapa, tipo, ver) => { const L = [...mapa].filter(([k]) => k !== SIN_HRN && !k.startsWith('(')).sort((a, b) => b[1].costo - a[1].costo).slice(0, 5), mxv = Math.max(...L.map(x => x[1].costo), 1);
-    return L.length ? L.map(([k, v]) => `<div class="rk" style="grid-template-columns:minmax(80px,150px) 1fr 82px;padding:5px 4px"><span class="nm" title="${esc(k)}">${esc(k)}</span><span class="bar"><i style="width:${v.costo / mxv * 100}%;background:var(--pri)"></i></span><span class="v">${fmt(v.costo)}</span></div>`).join('') : '<p class="hint">Sin datos.</p>'; };
-  const blk = (t, mapa, tipo, ver) => `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#6e6e73;text-transform:none;letter-spacing:0;margin-bottom:2px"><span>${t}</span><button class="link" style="padding:0" data-kt="${ver}">Ver todo</button></div>${top(mapa, tipo)}</div>`;
-  $('#resTops').innerHTML = blk('Cuentas', R.cuentas, 'cta', 'cuenta') + blk('Nodos', R.nodos, 'nodo', 'nodo') + blk('Agencias', R.agencias, 'age', 'age');
-}
 function calendarioKpi(dias) {
   const mapa = new Map(dias.map(d => [d.fecha, d])), d0 = new Date($('#kDesde').value + 'T00:00:00'), d1 = new Date($('#kHasta').value + 'T00:00:00'), cost = dias.filter(d => d.costo > 0);
   if (isNaN(d0) || isNaN(d1) || (d1 - d0) / 86400000 > 92) { $('#calGrid').innerHTML = '<p class="hint" style="grid-column:1/-1">El calendario se muestra para rangos de hasta 3 meses.</p>'; $('#calRamp').innerHTML = ''; }
@@ -2374,7 +2507,7 @@ function informePDF() {
   const R = kpiResultado; if (!R) return toast('Espera a que terminen de calcularse los indicadores', 'err');
   const w = window.open('', '_blank'); if (!w) return toast('El navegador bloqueó la ventana del informe: permite ventanas emergentes.', 'err');
   const T = R.total, dias = diasResultado, env = kpEnvios, nF = env.filter(e => e.factura).length, conta = dias.reduce((x, d) => x + d.contado, 0), cred = dias.reduce((x, d) => x + d.credito, 0);
-  const filtros = [...document.querySelectorAll('#kAct .pill')].map(x => x.textContent).join(', '), hall = [...document.querySelectorAll('#kpHall .hl')].map(h => `<li><b>${esc(h.querySelector('b').textContent)}.</b> ${esc(h.querySelector('span').textContent)}</li>`).join('');
+  const filtros = [...document.querySelectorAll('#kAct .pill')].map(x => x.textContent).join(', '), hall = kHall.map(h => `<li><b>${esc(h.t)}.</b> ${esc(h.d)}</li>`).join('');
   const tabla = (t, cab, filas) => `<h2>${t}</h2><table><tr>${cab.map((c, i) => `<th${i ? ' class="r"' : ''}>${c}</th>`).join('')}</tr>${filas.map(f => `<tr>${f.map((c, i) => `<td${i ? ' class="r"' : ''}>${c}</td>`).join('')}</tr>`).join('')}</table>`;
   const top = (mapa, n) => [...mapa].sort((a, b) => b[1].costo - a[1].costo).slice(0, n), pc = x => T ? (x / T * 100).toFixed(1) + '%' : '-';
   const caja = v => v.cajas ? fmt(v.costo / v.cajas) : '-', ped = v => v.pedidos ? fmt(v.costo / v.pedidos) : '-';
@@ -2408,30 +2541,15 @@ function informePDF() {
 }
 $('#kPdf').onclick = informePDF;
 
-function pintarAlertas(R) {
-  const ic = {
-    w: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>',
-    o: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' };
-  const nb = (tipo, texto, go, accion) => `<div class="nb ${tipo}">${ic[tipo]}<div class="t">${texto}</div>${go ? `<span class="go" data-go="${go}">${accion}</span>` : ''}<button class="x" aria-label="Cerrar">${ICO.x}</button></div>`;
-  const out = [];
-  if (R.sinHrn) { const n = R.sinHrnNodos.size, f = [...R.sinHrnFechas].sort().map(x => fdmy(x).slice(0, 5)); out.push(nb('w', `<b>${fmt(R.sinHrn)} sin cuenta asignada.</b> Falta el detalle de ${n} ${n === 1 ? 'nodo' : 'nodos'} (${f.slice(0, 4).join(', ')}${f.length > 4 ? '…' : ''}).`, 'detalle', 'Cargar detalle')); }
-  if (R.pendientes) out.push(nb('w', `<b>${R.pendientes} ${R.pendientes === 1 ? 'registro sin importe' : 'registros sin importe'}</b> no ${R.pendientes === 1 ? 'entra' : 'entran'} al cálculo.`, 'registros', 'Ir a Registros'));
-  $('#kpAlertas').innerHTML = out.join('');
-}
-$('#kpAlertas').addEventListener('click', e => {
-  const go = e.target.closest('[data-go]'); if (go) return irA(go.dataset.go);
-  const x = e.target.closest('.x'); if (x) x.parentNode.remove();
-});
-
 async function calcularKpis(silencioso) {
   const desde = $('#kDesde').value, hasta = $('#kHasta').value, trans = $('#kTrans').value, mi = ++kSeq;
-  if (desde && hasta && desde > hasta) { $('#kpCards').innerHTML = '<div class="card empty" style="grid-column:1/-1"><b>La fecha inicial es posterior a la final</b><span>Corrige el rango para ver los costos.</span></div>'; $('#kpHall').innerHTML = ''; $('#kpAlertas').innerHTML = ''; return; }
+  if (desde && hasta && desde > hasta) { $('#kgrid').innerHTML = '<div class="kg-c kg-vacio"><b>La fecha inicial es posterior a la final</b><span>Corrige el rango para ver los costos.</span></div>'; return; }
   $('#kRefrescar').disabled = true;
   poblarFiltros(); pintarActivos();
-  if (silencioso !== true) $('#kpCards').innerHTML = Array(4).fill('<div class="kpi sk"><span></span><b></b><small></small></div>').join('');
+  if (silencioso !== true) $('#kgrid').innerHTML = Array(3).fill('<div class="kg-sk"></div>').join('');
   try {
     let envios = await traerTodo(() => {
-      let q = sb.from('envios').select('id,fecha,nodo,motivo,transporte,agencia,zona,pedidos,bultos,cajas,importe,modo_pago,factura,factura_archivo').order('id');
+      let q = sb.from('envios').select('id,fecha,nodo,motivo,transporte,agencia,zona,pedidos,bultos,cajas,importe,modo_pago,factura,factura_archivo,liquidacion_id').order('id');
       if (desde) q = q.gte('fecha', desde); if (hasta) q = q.lte('fecha', hasta); if (trans) q = q.eq('transporte', trans);
       return q;
     });
@@ -2445,9 +2563,9 @@ async function calcularKpis(silencioso) {
     kpiResultado = R;
     const dias = agruparDias(envios); diasResultado = dias;
     const nombradas = [...R.cuentas].filter(([k]) => !k.startsWith('('));
-    pintarResumen(R, dias, prev, envios); pintarAlertas(R); hallazgosKpi(R, envios);
+    kHall = hallazgosKpi(R, envios); pintarResumen(R, dias, prev, envios);
     $('#nCta').textContent = nombradas.length; $('#nNodo').textContent = R.nodos.size; $('#nAge').textContent = R.agencias.size;
-    pintarDias(dias); resumenKpi(R, dias); calendarioKpi(dias);
+    pintarDias(dias); calendarioKpi(dias);
     cuentasKpi(R); nodosKpi(R); agenciasKpi(R); zonasKpi(R, envios); transporteKpi(R); calidadKpi(R, envios);
     $('#kpMsg').className = 'msg'; kUpdTs = Date.now(); pintarUpd(); kHash();
   } catch (err) { flash($('#kpMsg'), 'No se pudo calcular: ' + err.message, 'err'); }
