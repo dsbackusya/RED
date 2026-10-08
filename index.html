@@ -528,38 +528,56 @@
     #lqHist td:first-child { font-size:17px }
   }
 
-  /* Registros en escritorio: todas las columnas caben (ancho fijo, textos largos con "…") */
+  /* Registros: resumen que filtra, tabla de 8 columnas y tarjetas en el celular */
+  .res { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:12px; margin-bottom:14px }
+  .rc { display:block; width:100%; text-align:left; font:inherit; color:inherit; cursor:pointer; background:var(--card); border:2px solid transparent; border-radius:18px; padding:14px 18px }
+  .rc:hover { border-color:#dbe7f5 } .rc.on { border-color:var(--pri) }
+  .rc .k { display:flex; align-items:center; gap:7px; font-size:13px; color:var(--mut); font-weight:500 } .rc .k i { width:8px; height:8px; border-radius:50%; background:#c7c7cc }
+  .rc.ok .k i { background:#34c759 } .rc.w .k i { background:#f59e0b } .rc.e .k i { background:var(--pri) }
+  .rc b { display:block; font-size:28px; font-weight:600; letter-spacing:-.03em; margin-top:2px; font-variant-numeric:tabular-nums }
+  .rc small { display:block; color:var(--mut); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+  #rTabla .nodo { display:flex; align-items:center; gap:8px; font-size:15px; letter-spacing:-.01em } #rTabla .nodo .tb { font-size:11px; font-weight:600 }
+  #rTabla .meta { font-size:12px; color:var(--mut); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis } #rTabla .meta i { font-style:normal; opacity:.5; margin:0 4px }
+  #rTabla .carga { display:flex; gap:14px; font-variant-numeric:tabular-nums } #rTabla .carga div { text-align:center; min-width:34px }
+  #rTabla .carga b { display:block; font-size:15px; font-weight:600 } #rTabla .carga span { display:block; font-size:10.5px; color:var(--mut); text-transform:uppercase; letter-spacing:.03em }
+  #rTabla .zn { font-size:12px; color:var(--mut); margin-top:2px } #rTabla .zn.vacia { opacity:.55 }
+  #rTabla .imp { font-weight:700; font-size:15px; font-variant-numeric:tabular-nums; white-space:nowrap; text-align:right } #rTabla .imp small { display:block; font-weight:500; font-size:11.5px; color:var(--mut); margin-top:1px }
+  #rTabla .imp.falta { color:var(--warn); font-weight:600; font-size:13px }
+  .rest { position:relative; display:inline-block; min-width:140px }
+  .rest .lb { font-size:12.5px; font-weight:600 } .rest .lb.ok { color:var(--ok) } .rest .lb.w { color:var(--warn) } .rest .lb.e { color:var(--pri) }
+  .rest .bar { display:flex; gap:3px; margin-top:6px } .rest .bar i { flex:1; height:4px; border-radius:99px; background:#e0e0e6 } .rest .bar i.h { background:#34c759 } .rest .bar i.n { background:#f59e0b } .rest .bar i.v { background:var(--pri) }
+  .rest .tip { display:none; position:absolute; z-index:5; left:0; top:100%; margin-top:6px; background:#1d1d1f; color:#fff; border-radius:12px; padding:10px 12px; font-size:12px; width:190px; box-shadow:0 10px 30px rgba(0,0,0,.25) }
+  .rest:hover .tip { display:block } .rest .tip div { display:flex; justify-content:space-between; padding:2px 0 } .rest .tip .y { color:#7ee2a0 } .rest .tip .n { color:#ffb86b }
+  #rTabla .acc { display:flex; align-items:center; gap:4px; justify-content:flex-end }
+  .rib { border:0; background:none; color:var(--mut); cursor:pointer; padding:7px; border-radius:8px; display:inline-grid; place-items:center } .rib:hover { background:var(--head); color:var(--ink) } .rib svg { width:18px; height:18px }
+  .rmenu { position:fixed; z-index:70; background:#fff; border-radius:12px; padding:5px; min-width:180px; box-shadow:0 10px 34px rgba(0,0,0,.2) } .rmenu[hidden] { display:none }
+  .rmenu button { display:flex; width:100%; gap:9px; align-items:center; font:inherit; font-size:13px; border:0; background:none; padding:9px 10px; border-radius:8px; cursor:pointer; color:var(--bad); text-align:left } .rmenu button:hover:not(:disabled) { background:var(--badbg) } .rmenu button:disabled { opacity:.45; cursor:not-allowed } .rmenu svg { width:15px; height:15px }
   @media (min-width:761px) {
-    #tab-registros .tw { overflow-x:auto }
-    #rTabla { table-layout:fixed; width:100%; min-width:1210px }
-    #rTabla th, #rTabla td { padding-left:6px; padding-right:6px; overflow:hidden; text-overflow:ellipsis }
-    #rTabla th[data-c=fecha] { width:94px } #rTabla th[data-c=motivo] { width:92px } #rTabla th[data-c=trans] { width:74px }
-    #rTabla td[data-c=fecha] { font-size:14px; color:var(--ink); font-variant-numeric:tabular-nums } #rTabla th[data-c=nodo] { width:112px }
-    #rTabla th[data-c=bultos], #rTabla th[data-c=pedidos], #rTabla th[data-c=cajas] { width:56px; text-align:center }
-    #rTabla th[data-c=pago] { width:124px } #rTabla th[data-c=importe] { width:116px } #rTabla th[data-c=prog] { width:168px }
-    #rTabla th[data-c=importe], #rTabla td[data-c=importe] { padding-right:22px } #rTabla th[data-c=prog], #rTabla td[data-c=prog] { padding-left:16px }
-    #rTabla td[data-c=pago] select { text-overflow:clip; padding-right:20px } #rTabla th[data-c=acc] { width:122px }
-    #rTabla td input, #rTabla td select { min-width:0 !important; width:100%; text-overflow:ellipsis; font-size:13px }
-    #rTabla td[data-c=agencia] input { padding-left:6px; padding-right:4px }
-    #rTabla td[data-c=acc] { white-space:nowrap; overflow:visible } #rTabla .del .tx { display:none } #rTabla .del { padding:6px; border-radius:8px } #rTabla th.c { text-align:center }
-    #rTabla td[data-c=nodo] .nodo { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
-    #rTabla td .tb { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+    #tab-registros .tw { overflow-x:auto } #rNodo { min-width:250px }
+    #rTabla tr[data-id].ok td:first-child { box-shadow:inset 3px 0 0 #34c759 } #rTabla tr[data-id].w td:first-child { box-shadow:inset 3px 0 0 #f59e0b } #rTabla tr[data-id].e td:first-child { box-shadow:inset 3px 0 0 var(--pri) }
+    #rTabla { table-layout:fixed; width:100%; min-width:1090px }
+    #rTabla th, #rTabla td { padding-left:8px; padding-right:8px; overflow:hidden; text-overflow:ellipsis }
+    #rTabla th[data-c=fecha] { width:100px } #rTabla th[data-c=nodo] { width:17% } #rTabla th[data-c=carga] { width:176px } #rTabla th[data-c=pago] { width:124px } #rTabla th[data-c=importe] { width:116px } #rTabla th[data-c=prog] { width:172px } #rTabla th[data-c=acc] { width:128px }
+    #rTabla td[data-c=fecha] { font-size:14px; color:var(--ink); font-variant-numeric:tabular-nums; white-space:nowrap }
+    #rTabla td[data-c=agencia] input { width:100%; min-width:0; font-size:13px; padding:4px 6px; margin:-4px -6px; background:transparent; border:1px solid transparent; text-overflow:ellipsis; border-radius:8px }
+    #rTabla td[data-c=agencia] input:hover { background:var(--head) } #rTabla td[data-c=agencia] input:focus { background:#fff; border-color:#cfe1f5 }
+    #rTabla td[data-c=pago] { text-align:center } #rTabla td[data-c=pago] select { width:auto; min-width:96px; font-size:12px; text-overflow:clip; padding-right:20px }
+    #rTabla td[data-c=acc], #rTabla td[data-c=prog] { overflow:visible } #rTabla th.num { text-align:right } #rTabla th.c { text-align:center }
   }
-  /* en pantallas anchas la agencia tiene un ancho propio y el espacio sobrante se reparte entre todas las columnas */
-  @media (min-width:1500px) { #rTabla th[data-c=agencia] { width:270px } }
-  /* Registros en móvil: cada registro es una tarjeta */
+  @media (min-width:1500px) { #rTabla th[data-c=nodo] { width:19% } }
   @media (max-width:760px) {
+    .res { grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px } .rc { padding:12px 14px } .rc b { font-size:24px } .rc small { white-space:normal }
     #rTabla tr[data-id] { grid-auto-flow:row dense }
-    #rTabla td[data-c=nodo] { grid-column:1/5; order:1; font-size:19px; font-weight:700; letter-spacing:-.02em } #rTabla .nodo { font-size:19px }
-    #rTabla td[data-c=motivo] { grid-column:5/7; order:1; text-align:right; align-self:center }
-    #rTabla td[data-c=fecha] { grid-column:1/4; order:2; font-size:13px; color:var(--mut) } #rTabla td[data-c=trans] { grid-column:4/7; order:2; text-align:right }
-    #rTabla td[data-c=bultos] { grid-column:1/3; order:3 } #rTabla td[data-c=pedidos] { grid-column:3/5; order:3 } #rTabla td[data-c=cajas] { grid-column:5/7; order:3 }
-    #rTabla td[data-c=bultos], #rTabla td[data-c=pedidos], #rTabla td[data-c=cajas] { text-align:center; font-weight:600; font-size:16px } #rTabla td[data-c=bultos]::before, #rTabla td[data-c=pedidos]::before, #rTabla td[data-c=cajas]::before { text-align:center }
+    #rTabla tr[data-id].ok { box-shadow:inset 4px 0 0 #34c759 } #rTabla tr[data-id].w { box-shadow:inset 4px 0 0 #f59e0b } #rTabla tr[data-id].e { box-shadow:inset 4px 0 0 var(--pri) }
+    #rTabla td[data-c=nodo] { grid-column:1/5; order:1 } #rTabla .nodo { font-size:19px; font-weight:700; letter-spacing:-.02em }
+    #rTabla td[data-c=importe] { grid-column:5/7; order:1; font-size:19px }
+    #rTabla td[data-c=fecha] { grid-column:1/-1; order:2; font-size:13px; color:var(--mut) }
+    #rTabla td[data-c=carga] { grid-column:1/-1; order:3 } #rTabla .carga b { font-size:17px }
     #rTabla td[data-c=agencia] { grid-column:1/-1; order:4 }
-    #rTabla td[data-c=pago] { grid-column:1/4; order:5 } #rTabla td[data-c=importe] { grid-column:4/7; order:5; text-align:right; font-size:19px }
-    #rTabla td[data-c=prog] { grid-column:1/-1; order:6 }
-    #rTabla td[data-c=acc] { grid-column:1/-1; order:7; display:flex; gap:8px; border-top:1px solid var(--line); padding-top:12px; margin-top:2px }
-    #rTabla td[data-c=acc] .b.edit { flex:1; justify-content:center; min-height:44px; font-size:15px } #rTabla .del { min-height:44px; font-size:15px; padding:0 14px } #rTabla .del .tx { display:inline }
+    #rTabla td[data-c=pago] { grid-column:1/-1; order:5 }
+    #rTabla td[data-c=prog] { grid-column:1/-1; order:6 } #rTabla .rest { width:100% } #rTabla .rest .tip { display:none !important }
+    #rTabla td[data-c=acc] { grid-column:1/-1; order:7; border-top:1px solid var(--line); padding-top:12px; margin-top:2px } #rTabla .acc { display:flex; gap:8px }
+    #rTabla td[data-c=acc] .b.edit { flex:1; justify-content:center; min-height:44px; font-size:15px } #rTabla .rib { min-height:44px; min-width:44px }
   }
 
   /* progreso (stepper) y ventana de edición del registro */
@@ -757,19 +775,18 @@
 
 <section id="tab-registros" class="hide">
   <div class="top">
-    <div><h1>Registros</h1><div class="sub">Sigue el avance de cada registro y edita placa, importe, factura y foto con Editar</div></div>
+    <div><h1>Registros</h1><div class="sub">Sigue el avance de cada registro y completa importe, factura y foto con Editar</div></div>
     <div class="acts"><button class="b sec" id="rRefrescar">Refrescar</button><button class="b" id="rNuevo">Nuevo registro</button></div>
   </div>
-  <div class="kpis" id="rCards"></div>
+  <div class="res" id="rCards"></div>
   <div class="card">
     <div class="row">
       <label>Desde<input type="date" id="rDesde"></label>
       <label>Hasta<input type="date" id="rHasta"></label>
       <label>Transporte<select id="rTrans"><option value="">Todos</option></select></label>
-      <div class="fg" style="gap:4px"><span style="font-size:13px;font-weight:500;color:var(--mut)">Estado</span><div class="pseg" id="rEstado"><button data-e="" class="on">Todos</button><button data-e="pend">Pendientes <small id="nPend"></small></button><button data-e="term">Terminados <small id="nTerm"></small></button><button data-e="env">Enviados <small id="nEnv"></small></button></div></div>
       <label>Motivo<select id="rMot"><option value="">Todos</option><option value="DESPACHO">Despacho</option><option value="RECOJO">Recojo</option></select></label>
       <label>Modo de pago<select id="rPago"><option value="">Todos</option><option>CONTADO</option><option>CREDITO</option></select></label>
-      <label>Nodo / destino<input id="rNodo" placeholder="Buscar nodo…"></label>
+      <label>Buscar<input id="rNodo" placeholder="Nodo, agencia, placa o factura"></label>
       <button class="b g" id="rBuscar">Buscar</button>
       <button class="b sec" id="rExport">Excel</button>
     </div>
@@ -914,6 +931,7 @@
   <button data-tab="kpis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg><span>Costos</span></button>
   <button data-tab="detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M10 10v9"/></svg><span>Detalle</span></button>
 </div>
+<div class="rmenu" id="rMenu" hidden><button type="button" data-del="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg><span>Eliminar registro</span></button></div>
 <dialog id="regDlg"><form id="rmF" autocomplete="off">
   <div class="rm-h">
     <div><small id="rmSub"></small><h2 id="rmNodo"></h2><div class="rm-meta" id="rmMeta"></div></div>
@@ -1374,16 +1392,16 @@ const tile = (k, color) => `<i class="tile ${color}"><svg viewBox="0 0 24 24" fi
 const TCOLORES = { ELIAS: 'blue', LLANA: 'emerald', RELUFI: 'violet' }, TPAL = ['amber', 'rose', 'cyan', 'blue', 'emerald', 'violet'];
 const tbadge = t => !t ? '' : `<span class="tb ${TCOLORES[norm(t)] || TPAL[[...norm(t)].reduce((a, c) => a + c.charCodeAt(0), 0) % TPAL.length]}">${esc(t)}</span>`;
 
+// el resumen cuenta todos los registros del rango (sin el filtro de estado) y cada tarjeta filtra por su estado
+const RC_CLASE = { '': '', term: 'ok', pend: 'w', env: 'e' };
 function pintarResumenRegistros() {
-  const d = registros, suma = k => d.reduce((s, r) => s + (Number(r[k]) || 0), 0), tot = suma('importe');
-  const conImp = d.filter(r => Number(r.importe) > 0).length, nodos = [...new Set(d.map(r => r.nodo))];
-  $('#rCards').innerHTML = [
-    ['Total registros', d.length, `Del ${fdmy($('#rDesde').value) || '…'} al ${fdmy($('#rHasta').value) || '…'}`, 'doc', 'blue'],
-    ['Total importe', fmt(tot), `${conImp} con importe, ${d.length - conImp} pendientes`, 'money', 'emerald'],
-    ['Bultos / pedidos', `${fmtN(suma('bultos'))} <span class="sm">/ ${fmtN(suma('pedidos'))}</span>`, `${fmtN(suma('cajas'))} cajas`, 'box', 'violet'],
-    ['Nodos activos', nodos.length, nodos.slice(0, 3).join(', ') + (nodos.length > 3 ? ` +${nodos.length - 3}` : '') || '—', 'pin', 'amber']
-  ].map(([t, v, n, ic, c]) => `<div class="kpi"><div><span>${t}</span><b>${v}</b><small>${esc(n)}</small></div>${tile(ic, c)}</div>`).join('');
-  $('#rTotal').innerHTML = `<b>${d.length}</b> registros encontrados, Importe total <b>${fmt(tot)}</b>`;
+  const d = regBase, imp = a => a.reduce((s, r) => s + (Number(r.importe) || 0), 0), ped = d.reduce((s, r) => s + (Number(r.pedidos) || 0), 0);
+  const L = d.filter(regTerminado), E = d.filter(regEnviado), F = d.filter(r => !regListo(r) && !regEnviado(r)), conImp = r => Number(r.importe) > 0;
+  const sinImp = F.filter(r => !conImp(r)).length, sinFac = F.filter(r => conImp(r) && !r.factura).length, sinFoto = F.filter(r => conImp(r) && r.factura && !r.factura_archivo).length;
+  const faltan = [sinImp && `${sinImp} sin importe`, sinFac && `${sinFac} sin factura`, sinFoto && `${sinFoto} sin foto`].filter(Boolean).join(', ') || 'Todo completo';
+  $('#rCards').innerHTML = [['', 'Todos', d.length, `${fmt(imp(d))} · ${fmtN(ped)} pedidos`], ['term', 'Listos para liquidar', L.length, fmt(imp(L))], ['pend', 'Faltan datos', F.length, faltan], ['env', 'Enviados', E.length, `${fmt(imp(E))} en liquidaciones`]]
+    .map(([e, t, n, sub]) => `<button type="button" class="rc ${RC_CLASE[e]}${estadoReg === e ? ' on' : ''}" data-e="${e}"><span class="k"><i></i>${t}</span><b>${n}</b><small>${esc(sub)}</small></button>`).join('');
+  $('#rTotal').innerHTML = `<b>${registros.length}</b> registros encontrados, Importe total <b>${fmt(imp(registros))}</b>`;
 }
 const lqCod = n => 'LIQ-' + String(n).padStart(4, '0');
 // avance del registro: importe, factura, foto y enviado
@@ -1397,24 +1415,31 @@ function stepper(r, grande) {
     return (grande ? `<div class="it${h ? ' hecho' : ''}">${punto}<span>${PASOS[i]}</span></div>` : punto) + (i < 3 ? `<span class="ln${h ? ' hecho' : ''}"></span>` : '');
   }).join('') + '</div>';
 }
+function celdaEstado(r) {
+  const [k, t] = regFalta(r), p = regPasos(r), sig = p.findIndex(x => !x);
+  const bar = p.map((h, i) => `<i class="${h ? (i === 3 ? 'v' : 'h') : i === sig && k === 'w' ? 'n' : ''}"></i>`).join('');
+  const tip = p.map((h, i) => `<div><span>${PASOS[i]}</span><span class="${h ? 'y' : 'n'}">${h ? 'Listo' : i === 3 ? 'Pendiente' : 'Falta'}</span></div>`).join('');
+  return `<div class="rest"><div class="lb ${k}">${t}</div><div class="bar">${bar}</div><div class="tip">${tip}</div></div>`;
+}
 function filaRegistro(r) {
-  const L = regEnviado(r) ? ' disabled title="Está en una liquidación. Anúlala para editarlo."' : '', [k, t] = regFalta(r);
-  return `<tr data-id="${r.id}">
-      <td data-c="fecha">${fdmy(r.fecha)}</td><td data-c="motivo">${motTag(r.motivo)}</td><td data-c="trans" data-l="Transporte">${tbadge(r.transporte)}</td>
-      <td data-c="nodo"><span class="nodo" title="${esc(r.nodo)}">${PIN}${esc(r.nodo)}</span></td>
-      <td class="c" data-c="bultos" data-l="Bultos">${r.bultos ?? ''}</td><td class="c" data-c="pedidos" data-l="Pedidos">${r.pedidos ?? ''}</td><td class="c" data-c="cajas" data-l="Cajas">${r.cajas ?? ''}</td>
-      <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" title="${esc(r.agencia)}" value="${esc(r.agencia)}" placeholder="Sin agencia asignada"></td>
+  const L = regEnviado(r) ? ' disabled title="Está en una liquidación. Anúlala para editarlo."' : '', [k] = regFalta(r), imp = Number(r.importe) > 0;
+  const meta = [r.transporte, r.placa].filter(Boolean).map(esc).join('<i>·</i>');
+  return `<tr data-id="${r.id}" class="${k}">
+      <td data-c="fecha">${fdmy(r.fecha)}</td>
+      <td data-c="nodo"><div class="nodo" title="${esc(r.nodo)}">${esc(r.nodo)}${r.motivo === 'RECOJO' ? '<span class="tb rec">Recojo</span>' : ''}</div>${meta ? `<div class="meta">${meta}</div>` : ''}</td>
+      <td data-c="carga"><div class="carga"><div><b>${r.pedidos ?? '—'}</b><span>Pedidos</span></div><div><b>${r.bultos ?? '—'}</b><span>Bultos</span></div><div><b>${r.cajas ?? '—'}</b><span>Cajas</span></div></div></td>
+      <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" title="${esc(r.agencia)}" value="${esc(r.agencia)}" placeholder="Sin agencia asignada"><div class="zn${r.zona ? '' : ' vacia'}">${r.zona ? esc(r.zona) : 'Sin zona'}</div></td>
       <td class="c" data-c="pago" data-l="Pago"><select data-f="modo_pago" data-v="${r.modo_pago}"${L}>${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
-      <td class="num" data-c="importe" data-l="Importe">${Number(r.importe) > 0 ? `<b class="mono">S/ ${Number(r.importe).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>` : '<span class="sm">sin importe</span>'}</td>
-      <td data-c="prog"><div class="rprog">${stepper(r)}<span class="tx ${k}">${t}</span></div></td>
-      <td class="c" data-c="acc"><button class="b edit" data-act="editar">${ICO.edit}<span>${regEnviado(r) ? 'Ver' : 'Editar'}</span></button><button class="del" data-del="1"${L} title="Eliminar registro" aria-label="Eliminar registro">${TRASH}<span class="tx"> Eliminar</span></button></td></tr>`;
+      <td class="num" data-c="importe">${imp ? `<div class="imp">S/ ${Number(r.importe).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${r.factura ? `<small>${esc(r.factura)}</small>` : ''}</div>` : '<div class="imp falta">Falta importe</div>'}</td>
+      <td data-c="prog">${celdaEstado(r)}</td>
+      <td data-c="acc"><div class="acc"><button class="b edit" data-act="editar">${ICO.edit}<span>${regEnviado(r) ? 'Ver' : 'Editar'}</span></button><button type="button" class="rib" data-act="menu" aria-label="Más acciones" title="Más acciones"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div></td></tr>`;
 }
 const repintarFila = r => { const tr = document.querySelector(`#rTabla tr[data-id="${r.id}"]`); if (tr) tr.outerHTML = filaRegistro(r); };
 function pintarTablaRegistros() {
   const N = registros.length, paginas = Math.max(1, Math.ceil(N / pag.size));
   pag.n = Math.min(Math.max(1, pag.n), paginas);
   const ini = (pag.n - 1) * pag.size, vista = registros.slice(ini, ini + pag.size);
-  $('#rTabla').innerHTML = '<tr><th data-c="fecha">Fecha</th><th data-c="motivo">Motivo</th><th data-c="trans">Transporte</th><th data-c="nodo">Nodo</th><th data-c="bultos" class="c">Bultos</th><th data-c="pedidos" class="c">Pedidos</th><th data-c="cajas" class="c">Cajas</th><th data-c="agencia">Agencia</th><th data-c="pago" class="c">Pago</th><th data-c="importe" class="num">Importe</th><th data-c="prog">Progreso</th><th data-c="acc" class="c" aria-label="Acciones"></th></tr>' + (vista.map(filaRegistro).join('') || '<tr><td colspan="12"><div class="empty"><b>Sin registros en este rango</b><span>Ajusta las fechas o sube un despacho en «Cargar despacho».</span></div></td></tr>');
+  $('#rTabla').innerHTML = '<tr><th data-c="fecha">Fecha</th><th data-c="nodo">Nodo</th><th data-c="carga">Carga</th><th data-c="agencia">Agencia y zona</th><th data-c="pago" class="c">Pago</th><th data-c="importe" class="num">Importe</th><th data-c="prog">Estado</th><th data-c="acc" aria-label="Acciones"></th></tr>' + (vista.map(filaRegistro).join('') || '<tr><td colspan="8"><div class="empty"><b>Sin registros en este rango</b><span>Ajusta las fechas o sube un despacho en «Cargar despacho».</span></div></td></tr>');
   const nums = []; for (let i = 1; i <= paginas; i++) if (i === 1 || i === paginas || Math.abs(i - pag.n) <= 1) nums.push(i); else if (nums[nums.length - 1] !== '…') nums.push('…');
   $('#rPag').innerHTML = `<div class="l"><span>Filas por página:</span><select id="rSize" aria-label="Filas por página">${[15, 25, 50, 100].map(v => `<option${v === pag.size ? ' selected' : ''}>${v}</option>`).join('')}</select><span>Mostrando <b>${N ? ini + 1 : 0}-${Math.min(N, ini + pag.size)}</b> de <b>${N}</b> registros</span></div>
     <div class="r"><button data-p="prev"${pag.n <= 1 ? ' disabled' : ''} aria-label="Anterior">${ICO.prev}</button>${nums.map(n => n === '…' ? '<span>…</span>' : `<button data-p="${n}" class="${n === pag.n ? 'on' : ''}">${n}</button>`).join('')}<button data-p="next"${pag.n >= paginas ? ' disabled' : ''} aria-label="Siguiente">${ICO.next}</button></div>`;
@@ -1433,7 +1458,8 @@ async function buscarRegistros() {
     if ($('#rTrans').value) q = q.eq('transporte', $('#rTrans').value);
     if ($('#rPago').value) q = q.eq('modo_pago', $('#rPago').value);
     if ($('#rMot').value) q = q.eq('motivo', $('#rMot').value);
-    if ($('#rNodo').value.trim()) q = q.ilike('nodo', '%' + $('#rNodo').value.trim() + '%');
+    const t = $('#rNodo').value.replace(/[,()*%\\]/g, ' ').trim();   // nodo, agencia, placa o factura
+    if (t) q = q.or(['nodo', 'agencia', 'placa', 'factura'].map(c => `${c}.ilike.*${t}*`).join(','));
     return q;
   };
   let data; try { data = await traerTodo(crear); } catch (error) { conexion(false); return flash($('#rMsg'), error.message, 'err'); }
@@ -1452,19 +1478,14 @@ const regEnviado = r => !!r.liquidacion_id;
 const regListo = r => Number(r.importe) > 0 && !!r.factura && !!r.factura_archivo;
 const regTerminado = r => regListo(r) && !regEnviado(r);
 let lqNumeros = new Map();
-function contarEstados() {
-  const nT = regBase.filter(regTerminado).length, nE = regBase.filter(regEnviado).length;
-  $('#nPend').textContent = regBase.length - nT - nE; $('#nTerm').textContent = nT; $('#nEnv').textContent = nE;
-}
+const contarEstados = () => pintarResumenRegistros();
 function aplicarEstado() {
-  contarEstados();
   registros = estadoReg === 'term' ? regBase.filter(regTerminado) : estadoReg === 'env' ? regBase.filter(regEnviado) : estadoReg === 'pend' ? regBase.filter(r => !regListo(r) && !regEnviado(r)) : regBase;
   pintarResumenRegistros(); pintarTablaRegistros();
 }
-$('#rEstado').addEventListener('click', e => {
+$('#rCards').addEventListener('click', e => {
   const b = e.target.closest('button[data-e]'); if (!b) return;
-  estadoReg = b.dataset.e; document.querySelectorAll('#rEstado button').forEach(x => x.classList.toggle('on', x === b));
-  pag.n = 1; aplicarEstado();
+  estadoReg = b.dataset.e; pag.n = 1; aplicarEstado();
 });
 $('#rBuscar').onclick = () => { $('#rTrans').dataset.k = ''; pag.n = 1; buscarRegistros(); };
 $('#rRefrescar').onclick = () => buscarRegistros();
@@ -1483,16 +1504,29 @@ $('#rTabla').addEventListener('change', async e => {
   const r = regBase.find(x => x.id === tr.dataset.id); if (r) r[f] = v;
   flash($('#rMsg'), 'Guardado', 'ok');
 });
-$('#rTabla').addEventListener('click', async e => {
-  const ed = e.target.closest('[data-act=editar]'); if (ed) return abrirReg(ed.closest('tr').dataset.id, registros.map(x => x.id));
-  const del = e.target.closest('[data-del]'); if (!del || del.disabled) return;
+const rMenu = $('#rMenu'), cerrarMenu = () => { rMenu.hidden = true; rMenu.dataset.id = ''; };
+async function borrarRegistro(id) {
+  const r = regBase.find(x => x.id === id);
   if (!await confirmar('¿Eliminar este registro?', 'No se puede deshacer.', 'Eliminar', true)) return;
-  const id = del.closest('tr').dataset.id, r = regBase.find(x => x.id === id);
   const { error } = await sb.from('envios').delete().eq('id', id);
   if (error) return flash($('#rMsg'), error.message, 'err');
   if (r?.factura_archivo) await sb.storage.from(BUCKET).remove([r.factura_archivo]);
   buscarRegistros();
+}
+$('#rTabla').addEventListener('click', e => {
+  const ed = e.target.closest('[data-act=editar]'); if (ed) return abrirReg(ed.closest('tr').dataset.id, registros.map(x => x.id));
+  const mn = e.target.closest('[data-act=menu]'); if (!mn) return;
+  const id = mn.closest('tr').dataset.id, r = regBase.find(x => x.id === id);
+  if (!rMenu.hidden && rMenu.dataset.id === id) return cerrarMenu();
+  const b = rMenu.querySelector('button'); b.disabled = !r || regEnviado(r); b.title = b.disabled ? 'Está en una liquidación. Anúlala para eliminarlo.' : '';
+  rMenu.dataset.id = id; rMenu.hidden = false;
+  const rc = mn.getBoundingClientRect();
+  rMenu.style.top = Math.max(8, Math.min(rc.bottom + 4, innerHeight - rMenu.offsetHeight - 8)) + 'px'; rMenu.style.right = Math.max(8, innerWidth - rc.right) + 'px';
 });
+rMenu.addEventListener('click', async e => { const b = e.target.closest('button[data-del]'); if (!b || b.disabled) return; const id = rMenu.dataset.id; cerrarMenu(); await borrarRegistro(id); });
+document.addEventListener('click', e => { if (!rMenu.hidden && !e.target.closest('#rMenu, [data-act=menu]')) cerrarMenu(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !rMenu.hidden) cerrarMenu(); });
+window.addEventListener('resize', cerrarMenu); window.addEventListener('scroll', cerrarMenu, true);
 
 // ---------- ventana para editar un registro ----------
 let rm = { id: null, orden: [] };
@@ -2392,7 +2426,7 @@ const rtEspera = (clave, fn, ms) => { clearTimeout(rtTimers[clave]); rtTimers[cl
 const pestanaActual = () => ['cargar', 'registros', 'liquidaciones', 'kpis', 'detalle'].find(t => !$('#tab-' + t).classList.contains('hide'));
 // ¿el registro entra en los filtros que tengo puestos en Registros?
 const rtCumple = r => { const d = $('#rDesde').value, h = $('#rHasta').value, t = $('#rTrans').value, p = $('#rPago').value, m = $('#rMot').value, n = $('#rNodo').value.trim();
-  return (!d || r.fecha >= d) && (!h || r.fecha <= h) && (!t || r.transporte === t) && (!p || r.modo_pago === p) && (!m || (r.motivo || 'DESPACHO') === m) && (!n || norm(r.nodo).includes(norm(n))); };
+  return (!d || r.fecha >= d) && (!h || r.fecha <= h) && (!t || r.transporte === t) && (!p || r.modo_pago === p) && (!m || (r.motivo || 'DESPACHO') === m) && (!n || [r.nodo, r.agencia, r.placa, r.factura].some(v => norm(v).includes(norm(n)))); };
 function rtRefrescarVista() {
   const t = pestanaActual();
   if (t === 'kpis') rtEspera('kpi', () => calcularKpis(true), 1500);
