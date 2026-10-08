@@ -805,6 +805,10 @@
   .kg-pill { font-size:11.5px; font-weight:600; padding:3px 11px; border-radius:99px; white-space:nowrap; justify-self:start } .kg-pill.g { background:var(--okbg); color:var(--ok) } .kg-pill.a { background:var(--warnbg); color:var(--warn) } .kg-pill.r { background:var(--badbg); color:var(--bad) }
   .kg-ver { display:block; width:100%; text-align:center; margin-top:8px; padding:6px; font:inherit; font-size:13.5px; color:var(--pri); font-weight:500; cursor:pointer; background:none; border:0 }
   .kg-vacio { grid-column:1/-1; text-align:center; padding:48px 24px } .kg-vacio b { display:block; font-size:17px } .kg-vacio span { color:var(--mut); font-size:14px }
+  /* filtros de Costos: anchos fijos y "Restablecer" en la misma fila, para que nada se mueva al filtrar */
+  #tab-kpis .fb #kAct { margin:0 0 6px auto; padding:0; border:0; align-self:flex-end; flex:none }
+  #tab-kpis .fb #kAct.hide { display:flex !important; visibility:hidden }
+  @media (min-width:761px) { #kAgencia { width:210px } #kZona { width:140px } }
   .kprog { display:none; height:3px; margin:-8px 4px 12px; border-radius:99px; background:linear-gradient(90deg, transparent, var(--pri), transparent); background-size:40% 100%; background-repeat:no-repeat; animation:kprog 1.1s ease-in-out infinite }
   #tab-kpis.kload .kprog { display:block } @keyframes kprog { from { background-position:-40% 0 } to { background-position:140% 0 } }
   #tab-kpis > div[id^="kp-"] { transition:opacity .2s } #tab-kpis.kload > div[id^="kp-"] { opacity:.45; pointer-events:none }
@@ -970,8 +974,8 @@
       <div class="fg"><span>Motivo</span><div class="pseg" id="kMotSeg"><button data-m="" class="on">Todos</button><button data-m="DESPACHO">Despacho</button><button data-m="RECOJO">Recojo</button></div></div>
       <div class="fg"><span>Agencia</span><select id="kAgencia" aria-label="Agencia"><option value="">Todas</option></select></div>
       <div class="fg"><span>Zona</span><select id="kZona" aria-label="Zona"><option value="">Todas</option></select></div>
+      <div class="active hide" id="kAct"></div>
     </div>
-    <div class="active" id="kAct"></div>
     <div id="kpMsg" class="msg"></div>
   </div>
   <div class="kprog" aria-hidden="true"></div>
