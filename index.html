@@ -880,7 +880,7 @@
     </div>
     <div class="cgrid" style="margin-top:14px">
       <div class="card"><h3>Calendario de costos</h3><p class="hint">Cada día se colorea según su costo. Clic en un día para ver sus registros.</p><div class="cal" id="calGrid"></div><div class="ramp" id="calRamp"></div></div>
-      <div class="card"><h3>Costo promedio por día de la semana</h3><p class="hint">Para ver qué días se despacha más caro.</p><svg id="calDow" class="csvg" viewBox="0 0 320 150" width="100%"></svg></div>
+      <div class="card"><h3>Costo promedio por día de la semana</h3><p class="hint">Permite identificar los días de mayor costo de despacho.</p><svg id="calDow" class="csvg" viewBox="0 0 320 150" width="100%"></svg></div>
     </div>
     <details class="dt card" style="margin-top:14px"><summary>Detalle por día <span id="nDias"></span></summary><div class="tw"><table id="kpDias"></table></div></details>
   </div>
@@ -902,12 +902,12 @@
     </div>
   </div>
   <details class="dt card"><summary>Volumen frente a costo por pedido</summary>
-    <p class="hint">Cada punto es una cuenta: a la derecha, más pedidos; arriba, más caro por pedido; el tamaño es el costo total. Las cuentas con pocos pedidos y costo alto suelen ser envíos sueltos que conviene revisar.</p>
+    <p class="hint">Cada punto es una cuenta: a la derecha, más pedidos; arriba, más caro por pedido; el tamaño es el costo total. Las cuentas con pocos pedidos y costo alto suelen ser envíos aislados que conviene revisar.</p>
     <svg id="ctaSc" class="csvg" viewBox="0 0 900 300" width="100%" style="max-height:340px"></svg></details>
   <div class="tip" id="ctaTip"></div>
   </div>
   <div id="kp-nodo" class="hide">
-    <div class="card"><h3>Costo por nodo</h3><p class="hint">La barra es el costo; el color compara la <b>tarifa por caja</b> de cada nodo con la mediana (<b id="medNodo"></b>). Una tarifa muy por encima suele indicar un envío suelto, una agencia más cara o una ruta sin negociar.</p>
+    <div class="card"><h3>Costo por nodo</h3><p class="hint">La barra es el costo; el color compara la <b>tarifa por caja</b> de cada nodo con la mediana (<b id="medNodo"></b>). Una tarifa muy por encima suele indicar un envío aislado, una agencia más cara o una ruta sin negociar.</p>
       <div class="bar-tools"><div class="seg" id="nodoVista"><button data-v="b" class="on">Barras</button><button data-v="t">Tabla</button></div></div>
       <div id="nodoBarras"></div><div id="nodoTabla" class="tw hide"><table id="kpNodo"></table></div></div>
   </div>
@@ -922,7 +922,7 @@
     <div class="card"><h3>Costo por zona</h3><p class="hint">La zona se carga con cada registro.</p><div id="zonaBarras"></div></div>
     <div class="card"><h3>Tarifa por caja según transporte y zona</h3><p class="hint">Costo dividido entre cajas. Las celdas más oscuras son las rutas más caras por caja.</p><div class="tw" style="max-height:none"><table class="mx" id="zonaMx"></table></div></div>
   </div>
-  <div id="kp-cal" class="hide"><div class="card"><h3>Calidad de datos</h3><p class="hint">Los KPIs son confiables en la medida en que los registros estén completos. Cada punto lleva a la pantalla donde se corrige.</p><div id="calList"></div></div></div>
+  <div id="kp-cal" class="hide"><div class="card"><h3>Calidad de datos</h3><p class="hint">Los indicadores son confiables en la medida en que los registros estén completos. Cada punto lleva a la pantalla donde se corrige.</p><div id="calList"></div></div></div>
 </section>
 
 <section id="tab-liquidaciones" class="hide">
@@ -1219,7 +1219,7 @@ async function leerArchivo(f) {
   try {
     hrnCarga = null; await xlsxLib(); const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
     const filas = leerTabla(wb); hrnCarga = leerHrn(wb);
-    if (!filas && !hrnCarga) return flash($('#cMsg'), 'No encontré filas en las hojas DESPACHO, RECOJOS o DETALLE. Descarga la plantilla y completa esas hojas.', 'err');
+    if (!filas && !hrnCarga) return flash($('#cMsg'), 'No se encontraron filas en las hojas DESPACHO, RECOJOS o DETALLE. Descarga la plantilla y completa esas hojas.', 'err');
     previa = (filas || []).map(r => ({ ...r, agencia: r.agencia || '', modo_pago: r.pago || '', zona: r.zona || '', detalle_gasto: detalleGasto(r) }));
     let rellenas = 0;   // la zona vacía se completa con la última que tuvo ese nodo en los registros guardados
     try {
@@ -1231,7 +1231,7 @@ async function leerArchivo(f) {
     const masUsada = Object.keys(cuenta).sort((a, b) => cuenta[b] - cuenta[a] || (a < b ? -1 : 1))[0]; if (masUsada) $('#cFecha').value = masUsada;   // el Detalle y las filas sin FECHA usan la más repetida
     cArchivo = { nombre: f.name, kb: Math.max(1, Math.round(f.size / 1024)) }; cFiltro = ''; listaAgencias();
     $('#cMsg').className = 'msg'; setPaso(2); pintarPrevia();
-    if (rellenas) toast(`Zona completada en ${rellenas} ${rellenas === 1 ? 'fila' : 'filas'} con lo ya registrado`);
+    if (rellenas) toast(`Zona completada en ${rellenas} ${rellenas === 1 ? 'fila' : 'filas'} a partir de registros anteriores`);
   } catch (err) { flash($('#cMsg'), 'No se pudo leer el archivo: ' + err.message, 'err'); }
 }
 $('#cFile').onchange = e => { const f = e.target.files[0]; if (f) leerArchivo(f); };
@@ -1263,7 +1263,7 @@ function pintarPrevia() {
   $('#cTiles').innerHTML = `
     <div class="ctile${des.length ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Despachos</span><b>${des.length}</b><small>${des.length ? cant(des) : 'Sin filas en este archivo'}</small></div>
     <div class="ctile${rec.length ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Recojos</span><b>${rec.length}</b><small>${rec.length ? cant(rec) : 'Sin filas en este archivo'}</small></div>
-    <div class="ctile${hrnCarga ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Detalle</span><b>${hrnCarga ? fmtN(hrnCarga.length) : 0}</b><small>${hrnCarga ? `filas de ${nodosDet} ${nodosDet === 1 ? 'nodo' : 'nodos'}, se suman a las que ya hay` : 'Sin filas en este archivo'}</small></div>`;
+    <div class="ctile${hrnCarga ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Detalle</span><b>${hrnCarga ? fmtN(hrnCarga.length) : 0}</b><small>${hrnCarga ? `filas de ${nodosDet} ${nodosDet === 1 ? 'nodo' : 'nodos'}, se agregan a las ya existentes` : 'Sin filas en este archivo'}</small></div>`;
   cAlertar();
   $('#cTarjeta').classList.toggle('hide', !previa.length);
   const hayAmbos = des.length && rec.length;
@@ -1317,7 +1317,7 @@ $('#cGuardar').onclick = async () => {
   if (!previa.length) {   // solo detalle
     $('#cGuardar').disabled = true;
     try { cMostrarOk('Detalle guardado', mayus(hrnTexto(fecha, await guardarHrn(fecha, hrnCarga))) + '.', true); previa = []; hrnCarga = null; $('#cFile').value = ''; }
-    catch (err) { flash($('#cMsg'), 'No se pudo guardar el detalle: ' + err.message + '. Vuelve a subir el archivo: las filas que ya entraron no se duplican.', 'err'); }
+    catch (err) { flash($('#cMsg'), 'No se pudo guardar el detalle: ' + err.message + '. Vuelve a subir el archivo: las filas ya cargadas no se duplicarán.', 'err'); }
     $('#cGuardar').disabled = false; return;
   }
   if (previa.some(r => !cFechaDe(r))) return flash($('#cMsg'), 'Hay filas sin fecha. Elige la fecha del despacho o complétala en la tabla.', 'err');
@@ -1343,7 +1343,7 @@ $('#cGuardar').onclick = async () => {
   let detalle = '';
   if (hrnCarga) {
     try { detalle = ` Detalle: ${hrnTexto(fecha, await guardarHrn(fecha, hrnCarga))}.`; }
-    catch (err) { cReiniciar(); return flash($('#cMsg'), `El despacho se guardó, pero el detalle no: ${err.message}. Vuelve a subir el mismo archivo: las filas del detalle que ya entraron no se duplican.`, 'err'); }
+    catch (err) { cReiniciar(); return flash($('#cMsg'), `El despacho se guardó, pero el detalle no: ${err.message}. Vuelve a subir el mismo archivo: las filas del detalle ya cargadas no se duplicarán.`, 'err'); }
   }
   const hayD = filas.some(r => r.motivo === 'DESPACHO'), hayR = filas.some(r => r.motivo === 'RECOJO');
   cMostrarOk(hayD && hayR ? 'Despachos y recojos guardados' : hayR ? (filas.length === 1 ? 'Recojo guardado' : 'Recojos guardados') : (filas.length === 1 ? 'Despacho guardado' : 'Despachos guardados'), `${filas.length} ${filas.length === 1 ? 'registro' : 'registros'} ${txtFecha}.${detalle} Falta completar importe y factura de cada uno.`, false);
@@ -1407,16 +1407,16 @@ async function revisarFactura(file, r) {
     FCAMPOS.forEach(id => { if (!$('#' + id).value) $('#' + id).parentElement.classList.add('dud'); });
     $('#fTexto').textContent = R.texto || '';
     est.className = 'okbox';
-    est.textContent = (R.viaQR ? 'Factura leída con su código QR (datos exactos). ' : `Lectura terminada con ${R.motor}. `) + 'Revisa cada dato; los campos en naranja no se pudieron leer y hay que completarlos a mano.';
+    est.textContent = (R.viaQR ? 'Factura leída con su código QR (datos exactos). ' : `Lectura terminada con ${R.motor}. `) + 'Revisa cada dato; los campos en naranja no se pudieron leer y deben completarse manualmente.';
     const nodo = norm(r.nodo), vistos = R.destinosVistos || [];
     if (vistos.length) $('#fCoincide').innerHTML = vistos.includes(nodo)
       ? `<div class="okbox">El destino de la factura coincide con este registro (${esc(r.nodo)}).</div>`
-      : `<div class="aviso">Ojo: la factura menciona ${esc(vistos.slice(0, 3).join(', '))} y este registro es ${esc(r.nodo)}.</div>`;
+      : `<div class="aviso">Atención: la factura menciona ${esc(vistos.slice(0, 3).join(', '))} y este registro es ${esc(r.nodo)}.</div>`;
     const av = [...R.aviso];
     if (r.importe != null && R.importe != null && Math.abs(Number(r.importe) - R.importe) > 0.01) av.push(`El registro ya tiene importe S/ ${Number(r.importe).toFixed(2)}; se reemplazará si guardas.`);
     $('#fAvisos').innerHTML = av.map(a => `<div class="aviso">${esc(a)}</div>`).join('');
   } catch (err) {
-    est.className = 'aviso'; est.textContent = 'No se pudo leer automáticamente (' + err.message + '). Completa los datos a mano o cierra con "Solo adjunto".';
+    est.className = 'aviso'; est.textContent = 'No se pudo leer automáticamente (' + err.message + '). Completa los datos manualmente o cierra con "Solo adjunto".';
   }
   $('#fGuardar').disabled = false;
 }
@@ -1611,7 +1611,7 @@ window.addEventListener('resize', cerrarMenu); window.addEventListener('scroll',
 const RFIL = {
   trans: { sel: '#rTrans', def: 'todos los transportes', txt: v => v },
   mot: { sel: '#rMot', def: 'despachos y recojos', txt: v => v === 'DESPACHO' ? 'solo despachos' : 'solo recojos', ops: [['', 'Despachos y recojos'], ['DESPACHO', 'Solo despachos'], ['RECOJO', 'Solo recojos']] },
-  pago: { sel: '#rPago', def: 'cualquier pago', txt: v => v === 'CONTADO' ? 'al contado' : 'a crédito', ops: [['', 'Cualquier pago'], ['CONTADO', 'Al contado'], ['CREDITO', 'A crédito']] }
+  pago: { sel: '#rPago', def: 'todos los métodos de pago', txt: v => v === 'CONTADO' ? 'al contado' : 'a crédito', ops: [['', 'Todos los métodos de pago'], ['CONTADO', 'Al contado'], ['CREDITO', 'A crédito']] }
 };
 const RX_CHECK = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6.5L5 9.5 10 3"/></svg>';
 const MESES_C = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'set', 'oct', 'nov', 'dic'];
@@ -1666,7 +1666,7 @@ const quitarFiltros = () => { Object.values(RFIL).forEach(f => { $(f.sel).value 
 $('#rLimp').onclick = quitarFiltros;
 // en el celular los filtros se editan en una hoja inferior
 function pintarHoja() {
-  ['trans', 'mot', 'pago'].forEach(k => { $('#rf' + k[0].toUpperCase() + k.slice(1)).innerHTML = opcionesDe(k).map(([v, t]) => `<button type="button" data-k="${k}" data-v="${esc(v)}" class="${$(RFIL[k].sel).value === v ? 'on' : ''}">${esc(t.replace(/^Todos los transportes$/, 'Todos'))}</button>`).join(''); });
+  ['trans', 'mot', 'pago'].forEach(k => { $('#rf' + k[0].toUpperCase() + k.slice(1)).innerHTML = opcionesDe(k).map(([v, t]) => `<button type="button" data-k="${k}" data-v="${esc(v)}" class="${$(RFIL[k].sel).value === v ? 'on' : ''}">${esc(t.replace(/^Todos los (transportes|métodos de pago)$/, 'Todos'))}</button>`).join(''); });
   $('#rfDesde').value = $('#rDesde').value; $('#rfHasta').value = $('#rHasta').value;
 }
 $('#rfBtn').onclick = () => { pintarHoja(); $('#rFilDlg').showModal(); };
@@ -1832,7 +1832,7 @@ async function buscarHrn() {
   const { data, error, count } = await hrnConsultaQ(HRN_VIS.join(','), true).limit(1000);
   if (error) return flash($('#hMsg'), error.message, 'err');
   hrnVista = data; hrnMostrar = 100;
-  $('#qInfo').textContent = `${count} filas` + (count > data.length ? ` (se muestran las primeras ${data.length}; afina los filtros. Al exportar salen todas)` : '');
+  $('#qInfo').textContent = `${count} filas` + (count > data.length ? ` (se muestran las primeras ${data.length}; ajusta los filtros. Al exportar salen todas)` : '');
   pintarHrn();
 }
 function pintarHrn() {
@@ -2148,9 +2148,9 @@ function calidadKpi(R, envios) {
     return `<div class="cq-i"><div class="tx"><b>${t}</b><span>${d}</span></div><div class="mt"><div class="tr"><i style="width:${pc}%;background:${col}"></i></div><small>${n - malos} de ${n} completos</small></div><button class="b sec" data-go="${go}">${btn}</button></div>`; };
   const hrnPc = R.total - R.recojo > 0 ? (1 - R.sinHrn / (R.total - R.recojo)) * 100 : 100;
   $('#calList').innerHTML =
-    item('', '', 'Registros con importe', 'Sin importe no entran a ningún KPI.', sinImp.length, 'registros', 'Ir a Registros') +
+    item('', '', 'Registros con importe', 'Los registros sin importe no se incluyen en los indicadores.', sinImp.length, 'registros', 'Ir a Registros') +
     item('', '#fffbeb', 'Con N° de factura', `${fmt(sinFac.reduce((s, e) => s + (Number(e.importe) || 0), 0))} aún sin número de factura.`, sinFac.length, 'registros', 'Completar en Registros') +
-    item('', '', 'Con foto de factura adjunta', 'La lectura automática rellena factura e importe desde la foto.', sinAdj.length, 'registros', 'Adjuntar fotos') +
+    item('', '', 'Con foto de factura adjunta', 'La lectura automática completa la factura y el importe a partir de la foto.', sinAdj.length, 'registros', 'Adjuntar fotos') +
     item('', '#fef2f2', 'Con agencia asignada', `${esc([...new Set(sinAg.map(e => e.nodo))].join(', ') || 'Todos los nodos tienen agencia')}${sinAg.length ? ': completa la agencia en Registros.' : '.'}`, sinAg.length, 'registros', 'Ir a Registros') +
     item('', '', 'Con zona', 'Necesaria para el análisis por zona y la matriz transporte × zona. Se completa con Editar en Registros.', sinZona.length, 'registros', 'Ir a Registros') +
     `<div class="cq-i"><div class="tx"><b>Importe repartido entre cuentas</b><span>${R.sinHrn ? `${fmt(R.sinHrn)} sin cuenta: falta el detalle de ${R.sinHrnNodos.size} ${R.sinHrnNodos.size === 1 ? 'nodo' : 'nodos'}.` : 'Todo el costo está asignado a una cuenta.'}</span></div><div class="mt"><div class="tr"><i style="width:${hrnPc}%;background:${hrnPc >= 95 ? 'var(--grn)' : 'var(--amb)'}"></i></div><small>${hrnPc.toFixed(0)}% asignado</small></div><button class="b sec" data-go="detalle">Cargar detalle</button></div>`;
@@ -2209,7 +2209,7 @@ $('#metaX').onclick = () => $('#metaDlg').close();
 $('#metaOk').onclick = async () => {
   const v = Number($('#metaV').value); if (!(v > 0)) return toast('Escribe un monto mayor que cero', 'err');
   const { error } = await sb.from('metas').upsert({ mes: kMeta.mes, monto: v, updated_at: new Date().toISOString() });
-  if (error) return toast('No se pudo guardar la meta. ¿Ejecutaste supabase_fase2.sql? ' + error.message, 'err');
+  if (error) return toast('No se pudo guardar la meta. Verifica que se haya ejecutado supabase_fase2.sql. ' + error.message, 'err');
   $('#metaDlg').close(); toast('Meta guardada', 'ok'); calcularKpis();
 };
 $('#metaQ').onclick = async () => {
@@ -2271,7 +2271,7 @@ function calendarioKpi(dias) {
 
 // ---------- informe PDF (se imprime / guarda como PDF desde el navegador) ----------
 function informePDF() {
-  const R = kpiResultado; if (!R) return toast('Primero espera a que se calculen los KPIs', 'err');
+  const R = kpiResultado; if (!R) return toast('Espera a que terminen de calcularse los indicadores', 'err');
   const w = window.open('', '_blank'); if (!w) return toast('El navegador bloqueó la ventana del informe: permite ventanas emergentes.', 'err');
   const T = R.total, dias = diasResultado, env = kpEnvios, nF = env.filter(e => e.factura).length, conta = dias.reduce((x, d) => x + d.contado, 0), cred = dias.reduce((x, d) => x + d.credito, 0);
   const filtros = [...document.querySelectorAll('#kAct .pill')].map(x => x.textContent).join(', '), hall = [...document.querySelectorAll('#kpHall .hl')].map(h => `<li><b>${esc(h.querySelector('b').textContent)}.</b> ${esc(h.querySelector('span').textContent)}</li>`).join('');
@@ -2439,7 +2439,7 @@ function lqPintar() {
   $('#lqDescargar').disabled = !elegidos.length;
   $('#lqFlot').hidden = !elegidos.length; $('#lqFlotT').innerHTML = `<b>${elegidos.length}</b> ${elegidos.length === 1 ? 'registro' : 'registros'}<small>${fmt(total)} en ${grupos.length} ${grupos.length === 1 ? 'archivo' : 'archivos'}</small>`;
   $('#lqPendBox').classList.toggle('hide', !lqPend.length);
-  $('#lqPendT').textContent = `${lqPend.length} ${lqPend.length === 1 ? 'registro no se incluye' : 'registros no se incluyen'} porque les falta algo`;
+  $('#lqPendT').textContent = `${lqPend.length} ${lqPend.length === 1 ? 'registro no se incluye' : 'registros no se incluyen'} porque tienen datos incompletos`;
   $('#lqPend').innerHTML = '<tr><th>Fecha</th><th>Transporte</th><th>Nodo</th><th>Falta</th></tr>' + lqPend.map(r => `<tr><td class="mono sm">${fdmy(r.fecha)}</td><td>${tbadge(r.transporte)}</td><td><b>${esc(r.nodo)}</b></td><td>${[Number(r.importe) > 0 ? '' : 'importe', r.factura ? '' : 'N° de factura', r.factura_archivo ? '' : 'foto'].filter(Boolean).join(', ')}</td></tr>`).join('');
 }
 $('#lqTabla').addEventListener('change', e => {
