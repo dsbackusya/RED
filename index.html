@@ -121,6 +121,29 @@
   .aviso { background:var(--warnbg); color:var(--warn); border-radius:9px; padding:7px 10px; margin:6px 0; font-size:12px }
   .okbox { background:var(--okbg); color:var(--ok); border-radius:9px; padding:7px 10px; margin:6px 0; font-size:12px }
   @media (max-width:760px) { .fd { grid-template-columns:1fr } .fd-img { max-height:34vh } }
+  #factDlg { width:min(860px,94vw) } #factDlg .fd { grid-template-columns:1fr 1fr } #factDlg .fd-form { padding:28px; display:flex; flex-direction:column }
+  #factDlg h3 { font-size:21px; font-weight:700; letter-spacing:-.02em; margin:0 0 4px } #factDlg .fd-sub { color:var(--mut); font-size:13px; margin:0 0 22px }
+  #factDlg .fcampo { margin-bottom:16px } #factDlg .fcampo label { display:block; font-size:12.5px; font-weight:600; color:var(--mut) }
+  #factDlg .fcampo input { display:block; width:100%; margin-top:5px; padding:11px 13px; font-size:17px; border:0; border-radius:10px; background:var(--head); color:var(--ink) }
+  #factDlg .fcampo input:focus { outline:3px solid rgba(0,102,204,.4); background:#fff }
+  #factDlg .fcampo.mal input { background:var(--badbg); box-shadow:inset 0 0 0 1.5px var(--bad) }
+  #factDlg .fcampo.vacio input { background:var(--warnbg); box-shadow:inset 0 0 0 1.5px var(--warn) }
+  #factDlg .fmsg { font-size:12.5px; line-height:1.35; margin-top:6px; color:var(--mut) } #factDlg .fmsg:empty { display:none }
+  #factDlg .fmsg.bad { color:var(--bad) } #factDlg .fmsg.warn { color:var(--warn) } #factDlg .fmsg s { color:var(--mut) }
+  #factDlg .fd-ley { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--mut); margin-bottom:16px } #factDlg .fd-ley[hidden] { display:none }
+  #factDlg .fd-ley i { width:14px; height:14px; flex:none; border-radius:50%; border:2px solid var(--head); border-top-color:var(--pri); animation:fdgira .8s linear infinite }
+  #factDlg .fd-ley.err { color:var(--warn); align-items:flex-start } #factDlg .fd-ley.err i { display:none }
+  @keyframes fdgira { to { transform:rotate(360deg) } }
+  #factDlg .fd-pie { margin-top:auto; padding-top:14px; display:flex; justify-content:flex-end; gap:10px }
+  #factDlg .fd-pie .b { white-space:nowrap }
+  #factDlg .b:disabled { opacity:.45; cursor:not-allowed }
+  #factDlg .fd-img { position:relative; overflow:hidden } #factDlg .fd-sc { overflow:auto; max-height:90vh; height:100%; cursor:zoom-in } #factDlg .fd-sc.z { cursor:grab } #factDlg .fd-sc.arr { cursor:grabbing; user-select:none }
+  #factDlg .fd-img img { max-width:none; -webkit-user-drag:none; user-select:none }
+  #factDlg .fd-zoom { position:absolute; right:12px; bottom:12px; display:flex; align-items:center; gap:2px; padding:3px; border-radius:99px; background:rgba(40,40,42,.78); backdrop-filter:blur(10px); color:#fff }
+  #factDlg .fd-zoom button { width:30px; height:30px; border:0; border-radius:50%; background:none; color:#fff; font-size:17px; line-height:1; cursor:pointer } #factDlg .fd-zoom button:hover:not(:disabled) { background:rgba(255,255,255,.2) } #factDlg .fd-zoom button:disabled { opacity:.35; cursor:default }
+  #factDlg .fd-zoom span { min-width:42px; text-align:center; font-size:12px; font-variant-numeric:tabular-nums }
+  @media (max-width:760px) { #factDlg .fd-sc { max-height:34vh } #factDlg .fd { grid-template-columns:minmax(0,1fr) } #factDlg .fd-form { padding:20px 18px } #factDlg .fd-pie .b { flex:1 }
+    #factDlg .fd-pie { position:sticky; bottom:0; background:var(--card); padding-bottom:4px } }
   .ctl { margin-bottom:14px }
   .chk { flex-direction:row; align-items:center; gap:6px; padding-bottom:7px; font-weight:500 }
   .seg { display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden }
@@ -725,21 +748,17 @@
 <datalist id="dlAgencias"></datalist>
 <dialog id="factDlg">
   <div class="fd">
-    <div class="fd-img"><img id="fImg" alt="Factura"></div>
+    <div class="fd-img"><div class="fd-sc" id="fSc"><img id="fImg" alt="Factura"></div>
+      <div class="fd-zoom"><button id="fZm" title="Alejar" aria-label="Alejar">&minus;</button><span id="fZp">100%</span><button id="fZa" title="Acercar" aria-label="Acercar">+</button></div></div>
     <div class="fd-form">
       <h3>Datos de la factura</h3>
-      <div id="fEstado" class="aviso">Leyendo la factura…</div>
-      <div id="fCoincide"></div>
-      <div class="fgrid">
-        <label>N° de factura<input id="fFactura" autocomplete="off"></label>
-        <label>Importe total (S/)<input id="fImporte" type="number" step="0.01"></label>
-      </div>
-      <div id="fAvisos"></div>
-      <p class="hint">Lectura automática gratuita: revisa cada dato contra la foto antes de guardar.</p>
-      <details><summary class="hint">Texto leído</summary><pre id="fTexto"></pre></details>
-      <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <p class="fd-sub" id="fSub"></p>
+      <div id="fEstado" class="fd-ley" hidden><i></i><span></span></div>
+      <div class="fcampo" id="fcFac"><label>N° de factura<input id="fFactura" autocomplete="off" placeholder="F001-00000000"></label><div class="fmsg" id="fmFac"></div></div>
+      <div class="fcampo" id="fcImp"><label>Importe (S/)<input id="fImporte" type="number" step="0.01" placeholder="0.00"></label><div class="fmsg" id="fmImp"></div></div>
+      <div class="fd-pie">
         <button class="b sec" id="fCerrar">Solo adjunto</button>
-        <button class="b" id="fGuardar">Guardar datos</button>
+        <button class="b" id="fGuardar">Guardar</button>
       </div>
     </div>
   </div>
@@ -1411,40 +1430,71 @@ $('#adjFile').onchange = async e => {
 };
 
 // ---------- lectura automática de la factura (OCR gratuito) + revisión ----------
-let fReg = null, fUrl = null;
-const FCAMPOS = ['fFactura', 'fImporte'];
+let fReg = null, fUrl = null, fDup = null, fSeq = 0, fT = null;
 function cerrarFactura() { $('#factDlg').close(); if (fUrl) { URL.revokeObjectURL(fUrl); fUrl = null; } }
+// Una sola línea de aviso bajo cada campo; "Guardar" se bloquea mientras la factura esté repetida o se esté leyendo
+function fPintar(leyendo) {
+  const r = fReg, fac = $('#fFactura').value.trim(), imp = $('#fImporte').value.trim();
+  const mFac = $('#fmFac'), mImp = $('#fmImp');
+  $('#fcFac').className = 'fcampo' + (fDup ? ' mal' : !fac && !leyendo ? ' vacio' : '');
+  mFac.className = 'fmsg ' + (fDup ? 'bad' : 'warn');
+  mFac.textContent = fDup ? `Ya está registrado en ${fDup.nodo} (${fdmy(fDup.fecha)}).` : '';
+  $('#fcImp').className = 'fcampo' + (!imp && !leyendo ? ' vacio' : '');
+  mImp.className = 'fmsg';
+  if (r && r.importe != null && imp !== '' && Math.abs(Number(r.importe) - num(imp)) > 0.01) mImp.innerHTML = `Antes <s>S/ ${Number(r.importe).toFixed(2)}</s>`; else mImp.textContent = '';
+  $('#fGuardar').disabled = !!leyendo || !!fDup;
+}
+async function fChequear() {
+  const mi = ++fSeq, v = $('#fFactura').value.trim();
+  const o = facturaCambio(v, fReg) ? await facturaRepetida(v, fReg.id) : null;
+  if (mi !== fSeq) return;
+  fDup = o; fPintar(false);
+}
 async function revisarFactura(file, r) {
-  fReg = r;
-  FCAMPOS.forEach(id => { $('#' + id).value = ''; $('#' + id).parentElement.classList.remove('dud'); });
-  $('#fAvisos').innerHTML = ''; $('#fCoincide').innerHTML = ''; $('#fTexto').textContent = '';
-  if (r.factura) $('#fFactura').value = r.factura;
-  if (r.importe != null) $('#fImporte').value = r.importe;
-  fUrl = URL.createObjectURL(file); $('#fImg').src = fUrl;
-  const est = $('#fEstado'); est.className = 'aviso'; est.textContent = 'Leyendo la factura… (la primera vez descarga el modelo de lectura, unos 3 MB)';
-  $('#fGuardar').disabled = true;
+  fReg = r; fDup = null; fSeq++; clearTimeout(fT);
+  $('#fFactura').value = r.factura || ''; $('#fImporte').value = r.importe != null ? r.importe : '';
+  $('#fSub').textContent = `${r.nodo} · ${fdmy(r.fecha)}`;
+  fUrl = URL.createObjectURL(file); $('#fImg').src = fUrl; fZoom(1);
+  const est = $('#fEstado'), txt = est.querySelector('span'); est.hidden = false; est.className = 'fd-ley'; txt.textContent = 'Leyendo la factura…';
+  fPintar(true);
   $('#factDlg').showModal();
+  let fallo = false;
   try {
     const R = await OCR.leer(file, { ref: r.fecha, nodos: [...new Set(regBase.map(r => norm(r.nodo)))],
-      progreso: (t, p) => { est.textContent = 'Leyendo la factura… ' + (p ? Math.round(p * 100) + '%' : t); } });
-    const pon = (id, v) => { if (v !== '' && v != null) $('#' + id).value = v; };
-    pon('fFactura', R.factura); pon('fImporte', R.importe);
-    FCAMPOS.forEach(id => { if (!$('#' + id).value) $('#' + id).parentElement.classList.add('dud'); });
-    $('#fTexto').textContent = R.texto || '';
-    est.className = 'okbox';
-    est.textContent = (R.viaQR ? 'Factura leída con su código QR (datos exactos). ' : `Lectura terminada con ${R.motor}. `) + 'Revisa cada dato; los campos en naranja no se pudieron leer y deben completarse manualmente.';
-    const nodo = norm(r.nodo), vistos = R.destinosVistos || [];
-    if (vistos.length) $('#fCoincide').innerHTML = vistos.includes(nodo)
-      ? `<div class="okbox">El destino de la factura coincide con este registro (${esc(r.nodo)}).</div>`
-      : `<div class="aviso">Atención: la factura menciona ${esc(vistos.slice(0, 3).join(', '))} y este registro es ${esc(r.nodo)}.</div>`;
-    const av = [...R.aviso];
-    if (R.factura) { const o = await facturaRepetida(R.factura, r.id); if (o) av.push(textoRepetida(R.factura, o) + ' No se podrá guardar con ese número.'); }
-    if (r.importe != null && R.importe != null && Math.abs(Number(r.importe) - R.importe) > 0.01) av.push(`El registro ya tiene importe S/ ${Number(r.importe).toFixed(2)}; se reemplazará si guardas.`);
-    $('#fAvisos').innerHTML = av.map(a => `<div class="aviso">${esc(a)}</div>`).join('');
+      progreso: (t, p) => { txt.textContent = 'Leyendo la factura… ' + (p ? Math.round(p * 100) + '%' : t); } });
+    if (R.factura) $('#fFactura').value = R.factura;
+    if (R.importe != null && R.importe !== '') $('#fImporte').value = R.importe;
+    est.hidden = true;
+    const vistos = R.destinosVistos || [];
+    if (vistos.length && !vistos.includes(norm(r.nodo))) { est.hidden = false; est.className = 'fd-ley err'; txt.textContent = `La factura menciona ${vistos.slice(0, 3).join(', ')} y este registro es ${r.nodo}.`; }
   } catch (err) {
-    est.className = 'aviso'; est.textContent = 'No se pudo leer automáticamente (' + err.message + '). Completa los datos manualmente o cierra con "Solo adjunto".';
+    fallo = true; est.hidden = false; est.className = 'fd-ley err'; txt.textContent = 'No se pudo leer la factura. Escribe los datos desde la foto o cierra con "Solo adjunto".';
   }
-  $('#fGuardar').disabled = false;
+  fPintar(false);
+  if (!fallo && $('#fFactura').value.trim()) fChequear();
+}
+$('#fFactura').addEventListener('input', () => { fPintar(false); clearTimeout(fT); fT = setTimeout(fChequear, 400); });
+$('#fImporte').addEventListener('input', () => fPintar(false));
+// Zoom de la foto: botones + / −, Ctrl + rueda, doble clic y arrastre para moverse
+let fZ = 1;
+function fZoom(z, cx, cy) {
+  const sc = $('#fSc'), img = $('#fImg'), n = Math.min(4, Math.max(1, Math.round(z * 100) / 100));
+  if (cx == null) { cx = sc.clientWidth / 2; cy = sc.clientHeight / 2; }
+  const rx = img.offsetWidth ? (sc.scrollLeft + cx) / img.offsetWidth : 0, ry = img.offsetHeight ? (sc.scrollTop + cy) / img.offsetHeight : 0;
+  fZ = n; img.style.width = n > 1 ? n * 100 + '%' : '';
+  sc.scrollLeft = rx * img.offsetWidth - cx; sc.scrollTop = ry * img.offsetHeight - cy;
+  sc.classList.toggle('z', n > 1); $('#fZp').textContent = Math.round(n * 100) + '%'; $('#fZm').disabled = n <= 1; $('#fZa').disabled = n >= 4;
+}
+$('#fZa').onclick = () => fZoom(fZ + .5); $('#fZm').onclick = () => fZoom(fZ - .5);
+{
+  const sc = $('#fSc'); let dr = null;
+  const pos = e => { const b = sc.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+  sc.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); fZoom(fZ * (e.deltaY < 0 ? 1.2 : 1 / 1.2), ...pos(e)); }, { passive: false });
+  sc.addEventListener('dblclick', e => fZoom(fZ > 1 ? 1 : 2.5, ...pos(e)));
+  sc.addEventListener('pointerdown', e => { if (fZ <= 1 || e.button || e.pointerType !== 'mouse') return; dr = { x: e.clientX, y: e.clientY, l: sc.scrollLeft, t: sc.scrollTop }; sc.setPointerCapture(e.pointerId); sc.classList.add('arr'); });
+  sc.addEventListener('pointermove', e => { if (!dr) return; sc.scrollLeft = dr.l - (e.clientX - dr.x); sc.scrollTop = dr.t - (e.clientY - dr.y); });
+  const fin = () => { dr = null; sc.classList.remove('arr'); };
+  sc.addEventListener('pointerup', fin); sc.addEventListener('pointercancel', fin);
 }
 $('#fCerrar').onclick = cerrarFactura;
 $('#factDlg').addEventListener('close', () => { if (fUrl) { URL.revokeObjectURL(fUrl); fUrl = null; } });
@@ -1452,15 +1502,16 @@ $('#fGuardar').onclick = async () => {
   if (!fReg) return;
   const v = id => $('#' + id).value.trim(), nn = id => { const x = v(id); return x === '' ? null : num(x); };
   const cambios = { factura: v('fFactura') || null, importe: nn('fImporte') };
+  const est = $('#fEstado'), txt = est.querySelector('span'), avisar = t => { est.hidden = false; est.className = 'fd-ley err'; txt.textContent = t; };
   if (facturaCambio(cambios.factura, fReg)) {
-    $('#fGuardar').disabled = true; const o = await facturaRepetida(cambios.factura, fReg.id); $('#fGuardar').disabled = false;
-    if (o) { $('#fEstado').className = 'aviso'; $('#fEstado').textContent = textoRepetida(cambios.factura, o) + ' Corrige el número para poder guardar.'; return; }
+    $('#fGuardar').disabled = true; const o = await facturaRepetida(cambios.factura, fReg.id);
+    fDup = o; fPintar(false); if (o) return;
   }
   $('#fGuardar').disabled = true;
   marcarMio(fReg.id);
   const { error } = await sb.from('envios').update(cambios).eq('id', fReg.id);
   $('#fGuardar').disabled = false;
-  if (error) { $('#fEstado').className = 'aviso'; $('#fEstado').textContent = 'No se pudo guardar: ' + error.message; return; }
+  if (error) return avisar('No se pudo guardar: ' + error.message);
   Object.assign(fReg, cambios); cerrarFactura(); flash($('#rMsg'), 'Datos de la factura guardados', 'ok');
   repintarFila(fReg); contarEstados(); pintarResumenRegistros(); rmSync(fReg);
 };
