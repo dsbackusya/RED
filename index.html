@@ -535,7 +535,7 @@
   .rx-seg button { padding:6px 16px; border-radius:8px; font-size:13.5px; color:var(--mut); display:inline-flex; align-items:center; gap:7px; white-space:nowrap; border:0; background:none; cursor:pointer; font:inherit; font-size:13.5px }
   .rx-seg button b { font-weight:600; color:var(--mut); font-variant-numeric:tabular-nums } .rx-seg button:hover:not(.on) { color:var(--ink) }
   .rx-seg button.on { background:#fff; color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.14), 0 0 0 .5px rgba(0,0,0,.04); font-weight:600 } .rx-seg button.on b { color:var(--ink) }
-  .rx-seg .sh { display:none } .rx-filbtn em[hidden] { display:none !important }
+  .rx-seg .rx-s { display:none } .rx-filbtn em[hidden] { display:none !important }
   .rx-seg i { width:6px; height:6px; border-radius:50%; background:#f59e0b }
   .rx-sp { flex:1 }
   .rx-busca { position:relative; width:260px; transition:width .18s } .rx-busca:focus-within { width:380px }
@@ -574,8 +574,9 @@
   .rest { position:relative; display:inline-block; min-width:140px }
   .rest .lb { font-size:12.5px; font-weight:600 } .rest .lb.ok { color:var(--ok) } .rest .lb.w { color:var(--warn) } .rest .lb.e { color:var(--pri) }
   .rest .bar { display:flex; gap:3px; margin-top:6px } .rest .bar i { flex:1; height:4px; border-radius:99px; background:#e0e0e6 } .rest .bar i.h { background:#34c759 } .rest .bar i.n { background:#f59e0b } .rest .bar i.v { background:var(--pri) }
-  .rest .tip { display:none; position:absolute; z-index:5; left:0; top:100%; margin-top:6px; background:#1d1d1f; color:#fff; border-radius:12px; padding:10px 12px; font-size:12px; width:190px; box-shadow:0 10px 30px rgba(0,0,0,.25) }
-  .rest:hover .tip { display:block } .rest .tip div { display:flex; justify-content:space-between; padding:2px 0 } .rest .tip .y { color:#7ee2a0 } .rest .tip .n { color:#ffb86b }
+  .rest .tip { display:none }
+  .rtip { position:fixed; z-index:80; width:190px; background:#1d1d1f; color:#fff; border-radius:12px; padding:10px 12px; font-size:12px; box-shadow:0 10px 30px rgba(0,0,0,.25); pointer-events:none } .rtip[hidden] { display:none }
+  .rtip div { display:flex; justify-content:space-between; padding:2px 0 } .rtip .y { color:#7ee2a0 } .rtip .n { color:#ffb86b }
   #rTabla .acc { display:flex; align-items:center; gap:4px; justify-content:flex-end }
   .rib { border:0; background:none; color:var(--mut); cursor:pointer; padding:7px; border-radius:8px; display:inline-grid; place-items:center } .rib:hover { background:var(--head); color:var(--ink) } .rib svg { width:18px; height:18px }
   .rmenu { position:fixed; z-index:70; background:#fff; border-radius:12px; padding:5px; min-width:180px; box-shadow:0 10px 34px rgba(0,0,0,.2) } .rmenu[hidden] { display:none }
@@ -594,7 +595,7 @@
   }
   @media (min-width:1500px) { #rTabla th[data-c=nodo] { width:19% } }
   @media (max-width:760px) {
-    .rx-seg .lg { display:none } .rx-seg .sh { display:inline }
+    .rx-seg .rx-l { display:none } .rx-seg .rx-s { display:inline }
     .rx-bar { gap:10px } .rx-seg { display:flex; width:100% } .rx-seg button { flex:1; justify-content:center; padding:7px 2px; font-size:12.5px; gap:4px } .rx-seg i { display:none }
     .rx-sp { display:none } .rx-busca, .rx-busca:focus-within { flex:1; width:auto }
     .rx-filbtn { display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 12px; border:0; border-radius:10px; background:#e9e9ee; font:inherit; font-size:13.5px; color:var(--ink); cursor:pointer; min-height:0 } .rx-filbtn svg { width:15px; height:15px } .rx-filbtn.set { background:#e8f1fc; color:var(--pri); font-weight:600 }
@@ -981,6 +982,7 @@
   <button data-tab="kpis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg><span>Costos</span></button>
   <button data-tab="detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M10 10v9"/></svg><span>Detalle</span></button>
 </div>
+<div class="rtip" id="rTip" hidden></div>
 <div class="rmenu" id="rMenu" hidden><button type="button" data-del="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg><span>Eliminar registro</span></button></div>
 <dialog id="rFilDlg"><div class="in">
   <div class="rf-h"><b>Filtros</b><button type="button" id="rfQuitar">Quitar todos</button></div>
@@ -1456,7 +1458,7 @@ function pintarResumenRegistros() {
   const d = regBase, imp = a => a.reduce((s, r) => s + (Number(r.importe) || 0), 0), conImp = r => Number(r.importe) > 0;
   const L = d.filter(regTerminado), E = d.filter(regEnviado), F = d.filter(r => !regListo(r) && !regEnviado(r));
   $('#rSeg').innerHTML = [['', 'Todos', 'Todos', d.length], ['term', 'Listos para liquidar', 'Listos', L.length], ['pend', 'Faltan datos', 'Faltan', F.length], ['env', 'Enviados', 'Enviados', E.length]]
-    .map(([e, t, c, n]) => `<button type="button" role="tab" data-e="${e}" aria-selected="${estadoReg === e}" class="${estadoReg === e ? 'on' : ''}"><span class="lg">${t}</span><span class="sh">${c}</span> <b>${n}</b>${e === 'pend' && n ? '<i></i>' : ''}</button>`).join('');
+    .map(([e, t, c, n]) => `<button type="button" role="tab" data-e="${e}" aria-selected="${estadoReg === e}" class="${estadoReg === e ? 'on' : ''}"><span class="rx-l">${t}</span><span class="rx-s">${c}</span> <b>${n}</b>${e === 'pend' && n ? '<i></i>' : ''}</button>`).join('');
   const R = registros, n = R.length, per = `<span class="mper"> · ${esc(textoPeriodo())}</span>`;
   let t;
   if (!n && estadoReg === 'env') t = 'Ningún registro enviado en este rango';
@@ -1571,6 +1573,15 @@ $('#rTabla').addEventListener('change', async e => {
   const r = regBase.find(x => x.id === tr.dataset.id); if (r) r[f] = v;
   flash($('#rMsg'), 'Guardado', 'ok');
 });
+// detalle de pasos al pasar el mouse por el estado: flota fuera de la tabla para no crear barras de desplazamiento
+const rTip = $('#rTip'), ocultarTip = () => { rTip.hidden = true; };
+$('#rTabla').addEventListener('mouseover', e => {
+  const r = e.target.closest('.rest'); if (!r) return ocultarTip();
+  rTip.innerHTML = r.querySelector('.tip').innerHTML; rTip.hidden = false;
+  const b = r.getBoundingClientRect(), h = rTip.offsetHeight; let top = b.bottom + 6; if (top + h > innerHeight - 8) top = b.top - h - 6;
+  rTip.style.top = Math.max(8, top) + 'px'; rTip.style.left = Math.max(8, Math.min(b.left, innerWidth - 198)) + 'px';
+});
+$('#rTabla').addEventListener('mouseleave', ocultarTip); window.addEventListener('scroll', ocultarTip, true);
 const rMenu = $('#rMenu'), cerrarMenu = () => { rMenu.hidden = true; rMenu.dataset.id = ''; };
 async function borrarRegistro(id) {
   const r = regBase.find(x => x.id === id);
