@@ -510,6 +510,16 @@
   .mfil { display:none !important }
   @media (max-width:760px) { .mfil { display:inline-flex !important } #tab-kpis > .card:has(.fb) { display:none } #tab-kpis.fopen > .card:has(.fb) { display:block } }
   @media (max-width:760px) { #kTabla td[data-c=pago] { grid-column:1/-1 } #kTabla .b.sec { color:var(--bad); background:var(--badbg); min-height:40px } }
+  #zTabla td input { min-width:200px } #zTabla td input.vacia { background:var(--warnbg) } #zTabla td[data-c=n] { color:var(--mut); font-size:13px } #zTabla td[data-c=del] { text-align:right }
+  @media (max-width:760px) {
+    .tw:has(#zTabla) { max-height:none !important; overflow:visible; border:0; background:none; border-radius:0 }
+    #zTabla, #zTabla tbody { display:block; background:none } #zTabla tr:not([data-n]) { display:block; padding:16px 4px; color:var(--mut) } #zTabla tr:has(th) { display:none } #tab-zonas .row > .b { white-space:nowrap; flex:1 1 150px }
+    #zTabla tr[data-n] { display:grid; grid-template-columns:1fr auto; gap:10px 12px; align-items:center; background:var(--card); border-radius:18px; padding:14px 16px; margin-bottom:10px }
+    #zTabla td { display:block; padding:0; border:0; white-space:normal; background:none !important } #zTabla td[data-c=nodo] { font-size:18px }
+    #zTabla td[data-c=zona] { grid-column:1/-1; order:3 } #zTabla td[data-c=del] { grid-column:1/-1; order:4 } #zTabla td[data-c=del]:empty { display:none }
+    #zTabla td input { width:100% !important; min-width:0 !important; background:var(--head); border:0; padding:10px 12px; font-size:16px } #zTabla td input.vacia { background:var(--warnbg) }
+    #zForm > * { flex:1 1 100% }
+  }
   @media (max-width:760px) { .top:has(> h1) { flex-direction:column; align-items:flex-start; gap:4px } #tab-detalle .row > * { flex:1 1 100% } #tab-detalle .tw { max-height:60vh } }
   @media (max-width:760px) { #dstDlg .fgrid label:nth-child(2), #dstDlg .fgrid label:nth-child(3) { grid-column:1/-1 } }
   @media (max-width:760px) { .ktabs { display:flex; flex-wrap:nowrap; width:100%; overflow-x:auto; scroll-snap-type:x proximity } .ktabs button { flex:0 0 auto; white-space:nowrap } }
@@ -709,6 +719,7 @@
     <button data-tab="liquidaciones">Liquidaciones</button>
     <button data-tab="kpis">Costos</button>
     <button data-tab="detalle">Detalle</button>
+    <button data-tab="zonas">Zonas</button>
   </nav>
   <span class="estado" id="estado"><span></span></span>
   <div class="busca"><input id="topSearch" type="search" placeholder="Buscar nodo" aria-label="Buscar nodo en Registros"></div>
@@ -733,7 +744,7 @@
         <ul>
           <li>Hojas <b>DESPACHO</b> y <b>RECOJOS</b>: columnas FECHA, NODO, PEDIDOS, BULTO, CAJAS, TRANSPORTE, PLACA, AGENCIA, MODO DE PAGO (CONTADO o CREDITO) y ZONA.</li>
           <li>Hoja <b>DETALLE</b>: una fila por bulto del despacho.</li>
-          <li>Puedes subir solo las hojas que necesites. La FECHA puede ir vacía: se usa la fecha de arriba. Si la ZONA va vacía, se completa con la última zona que tuvo ese nodo. Lo que falte lo completas en la pantalla de revisión.</li>
+          <li>Puedes subir solo las hojas que necesites. La FECHA puede ir vacía: se usa la fecha de arriba. Si la ZONA va vacía, se completa con la que tenga ese nodo en Zonas. Lo que falte lo completas en la pantalla de revisión.</li>
         </ul>
       </details>
       <div id="cMsg" class="msg"></div>
@@ -851,7 +862,7 @@
   </div>
   <div id="kp-zona" class="hide">
     <div class="card"><h3>Costo por transporte</h3><div class="tw"><table id="kpTrans"></table></div></div>
-    <div class="card"><h3>Costo por zona</h3><p class="hint">La zona se carga con cada registro.</p><div id="zonaBarras"></div></div>
+    <div class="card"><h3>Costo por zona</h3><p class="hint">La zona de cada nodo se define en Zonas.</p><div id="zonaBarras"></div></div>
     <div class="card"><h3>Tarifa por caja según transporte y zona</h3><p class="hint">Costo dividido entre cajas. Las celdas más oscuras son las rutas más caras por caja.</p><div class="tw" style="max-height:none"><table class="mx" id="zonaMx"></table></div></div>
   </div>
   <div id="kp-cal" class="hide"><div class="card"><h3>Calidad de datos</h3><p class="hint">Los KPIs son confiables en la medida en que los registros estén completos. Cada punto lleva a la pantalla donde se corrige.</p><div id="calList"></div></div></div>
@@ -904,6 +915,28 @@
   <div class="tw"><table id="qTabla"></table></div>
 </section>
 
+<section id="tab-zonas" class="hide">
+  <div class="top"><div><h1>Zonas</h1><div class="sub">A qué zona pertenece cada nodo. Se usa al cargar despachos y recojos</div></div></div>
+  <div class="card">
+    <div class="row" style="align-items:flex-end">
+      <label>Buscar nodo<input id="zBuscar" type="search" placeholder="Nombre del nodo"></label>
+      <div class="pseg" id="zSeg"><button data-f="" class="on">Todos <small id="nZt"></small></button><button data-f="falta">Sin zona <small id="nZf"></small></button></div>
+      <button class="b sec" id="zBajar">Descargar Excel</button>
+      <button class="b sec" id="zSubir">Cargar Excel</button>
+    </div>
+    <form class="row" id="zForm" autocomplete="off" style="align-items:flex-end;margin-top:14px">
+      <label>Nodo<input id="zNodo" placeholder="Ej. HUANCAVELICA" required></label>
+      <label>Zona<input id="zZona" list="dlZonas" placeholder="Ej. CENTRO" required></label>
+      <button class="b" type="submit">Agregar nodo</button>
+    </form>
+    <p class="hint" id="zHint">El Excel lleva dos columnas, NODO y ZONA. Al cargarlo, la zona de esos nodos se actualiza también en los registros ya guardados.</p>
+    <div id="zMsg" class="msg"></div>
+  </div>
+  <input type="file" id="zFile" accept=".xlsx,.xls,.csv" class="hide">
+  <datalist id="dlZonas"></datalist>
+  <div class="tw"><table id="zTabla"></table></div>
+</section>
+
 </div></main>
 </div></div>
 
@@ -913,6 +946,7 @@
   <button data-tab="liquidaciones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/></svg><span>Liquidar</span></button>
   <button data-tab="kpis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg><span>Costos</span></button>
   <button data-tab="detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M10 10v9"/></svg><span>Detalle</span></button>
+  <button data-tab="zonas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Zonas</span></button>
 </div>
 <dialog id="regDlg"><form id="rmF" autocomplete="off">
   <div class="rm-h">
@@ -1051,20 +1085,123 @@ async function mostrarApp(user) {
 }
 window.addEventListener('hashchange', () => { const t = location.hash.slice(1).split('?')[0].replace(/^hrn$/, 'detalle'); if (TITULOS[t]) irA(t); });
 
-const TITULOS = { cargar: 'Cargar despacho', registros: 'Registros', kpis: 'Costos', liquidaciones: 'Liquidaciones', detalle: 'Detalle' };
+const TITULOS = { cargar: 'Cargar despacho', registros: 'Registros', kpis: 'Costos', liquidaciones: 'Liquidaciones', detalle: 'Detalle', zonas: 'Zonas' };
 const irA = tab => document.querySelector(`nav button[data-tab="${tab}"]`).click();
 const NAVB = 'nav button, .tabbar button[data-tab]';
 document.querySelectorAll(NAVB).forEach(b => b.onclick = () => {
   document.querySelectorAll(NAVB).forEach(x => x.classList.toggle('on', x.dataset.tab === b.dataset.tab));
-  ['cargar','registros','liquidaciones','kpis','detalle'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
+  ['cargar','registros','liquidaciones','kpis','detalle','zonas'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== b.dataset.tab));
   document.title = TITULOS[b.dataset.tab] + ' – Red Troncal';
   history.replaceState(null, '', '#' + b.dataset.tab); try { localStorage.setItem('tab', b.dataset.tab); } catch (e) {}
   scrollTo(0, 0);
   if (b.dataset.tab === 'liquidaciones') lqAbrir();
   if (b.dataset.tab === 'detalle' && !hrnCargado) buscarHrn();
   if (b.dataset.tab === 'kpis') calcularKpis();
+  if (b.dataset.tab === 'zonas') zCargar();
 });
 function conexion(ok) { $('#estado').className = 'estado' + (ok ? '' : ' mal'); $('#estado span').textContent = ok ? '' : 'Sin conexión con la base de datos'; }
+
+// ---------- Zonas: maestro de nodo -> zona ----------
+let zRows = [], zFiltro = '';   // { nodo, zona, n (registros), enMaestro }
+const zErr = e => /zonas_nodo|schema cache|does not exist/i.test(e.message || '') ? 'Falta ejecutar supabase_zonas_nodo.sql en Supabase.' : (e.message || String(e));
+const zNorm = v => String(v ?? '').trim().toUpperCase().replace(/\s+/g, ' ');
+async function zCargar() {
+  try {
+    const [m, e] = await Promise.all([traerTodo(() => sb.from('zonas_nodo').select('nodo,zona').order('nodo')), traerTodo(() => sb.from('envios').select('nodo').order('id'))]);
+    const mapa = new Map(m.map(r => [r.nodo, { nodo: r.nodo, zona: r.zona, n: 0, enMaestro: true }]));
+    e.forEach(r => { const k = norm(r.nodo); if (!mapa.has(k)) mapa.set(k, { nodo: k, zona: '', n: 0, enMaestro: false }); mapa.get(k).n++; });
+    zRows = [...mapa.values()].sort((a, b) => a.nodo.localeCompare(b.nodo)); $('#zMsg').className = 'msg';
+  } catch (err) { zRows = []; flash($('#zMsg'), zErr(err), 'err'); }
+  zPintar();
+}
+function zPintar() {
+  const q = norm($('#zBuscar').value);
+  $('#nZt').textContent = zRows.length; $('#nZf').textContent = zRows.filter(r => !r.zona).length;
+  document.querySelectorAll('#zSeg button').forEach(b => b.classList.toggle('on', b.dataset.f === zFiltro));
+  $('#dlZonas').innerHTML = [...new Set(zRows.map(r => r.zona).filter(Boolean))].sort().map(z => `<option value="${esc(z)}">`).join('');
+  const vis = zRows.filter(r => (!q || r.nodo.includes(q)) && (zFiltro !== 'falta' || !r.zona));
+  $('#zTabla').innerHTML = vis.length ? '<tr><th>Nodo</th><th>Zona</th><th>Registros</th><th></th></tr>' + vis.map(r => `<tr data-n="${esc(r.nodo)}">
+      <td data-c="nodo"><b>${esc(r.nodo)}</b></td>
+      <td data-c="zona" data-l="Zona"><input data-f="zona" list="dlZonas" class="${r.zona ? '' : 'vacia'}" value="${esc(r.zona)}" placeholder="SUR, CENTRO…"></td>
+      <td data-c="n">${r.n ? `${r.n} ${r.n === 1 ? 'registro' : 'registros'}` : ''}</td>
+      <td data-c="del">${r.enMaestro ? '<button class="b sec" data-del="1">Quitar</button>' : ''}</td></tr>`).join('')
+    : `<tr><td>${zRows.length ? 'Ningún nodo coincide con la búsqueda.' : 'Aún no hay nodos. Agrégalos arriba o carga un Excel con las columnas NODO y ZONA.'}</td></tr>`;
+}
+// pone la zona del maestro en los registros de esos nodos que la tengan vacía o distinta; devuelve cuántos cambió
+async function zAplicar(nodos, zona) {
+  let n = 0;
+  for (let i = 0; i < nodos.length; i += 100) {
+    const lote = nodos.slice(i, i + 100);
+    for (const filtro of [q => q.is('zona', null), q => q.neq('zona', zona)]) {
+      const { count, error } = await filtro(sb.from('envios').update({ zona }, { count: 'exact' }).in('nodo', lote));
+      if (error) throw error; n += count || 0;
+    }
+  }
+  return n;
+}
+$('#zBuscar').addEventListener('input', zPintar);
+$('#zSeg').onclick = e => { const b = e.target.closest('button'); if (b) { zFiltro = b.dataset.f; zPintar(); } };
+$('#zTabla').addEventListener('change', async e => {
+  const tr = e.target.closest('tr[data-n]'); if (!tr || e.target.dataset.f !== 'zona') return;
+  const nodo = tr.dataset.n, zona = zNorm(e.target.value), r = zRows.find(x => x.nodo === nodo);
+  if (!zona) { e.target.value = r.zona; return; }
+  if (zona === r.zona) { e.target.value = zona; return; }
+  const { error } = await sb.from('zonas_nodo').upsert({ nodo, zona }, { onConflict: 'nodo' });
+  if (error) { e.target.value = r.zona; return flash($('#zMsg'), zErr(error), 'err'); }
+  let cambiados = 0; try { cambiados = await zAplicar([nodo], zona); } catch (err) { flash($('#zMsg'), 'La zona se guardó, pero no se pudo actualizar en los registros: ' + zErr(err), 'err'); }
+  r.zona = zona; r.enMaestro = true; zPintar(); toast(`${nodo}: zona ${zona}` + (cambiados ? `, actualizada en ${cambiados} ${cambiados === 1 ? 'registro' : 'registros'}` : ''));
+});
+$('#zTabla').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-del]'); if (!b) return;
+  const nodo = b.closest('tr').dataset.n;
+  if (!await confirmar(`¿Quitar ${nodo}?`, 'Se quita de la lista de zonas. Los registros ya cargados conservan su zona.', 'Quitar', true)) return;
+  const { error } = await sb.from('zonas_nodo').delete().eq('nodo', nodo);
+  if (error) return flash($('#zMsg'), zErr(error), 'err');
+  toast(nodo + ' quitado'); zCargar();
+});
+$('#zForm').onsubmit = async e => {
+  e.preventDefault();
+  const nodo = norm($('#zNodo').value), zona = zNorm($('#zZona').value); if (!nodo || !zona) return;
+  const { error } = await sb.from('zonas_nodo').upsert({ nodo, zona }, { onConflict: 'nodo' });
+  if (error) return flash($('#zMsg'), zErr(error), 'err');
+  let cambiados = 0; try { cambiados = await zAplicar([nodo], zona); } catch (err) { /* los registros se completan al cargar */ }
+  $('#zForm').reset(); $('#zNodo').focus(); toast(`${nodo}: zona ${zona}` + (cambiados ? `, actualizada en ${cambiados} ${cambiados === 1 ? 'registro' : 'registros'}` : '')); zCargar();
+};
+$('#zBajar').onclick = async () => {
+  await xlsxLib();
+  const ws = XLSX.utils.aoa_to_sheet([['NODO', 'ZONA'], ...zRows.map(r => [r.nodo, r.zona])]); ws['!cols'] = [{ wch: 24 }, { wch: 18 }];
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'ZONAS'); XLSX.writeFile(wb, 'zonas.xlsx');
+};
+function zLeer(wb) {
+  const filas = new Map(); let omitidas = 0;
+  for (const n of wb.SheetNames) {
+    const f = XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, defval: '', raw: true });
+    const hi = f.findIndex(x => x.some(c => ['NODO', 'NODOS'].includes(norm(c))) && x.some(c => norm(c) === 'ZONA')); if (hi < 0) continue;
+    const h = f[hi].map(norm), iN = h.findIndex(x => x === 'NODO' || x === 'NODOS'), iZ = h.indexOf('ZONA');
+    f.slice(hi + 1).forEach(x => { const nodo = norm(x[iN]); if (!nodo) return; const zona = zNorm(x[iZ]); zona ? filas.set(nodo, zona) : omitidas++; });
+    break;
+  }
+  return { filas, omitidas };
+}
+$('#zSubir').onclick = () => $('#zFile').click();
+$('#zFile').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    await xlsxLib(); const { filas, omitidas } = zLeer(XLSX.read(await f.arrayBuffer(), { type: 'array' }));
+    if (!filas.size) return flash($('#zMsg'), 'No encontré nodos con zona. El Excel necesita las columnas NODO y ZONA: descárgalo con «Descargar Excel» y complétalo.', 'err');
+    const actual = new Map(zRows.filter(r => r.enMaestro).map(r => [r.nodo, r.zona]));
+    let nuevos = 0, cambian = 0, iguales = 0; filas.forEach((z, n) => { if (!actual.has(n)) nuevos++; else if (actual.get(n) !== z) cambian++; else iguales++; });
+    const regs = await traerTodo(() => sb.from('envios').select('nodo,zona').order('id'));
+    const aTocar = regs.filter(r => filas.has(norm(r.nodo)) && r.zona !== filas.get(norm(r.nodo))).length;
+    const partes = [nuevos && `${nuevos} ${nuevos === 1 ? 'nodo nuevo' : 'nodos nuevos'}`, cambian && `${cambian} ${cambian === 1 ? 'cambia' : 'cambian'} de zona`, iguales && `${iguales} sin cambios`].filter(Boolean).join(', ');
+    if (!await confirmar('Cargar el Excel de zonas', `${partes}.` + (aTocar ? ` Se actualizará la zona de ${aTocar} ${aTocar === 1 ? 'registro ya guardado' : 'registros ya guardados'}.` : ' Los registros guardados ya tienen esas zonas.') + (omitidas ? ` ${omitidas} ${omitidas === 1 ? 'fila sin zona se omite' : 'filas sin zona se omiten'}.` : ''), 'Cargar')) return;
+    const lista = [...filas].map(([nodo, zona]) => ({ nodo, zona }));
+    for (let i = 0; i < lista.length; i += 200) { const { error } = await sb.from('zonas_nodo').upsert(lista.slice(i, i + 200), { onConflict: 'nodo' }); if (error) return flash($('#zMsg'), zErr(error), 'err'); }
+    const porZona = new Map(); filas.forEach((z, n) => (porZona.get(z) || porZona.set(z, []).get(z)).push(n));
+    let tocados = 0; for (const [z, nodos] of porZona) tocados += await zAplicar(nodos, z);
+    toast(`${lista.length} ${lista.length === 1 ? 'nodo guardado' : 'nodos guardados'}` + (tocados ? ` y ${tocados} ${tocados === 1 ? 'registro actualizado' : 'registros actualizados'}` : '')); zCargar();
+  } catch (err) { flash($('#zMsg'), 'No se pudo leer el archivo: ' + zErr(err), 'err'); }
+};
 
 // ---------- carga ----------
 $('#cPlantilla').onclick = async () => {
@@ -1142,17 +1279,18 @@ async function leerArchivo(f) {
     const filas = leerTabla(wb); hrnCarga = leerHrn(wb);
     if (!filas && !hrnCarga) return flash($('#cMsg'), 'No encontré filas en las hojas DESPACHO, RECOJOS o DETALLE. Descarga la plantilla y completa esas hojas.', 'err');
     previa = (filas || []).map(r => ({ ...r, agencia: r.agencia || '', modo_pago: r.pago || '', zona: r.zona || '', detalle_gasto: detalleGasto(r) }));
-    let rellenas = 0;   // la zona vacía se completa con la última que tuvo ese nodo en los registros guardados
+    let rellenas = 0;   // la zona vacía se completa con el maestro de Zonas y, si el nodo no está, con la última que tuvo en los registros
     try {
       const conocidas = new Map();
-      (await traerTodo(() => sb.from('envios').select('nodo,zona').not('zona', 'is', null).order('fecha', { ascending: false }).order('id'))).forEach(x => { const k = norm(x.nodo); if (!conocidas.has(k)) conocidas.set(k, x.zona); });
+      try { (await traerTodo(() => sb.from('zonas_nodo').select('nodo,zona').order('nodo'))).forEach(x => conocidas.set(x.nodo, x.zona)); } catch (e) { /* aún sin el maestro: se usa el historial */ }
+      (await traerTodo(() => sb.from('envios').select('nodo,zona').not('zona', 'is', null).order('fecha', { ascending: false }).order('id'))).forEach(x => { const k = norm(x.nodo); if (!conocidas.has(k)) conocidas.set(k, x.zona); });   // el maestro de Zonas manda; el historial solo completa lo que falte
       previa.forEach(r => { if (!r.zona && conocidas.has(norm(r.nodo))) { r.zona = conocidas.get(norm(r.nodo)); rellenas++; } });
     } catch (e) { /* sin conexión o sin la columna: la zona se escribe a mano */ }
     const cuenta = {}; previa.forEach(r => { if (r.fecha) cuenta[r.fecha] = (cuenta[r.fecha] || 0) + 1; });
     const masUsada = Object.keys(cuenta).sort((a, b) => cuenta[b] - cuenta[a] || (a < b ? -1 : 1))[0]; if (masUsada) $('#cFecha').value = masUsada;   // el Detalle y las filas sin FECHA usan la más repetida
     cArchivo = { nombre: f.name, kb: Math.max(1, Math.round(f.size / 1024)) }; cFiltro = ''; listaAgencias();
     $('#cMsg').className = 'msg'; setPaso(2); pintarPrevia();
-    if (rellenas) toast(`Zona completada en ${rellenas} ${rellenas === 1 ? 'fila' : 'filas'} con lo ya registrado`);
+    if (rellenas) toast(`Zona completada en ${rellenas} ${rellenas === 1 ? 'fila' : 'filas'} según el maestro de Zonas`);
   } catch (err) { flash($('#cMsg'), 'No se pudo leer el archivo: ' + err.message, 'err'); }
 }
 $('#cFile').onchange = e => { const f = e.target.files[0]; if (f) leerArchivo(f); };
@@ -1967,7 +2105,7 @@ function calidadKpi(R, envios) {
     item('', '#fffbeb', 'Con N° de factura', `${fmt(sinFac.reduce((s, e) => s + (Number(e.importe) || 0), 0))} aún sin número de factura.`, sinFac.length, 'registros', 'Completar en Registros') +
     item('', '', 'Con foto de factura adjunta', 'La lectura automática rellena factura e importe desde la foto.', sinAdj.length, 'registros', 'Adjuntar fotos') +
     item('', '#fef2f2', 'Con agencia asignada', `${esc([...new Set(sinAg.map(e => e.nodo))].join(', ') || 'Todos los nodos tienen agencia')}${sinAg.length ? ': completa la agencia en Registros.' : '.'}`, sinAg.length, 'registros', 'Ir a Registros') +
-    item('', '', 'Con zona', 'Necesaria para el análisis por zona y la matriz transporte × zona. Se completa con Editar en Registros.', sinZona.length, 'registros', 'Ir a Registros') +
+    item('', '', 'Con zona', 'Necesaria para el análisis por zona y la matriz transporte × zona. Se define en Zonas.', sinZona.length, 'zonas', 'Ir a Zonas') +
     `<div class="cq-i"><div class="tx"><b>Importe repartido entre cuentas</b><span>${R.sinHrn ? `${fmt(R.sinHrn)} sin cuenta: falta el detalle de ${R.sinHrnNodos.size} ${R.sinHrnNodos.size === 1 ? 'nodo' : 'nodos'}.` : 'Todo el costo está asignado a una cuenta.'}</span></div><div class="mt"><div class="tr"><i style="width:${hrnPc}%;background:${hrnPc >= 95 ? 'var(--grn)' : 'var(--amb)'}"></i></div><small>${hrnPc.toFixed(0)}% asignado</small></div><button class="b sec" data-go="detalle">Cargar detalle</button></div>`;
   $('#dotCal').className = (sinImp.length || sinFac.length || sinAdj.length || sinAg.length || sinZona.length || R.sinHrn) ? 'dotw' : '';
 }
