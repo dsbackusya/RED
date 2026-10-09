@@ -1536,12 +1536,15 @@ function pintarResumen(R, dias, prev, envios) {
 $('#kgAl').addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) irA(g.dataset.go); });
 // camión en video con fondo transparente: va y vuelve sobre los cuadros buenos (el 40 trae un parche de fondo y se descarta)
 const KG_CAM = { fps: 12, buenos: [...Array(60).keys()].filter(i => i !== 40), raf: 0, io: null };
+// iPhone, iPad y Safari no muestran el video WebM con transparencia (ni lo cargan solos): ahí va la foto
+const kgSinAlfa = () => { const u = navigator.userAgent; return /iP(hone|ad|od)/.test(u) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || (/Safari/.test(u) && !/Chrome|Chromium|Edg|OPR|Android/.test(u)); };
 function kgCamion() {
   cancelAnimationFrame(KG_CAM.raf); if (KG_CAM.io) KG_CAM.io.disconnect();
   const st = document.querySelector('#kgrid .kg-stage'), v = st && st.querySelector('video'); if (!v) return;
   const B = KG_CAM.buenos, N = B.length, reducir = matchMedia('(prefers-reduced-motion:reduce)').matches; let visible = true, ult = -1;
   const foto = () => { cancelAnimationFrame(KG_CAM.raf); if (KG_CAM.io) KG_CAM.io.disconnect(); st.innerHTML = '<div class="kg-refl"></div><img class="kg-foto" src="camion.webp" alt="">'; };   // sin video con transparencia (p. ej. Safari) se usa la foto
-  if (!v.canPlayType('video/webm; codecs="vp9"') && !v.canPlayType('video/webm; codecs="vp8"')) return foto();
+  if (kgSinAlfa() || (!v.canPlayType('video/webm; codecs="vp9"') && !v.canPlayType('video/webm; codecs="vp8"'))) return foto();
+  setTimeout(() => { if (st.contains(v) && !v.classList.contains('lista')) foto(); }, 3500);   // si el video no llega a cargar, se muestra la foto
   const mostrar = k => { if (k === ult) return; ult = k; v.currentTime = (B[k] + .5) / KG_CAM.fps; };
   const alfaOk = () => { try { const c = document.createElement('canvas'); c.width = c.height = 8; const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(v, 0, 0, 8, 8); return x.getImageData(0, 0, 1, 1).data[3] < 250; } catch (e) { return false; } };
   v.addEventListener('error', foto); v.querySelector('source').addEventListener('error', foto);
