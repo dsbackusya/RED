@@ -934,7 +934,7 @@ function hrnConsultaQ(cols, conteo) {
   if ($('#qDesde').value) q = q.gte('fecha_reporte', $('#qDesde').value);
   if ($('#qHasta').value) q = q.lte('fecha_reporte', $('#qHasta').value);
   if ($('#qNodo').value.trim()) q = q.ilike('nodo', '%' + $('#qNodo').value.trim() + '%');
-  const t = $('#qPed').value.trim().replace(/[,()]/g, '');
+  const t = $('#qPed').value.trim().replace(/[,()*%\\]/g, ' ').trim();
   if (t) q = q.or(rec ? `nro_pedido.ilike.%${t}%,nro_referencia.ilike.%${t}%,guia.ilike.%${t}%` : `pedido_cliente.ilike.%${t}%,lpn.ilike.%${t}%`);
   return q;
 }

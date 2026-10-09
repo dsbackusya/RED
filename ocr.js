@@ -167,7 +167,7 @@ window.OCR = (() => {
   }
 
   async function obtenerWorker(progreso) {
-    if (!window.Tesseract) await cargarScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+    if (!window.Tesseract) await cargarScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
     if (!worker) worker = await window.Tesseract.createWorker('spa', 1, {
       langPath: 'https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast@main', gzip: false,   // modelo "fast": ~1 MB en vez de ~8 MB
       logger: m => progreso && m.status && progreso(m.status, m.progress) });
