@@ -113,7 +113,7 @@ function conexion(ok) { $('#estado').className = 'estado' + (ok ? '' : ' mal'); 
 $('#cPlantilla').onclick = async () => {
   await xlsxLib();
   const wb = XLSX.utils.book_new(), cab = ['FECHA', 'NODO', 'PEDIDOS', 'BULTO', 'CAJAS', 'TRANSPORTE', 'PLACA', 'AGENCIA', 'MODO DE PAGO', 'ZONA'];
-  [['DESPACHO', cab], ['RECOJOS', cab], ['DETALLE', ['FECHA', ...HRN_COLS.map(c => c[1])]]].forEach(([n, h]) => {
+  [['DESPACHO', cab], ['RECOJOS', cab], ['DETALLE', ['FECHA', ...HRN_COLS.map(c => c[1])]], ['DETALLE RECOJOS', ['FECHA', ...RC_COLS.map(c => c[1])]]].forEach(([n, h]) => {
     const ws = XLSX.utils.aoa_to_sheet([h]); ws['!cols'] = h.map(x => ({ wch: Math.max(12, x.length + 2) })); XLSX.utils.book_append_sheet(wb, ws, n);
   });
   XLSX.writeFile(wb, 'plantilla_despacho.xlsx');
@@ -165,18 +165,18 @@ function leerTabla(wb) {
 // detalle del gasto automático: "ENVIO DE PEDIDOS X" o "RECOJO DE PEDIDOS X" (se puede editar después en Registros)
 const detalleGasto = r => (r.motivo === 'RECOJO' ? 'RECOJO' : 'ENVIO') + ' DE PEDIDOS ' + r.nodo;
 
-let cArchivo = null, cFiltro = '', cSeq = 0;
+let cArchivo = null, cFiltro = '', cSeq = 0, recDetCarga = null;
 const cFechas = () => [...new Set(previa.map(r => r.fecha).filter(Boolean))].sort();
-const cFechasTodas = () => [...new Set([...previa.map(r => r.fecha), ...(hrnCarga || []).map(r => r.fecha_reporte)].filter(Boolean))].sort();
-const cSinFecha = () => previa.filter(r => !r.fecha).length + (hrnCarga || []).filter(r => !r.fecha_reporte).length;
-const cHojas = () => ({ despacho: previa.some(r => r.motivo === 'DESPACHO'), recojos: previa.some(r => r.motivo === 'RECOJO'), detalle: !!hrnCarga });
+const cFechasTodas = () => [...new Set([...previa.map(r => r.fecha), ...(hrnCarga || []).map(r => r.fecha_reporte), ...(recDetCarga || []).map(r => r.fecha_reporte)].filter(Boolean))].sort();
+const cSinFecha = () => previa.filter(r => !r.fecha).length + (hrnCarga || []).filter(r => !r.fecha_reporte).length + (recDetCarga || []).filter(r => !r.fecha_reporte).length;
+const cHojas = () => ({ despacho: previa.some(r => r.motivo === 'DESPACHO'), recojos: previa.some(r => r.motivo === 'RECOJO'), detalle: !!hrnCarga, recdet: !!recDetCarga });
 function cChips() {
   const h = cArchivo ? cHojas() : null;
   document.querySelectorAll('.chip[data-h]').forEach(c => { const si = h && h[c.dataset.h]; c.className = 'chip' + (h ? (si ? ' si' : ' no') : ''); c.innerHTML = (si ? ICO.check : '') + c.dataset.t; });
 }
 document.querySelectorAll('.chip[data-h]').forEach(c => c.dataset.t = c.textContent);
 function cReiniciar() {
-  cSeq++; previa = []; hrnCarga = null; cArchivo = null; cFiltro = ''; $('#cFile').value = ''; $('#cHojas').classList.add('hide'); $('#cMsg').className = 'msg';
+  cSeq++; previa = []; hrnCarga = null; recDetCarga = null; cArchivo = null; cFiltro = ''; $('#cFile').value = ''; $('#cHojas').classList.add('hide'); $('#cMsg').className = 'msg';
   ['#cPrev', '#cOk', '#cArch', '#cHojas'].forEach(q => $(q).classList.add('hide')); ['#cS1', '#cDrop', '#cPlantilla', '#cHow'].forEach(q => $(q).classList.remove('hide'));
   $('#cBarra').hidden = true; $('#tab-cargar').classList.remove('conbarra'); cChips(); setPaso(1);
 }
@@ -190,8 +190,8 @@ function cContar(el, hasta, ms) {
 // lectura animada: cada hoja se revisa, se marca y muestra cuántas filas trajo; devuelve false si se canceló
 async function cLeer(seq) {
   if (cReducir()) return true;
-  const n = { despacho: previa.filter(r => r.motivo === 'DESPACHO').length, recojos: previa.filter(r => r.motivo === 'RECOJO').length, detalle: hrnCarga ? hrnCarga.length : 0 };
-  const hojas = [['despacho', 'DESPACHO', 'Nodos despachados'], ['recojos', 'RECOJOS', 'Nodos recogidos'], ['detalle', 'DETALLE', 'Bultos con su fecha']];
+  const n = { despacho: previa.filter(r => r.motivo === 'DESPACHO').length, recojos: previa.filter(r => r.motivo === 'RECOJO').length, detalle: hrnCarga ? hrnCarga.length : 0, recdet: recDetCarga ? recDetCarga.length : 0 };
+  const hojas = [['despacho', 'DESPACHO', 'Nodos despachados'], ['recojos', 'RECOJOS', 'Nodos recogidos'], ['detalle', 'DETALLE', 'Bultos con su fecha'], ['recdet', 'DETALLE RECOJOS', 'Pedidos recogidos']];
   $('#cDrop').classList.add('hide'); $('#cPlantilla').classList.add('hide'); $('#cHow').classList.add('hide'); $('#cArch').classList.remove('hide');
   $('#cArchN').textContent = cArchivo.nombre; $('#cArchS').textContent = `${cArchivo.kb} KB, leyendo las hojas`;
   $('#cHojas').innerHTML = hojas.map(([k, t, d]) => `<div class="chj" data-k="${k}"><span class="pt">${ICO.check}</span><div class="t"><b>${t}</b><span>${d}</span></div><div class="num"><b></b></div></div>`).join('');
@@ -207,9 +207,9 @@ async function cLeer(seq) {
 }
 async function leerArchivo(f) {
   try {
-    hrnCarga = null; await xlsxLib(); const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
-    const filas = leerTabla(wb); hrnCarga = leerHrn(wb);
-    if (!filas && !hrnCarga) return flash($('#cMsg'), 'No se encontraron filas en las hojas DESPACHO, RECOJOS o DETALLE. Descarga la plantilla y completa esas hojas.', 'err');
+    hrnCarga = null; recDetCarga = null; await xlsxLib(); const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
+    const filas = leerTabla(wb); hrnCarga = leerHrn(wb); recDetCarga = leerRecojoDet(wb);
+    if (!filas && !hrnCarga && !recDetCarga) return flash($('#cMsg'), 'No se encontraron filas en las hojas DESPACHO, RECOJOS, DETALLE o DETALLE RECOJOS. Descarga la plantilla y completa esas hojas.', 'err');
     previa = (filas || []).map(r => ({ ...r, agencia: r.agencia || '', modo_pago: r.pago || '', zona: r.zona || '', detalle_gasto: detalleGasto(r) }));
     let rellenas = 0;   // la zona vacía se completa con la última que tuvo ese nodo en los registros guardados
     try {
@@ -248,11 +248,12 @@ function pintarPrevia(anim) {
   $('#cArchN').textContent = cArchivo.nombre; $('#cArchS').textContent = `${cArchivo.kb} KB`; cChips();
   const des = previa.filter(r => r.motivo === 'DESPACHO'), rec = previa.filter(r => r.motivo === 'RECOJO'), suma = (a, k) => a.reduce((x, r) => x + (r[k] || 0), 0);
   const cant = a => `${fmtN(suma(a, 'pedidos'))} pedidos, ${fmtN(suma(a, 'bultos'))} bultos, ${fmtN(suma(a, 'cajas'))} cajas`;
-  const nodosDet = hrnCarga ? new Set(hrnCarga.map(r => r.nodo)).size : 0;
+  const nodosDet = hrnCarga ? new Set(hrnCarga.map(r => r.nodo)).size : 0, nodosRec = recDetCarga ? new Set(recDetCarga.map(r => r.nodo)).size : 0;
   $('#cTiles').innerHTML = `
     <div class="ctile${des.length ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Despachos</span><b data-n="${des.length}">${des.length}</b><small>${des.length ? cant(des) : 'Sin filas en este archivo'}</small></div>
     <div class="ctile${rec.length ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Recojos</span><b data-n="${rec.length}">${rec.length}</b><small>${rec.length ? cant(rec) : 'Sin filas en este archivo'}</small></div>
-    <div class="ctile${hrnCarga ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Detalle</span><b data-n="${hrnCarga ? hrnCarga.length : 0}">${hrnCarga ? fmtN(hrnCarga.length) : 0}</b><small>${hrnCarga ? `filas de ${nodosDet} ${nodosDet === 1 ? 'nodo' : 'nodos'}, se agregan a las ya existentes` : 'Sin filas en este archivo'}</small></div>`;
+    <div class="ctile${hrnCarga ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Detalle despacho</span><b data-n="${hrnCarga ? hrnCarga.length : 0}">${hrnCarga ? fmtN(hrnCarga.length) : 0}</b><small>${hrnCarga ? `filas de ${nodosDet} ${nodosDet === 1 ? 'nodo' : 'nodos'}, se agregan a las ya existentes` : 'Sin filas en este archivo'}</small></div>
+    <div class="ctile${recDetCarga ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Detalle recojos</span><b data-n="${recDetCarga ? recDetCarga.length : 0}">${recDetCarga ? fmtN(recDetCarga.length) : 0}</b><small>${recDetCarga ? `pedidos de ${nodosRec} ${nodosRec === 1 ? 'nodo' : 'nodos'}, se agregan a los ya existentes` : 'Sin filas en este archivo'}</small></div>`;
   cAlertar();
   $('#cTarjeta').classList.toggle('hide', !previa.length);
   const hayAmbos = des.length && rec.length;
@@ -273,7 +274,7 @@ function pintarPrevia(anim) {
       <td data-c="pago" data-l="Pago"><select data-f="modo_pago" data-v="${r.modo_pago}" class="${r.modo_pago ? '' : 'vacia'}"><option value=""${r.modo_pago ? '' : ' selected'}>Elegir…</option>${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
       <td data-c="zona" data-l="Zona"><input data-f="zona" value="${esc(r.zona)}" placeholder="SUR, CENTRO…"></td></tr>`).join('');
   $('#cPrev').classList.remove('hide');
-  $('#cBarT').textContent = [des.length && `${des.length} ${des.length === 1 ? 'despacho' : 'despachos'}`, rec.length && `${rec.length} ${rec.length === 1 ? 'recojo' : 'recojos'}`, hrnCarga && `${fmtN(hrnCarga.length)} filas de detalle`].filter(Boolean).join(', ');
+  $('#cBarT').textContent = [des.length && `${des.length} ${des.length === 1 ? 'despacho' : 'despachos'}`, rec.length && `${rec.length} ${rec.length === 1 ? 'recojo' : 'recojos'}`, hrnCarga && `${fmtN(hrnCarga.length)} filas de detalle`, recDetCarga && `${fmtN(recDetCarga.length)} pedidos de detalle de recojos`].filter(Boolean).join(', ');
   const fs = cFechasTodas(), sf = cSinFecha(); $('#cBarS').textContent = (fs.length > 1 ? `Se guardarán con ${fs.length} fechas: del ${fdmy(fs[0])} al ${fdmy(fs[fs.length - 1])}` : fs.length ? `Se guardarán con fecha ${fdmy(fs[0])}` : 'Sin fecha en el archivo') + (sf ? ` · ${sf} ${sf === 1 ? 'fila sin FECHA' : 'filas sin FECHA'}` : '');
   $('#cBarra').hidden = false; $('#tab-cargar').classList.add('conbarra');
   if (anim && !cReducir()) {   // solo al llegar a la revisión: las tarjetas y las filas entran, las cifras suben
@@ -302,11 +303,17 @@ function cMostrarOk(titulo, texto, soloDetalle) {
 }
 const mayus = t => t.charAt(0).toUpperCase() + t.slice(1);
 
+async function cGuardarDetalles() {
+  const t = [];
+  if (hrnCarga) t.push('detalle: ' + hrnTexto(await guardarHrn(hrnCarga)));
+  if (recDetCarga) t.push('detalle de recojos: ' + hrnTexto(await guardarRecojoDet(recDetCarga)));
+  return t.join('; ');
+}
 $('#cGuardar').onclick = async () => {
   if (cSinFecha()) return flash($('#cMsg'), (previa.some(r => !r.fecha) ? 'Hay filas sin fecha. Complétalas en la tabla.' : 'Hay filas del Detalle sin FECHA. Agrégala en el Excel y vuelve a subirlo.'), 'err');
   if (!previa.length) {   // solo detalle
     $('#cGuardar').disabled = true;
-    try { cMostrarOk('Detalle guardado', mayus(hrnTexto(await guardarHrn(hrnCarga))) + '.', true); previa = []; hrnCarga = null; $('#cFile').value = ''; }
+    try { cMostrarOk('Detalle guardado', mayus(await cGuardarDetalles()) + '.', true); previa = []; hrnCarga = null; recDetCarga = null; $('#cFile').value = ''; }
     catch (err) { flash($('#cMsg'), 'No se pudo guardar el detalle: ' + err.message + '. Vuelve a subir el archivo: las filas ya cargadas no se duplicarán.', 'err'); }
     $('#cGuardar').disabled = false; return;
   }
@@ -330,13 +337,13 @@ $('#cGuardar').onclick = async () => {
   if (error) return flash($('#cMsg'), /motivo/.test(error.message) ? 'Falta ejecutar supabase_motivo.sql en Supabase.' : error.message, 'err');
   $('#rDesde').value = fechas[0]; $('#rHasta').value = fechas[fechas.length - 1]; buscarRegistros();
   let detalle = '';
-  if (hrnCarga) {
-    try { detalle = ` Detalle: ${hrnTexto(await guardarHrn(hrnCarga))}.`; }
+  if (hrnCarga || recDetCarga) {
+    try { detalle = ' ' + mayus(await cGuardarDetalles()) + '.'; }
     catch (err) { cReiniciar(); return flash($('#cMsg'), `El despacho se guardó, pero el detalle no: ${err.message}. Vuelve a subir el mismo archivo: las filas del detalle ya cargadas no se duplicarán.`, 'err'); }
   }
   const hayD = filas.some(r => r.motivo === 'DESPACHO'), hayR = filas.some(r => r.motivo === 'RECOJO');
   cMostrarOk(hayD && hayR ? 'Despachos y recojos guardados' : hayR ? (filas.length === 1 ? 'Recojo guardado' : 'Recojos guardados') : (filas.length === 1 ? 'Despacho guardado' : 'Despachos guardados'), `${filas.length} ${filas.length === 1 ? 'registro' : 'registros'} ${txtFecha}.${detalle} Falta completar importe y factura de cada uno.`, false);
-  previa = []; hrnCarga = null; $('#cFile').value = '';
+  previa = []; hrnCarga = null; recDetCarga = null; $('#cFile').value = '';
 };
 cChips(); setPaso(1);
 
@@ -845,6 +852,45 @@ function leerHrn(wb) {
   return null;
 }
 
+// ---------- detalle de recojos (devoluciones) ----------
+// columnas del reporte; antes de ellas el Excel lleva FECHA y NOMBRE CUENTA
+const RC_COLS = [['nombre_cuenta','NOMBRE CUENTA','t'],['cuenta','CUENTA','t'],['nro_pedido','N° DE PEDIDO','t'],['nro_referencia','NÚMERO DE REFERENCIA','t'],['cliente_final','NOMBRE CLIENTE FINAL','t'],['fecha_pedido','FECHA DE PEDIDO','d'],['bultos','N° DE BULTOS','n'],['motivo_devolucion','MOTIVO DE DEVOLUCIÓN','t'],['nodo','NODO','t'],['fecha_solicitud_cx','FECHA SOLICITUD CX','d'],['fecha_solicitud_nodo','FECHA SOLICITUD NODO','d'],['fecha_salida_nodo','FECHA SALIDA NODO','d'],['fecha_recojo_agencia','FECHA RECOJO AGENCIA (LIMA)','d'],['fecha_llegada_ctd','FECHA LLEGADA CTD','d'],['lt_retorno','LT RETORNO','n'],['medio','MEDIO','t'],['proveedor','PROVEEDOR','t'],['voucher','VOUCHER','t'],['guia','GUÍA','t'],['clave','CLAVE','t'],['estatus','ESTATUS','t']];
+const rcClave = s => norm(s).replace(/[^A-Z0-9]/g, '');
+const rcPorHeader = new Map(RC_COLS.map(c => [rcClave(c[1]), c]));
+function leerRecojoDet(wb) {
+  for (const nombre of wb.SheetNames) {
+    const filas = XLSX.utils.sheet_to_json(wb.Sheets[nombre], { header: 1, defval: '', raw: true });
+    const hi = filas.findIndex(f => { const k = f.map(rcClave); return k.includes('NDEPEDIDO') && k.includes('NODO') && k.includes('FECHASOLICITUDCX'); });
+    if (hi < 0) continue;
+    const mapa = filas[hi].map(h => rcPorHeader.get(rcClave(h)) || null);
+    const iFecha = filas[hi].findIndex(h => ['FECHA', 'FECHA REPORTE', 'FECHA DE REPORTE'].includes(norm(h)));   // fecha con la que se guarda cada fila
+    const out = [];
+    for (const f of filas.slice(hi + 1)) {
+      if (!mapa.some((c, i) => c && f[i] !== '' && f[i] != null)) continue;
+      const r = {}; RC_COLS.forEach(c => r[c[0]] = null);
+      mapa.forEach((c, i) => { if (!c) return; const v = f[i]; r[c[0]] = c[2] === 'd' ? (fechaDe(v) || null) : valorHrn(v, c[2]); });
+      r.fecha_reporte = iFecha >= 0 ? fechaDe(f[iFecha]) : '';
+      if (r.nodo) r.nodo = norm(r.nodo);
+      if (r.nro_pedido || r.nro_referencia) out.push(r);
+    }
+    if (out.length) return out;
+  }
+  return null;
+}
+// acumulable como el detalle de despacho: solo se agregan las filas que aún no están en esa fecha
+async function guardarRecojoDet(filas) {
+  const clave = r => [r.fecha_reporte, r.cuenta, r.nro_pedido, r.nro_referencia].map(x => x ?? '').join('|');
+  const fechas = [...new Set(filas.map(r => r.fecha_reporte))].sort();
+  let ya = []; for (let i = 0; i < fechas.length; i += 30) ya = ya.concat(await traerTodo(() => sb.from('recojo_detalle').select('fecha_reporte,cuenta,nro_pedido,nro_referencia').in('fecha_reporte', fechas.slice(i, i + 30)).order('id')).catch(e => { throw new Error(/recojo_detalle/.test(e.message) ? 'Falta ejecutar supabase_recojo_detalle.sql en Supabase' : e.message); }));
+  const existentes = new Set(ya.map(r => clave({ ...r, fecha_reporte: String(r.fecha_reporte).slice(0, 10) }))), vistos = new Set(), nuevas = [];
+  filas.forEach(r => { const k = clave(r); if (!existentes.has(k) && !vistos.has(k)) { vistos.add(k); nuevas.push(r); } });
+  for (let i = 0; i < nuevas.length; i += 400) {
+    const { error } = await sb.from('recojo_detalle').insert(nuevas.slice(i, i + 400)); if (error) throw error;
+  }
+  hrnCargado = false;
+  return { nuevas: nuevas.length, repetidas: filas.length - nuevas.length, fechas };
+}
+
 // acumulable: nunca se borra lo anterior; solo se agregan las filas que aún no están en esa fecha
 async function guardarHrn(filas) {
   const clave = r => r.fecha_reporte + '|' + (r.lpn ? 'L|' + r.lpn : 'P|' + [r.pedido_cliente, r.nodo, r.roll_contenedor, r.bultos].join('|'));
@@ -863,38 +909,48 @@ const hrnTexto = x => {
   return x.nuevas ? `${x.nuevas === 1 ? 'se agregó 1 fila' : 'se agregaron ' + x.nuevas + ' filas'} ${donde}` + (x.repetidas ? `; ${x.repetidas} ya ${x.repetidas === 1 ? 'estaba cargada' : 'estaban cargadas'}` : '') : `no hay filas nuevas: las ${x.repetidas} ya estaban cargadas ${donde.replace(/^al /, 'en el ')}`;
 };
 let hrnCargado = false, hrnVista = [], hrnMostrar = 100;
+const REC_VIS = [['fecha_reporte', 'Fecha reporte'], ['nombre_cuenta', 'Nombre cuenta'], ['cuenta', 'Cuenta'], ['nro_pedido', 'Pedido'], ['cliente_final', 'Cliente final'], ['bultos', 'Bultos'], ['motivo_devolucion', 'Motivo'], ['nodo', 'Nodo'], ['fecha_recojo_agencia', 'Recojo agencia'], ['fecha_llegada_ctd', 'Llegada CTD'], ['proveedor', 'Proveedor'], ['guia', 'Guía'], ['estatus', 'Estatus']];
+const detRec = () => $('#qTipo .on').dataset.t === 'rec';
 const HRN_VIS = ['fecha_reporte', 'pedido_cliente', 'lpn', 'cuenta_procedencia', 'descripcion_cuenta', 'nodo', 'bultos', 'roll_contenedor', 'peso', 'volumen', 'fecha_recepcion'];
 // consulta del Detalle con los filtros de la pantalla (columnas visibles para ver; todas para exportar)
 function hrnConsultaQ(cols, conteo) {
-  let q = sb.from('hrn_detalle').select(cols, conteo ? { count: 'exact' } : undefined).order('fecha_reporte', { ascending: false }).order('nodo').order('id');
+  const rec = detRec();
+  let q = sb.from(rec ? 'recojo_detalle' : 'hrn_detalle').select(cols, conteo ? { count: 'exact' } : undefined).order('fecha_reporte', { ascending: false }).order('nodo').order('id');
   if ($('#qDesde').value) q = q.gte('fecha_reporte', $('#qDesde').value);
   if ($('#qHasta').value) q = q.lte('fecha_reporte', $('#qHasta').value);
   if ($('#qNodo').value.trim()) q = q.ilike('nodo', '%' + $('#qNodo').value.trim() + '%');
   const t = $('#qPed').value.trim().replace(/[,()]/g, '');
-  if (t) q = q.or(`pedido_cliente.ilike.%${t}%,lpn.ilike.%${t}%`);
+  if (t) q = q.or(rec ? `nro_pedido.ilike.%${t}%,nro_referencia.ilike.%${t}%,guia.ilike.%${t}%` : `pedido_cliente.ilike.%${t}%,lpn.ilike.%${t}%`);
   return q;
 }
 async function buscarHrn() {
   hrnCargado = true;
-  const { data, error, count } = await hrnConsultaQ(HRN_VIS.join(','), true).limit(1000);
-  if (error) return flash($('#hMsg'), error.message, 'err');
+  const { data, error, count } = await hrnConsultaQ((detRec() ? REC_VIS.map(c => c[0]) : HRN_VIS).join(','), true).limit(1000);
+  if (error) return flash($('#hMsg'), /recojo_detalle/.test(error.message) ? 'Falta ejecutar supabase_recojo_detalle.sql en Supabase.' : error.message, 'err');
   hrnVista = data; hrnMostrar = 100;
   $('#qInfo').textContent = `${count} filas` + (count > data.length ? ` (se muestran las primeras ${data.length}; ajusta los filtros. Al exportar salen todas)` : '');
   pintarHrn();
 }
 function pintarHrn() {
-  const vis = hrnVista.slice(0, hrnMostrar);
-  $('#qTabla').innerHTML = '<tr>' + ['Fecha reporte', 'Pedido', 'LPN', 'Cuenta', 'Descripción cuenta', 'Nodo', 'Bultos', 'Roll', 'Peso', 'Volumen', 'Recepción'].map(h => `<th>${h}</th>`).join('') + '</tr>' +
-    vis.map(r => '<tr>' + HRN_VIS.map(c => `<td>${esc(c === 'fecha_reporte' ? fdmy(r[c]) : c === 'fecha_recepcion' ? fdt(r[c]) : r[c])}</td>`).join('') + '</tr>').join('') +
-    (hrnVista.length > vis.length ? `<tr><td colspan="11" style="text-align:center"><button class="lnk" id="qMas">Mostrar más (${vis.length} de ${hrnVista.length})</button></td></tr>` : '');
+  const vis = hrnVista.slice(0, hrnMostrar), cols = detRec() ? REC_VIS : HRN_VIS.map((c, k) => [c, ['Fecha reporte', 'Pedido', 'LPN', 'Cuenta', 'Descripción cuenta', 'Nodo', 'Bultos', 'Roll', 'Peso', 'Volumen', 'Recepción'][k]]);
+  const celda = (r, c) => c === 'fecha_recepcion' ? fdt(r[c]) : c.startsWith('fecha') ? fdmy(r[c]) : r[c];
+  $('#qTabla').innerHTML = '<tr>' + cols.map(c => `<th>${c[1]}</th>`).join('') + '</tr>' +
+    vis.map(r => '<tr>' + cols.map(c => `<td>${esc(celda(r, c[0]))}</td>`).join('') + '</tr>').join('') +
+    (hrnVista.length > vis.length ? `<tr><td colspan="${cols.length}" style="text-align:center"><button class="lnk" id="qMas">Mostrar más (${vis.length} de ${hrnVista.length})</button></td></tr>` : '');
 }
 $('#qTabla').addEventListener('click', e => { if (e.target.id === 'qMas') { hrnMostrar += 200; pintarHrn(); } });
 $('#qBuscar').onclick = buscarHrn;
+$('#qTipo').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  $('#qTipo').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); $('#qPedL').textContent = b.dataset.t === 'rec' ? 'Pedido / guía' : 'Pedido / LPN';
+  hrnVista = []; $('#qTabla').innerHTML = ''; buscarHrn();
+};
 $('#qExport').onclick = async () => {
   await xlsxLib(); let todo; try { todo = await traerTodo(() => hrnConsultaQ('*', false)); } catch (e) { return flash($('#hMsg'), e.message, 'err'); }
-  const aoa = [['Fecha reporte', ...HRN_COLS.map(c => c[1])]].concat(todo.map(r => [r.fecha_reporte, ...HRN_COLS.map(c => r[c[0]])]));
-  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'DETALLE');
-  XLSX.writeFile(wb, `hrn_${$('#qDesde').value || 'inicio'}_${$('#qHasta').value || 'hoy'}.xlsx`);
+  const rec = detRec(), cs = rec ? RC_COLS : HRN_COLS;
+  const aoa = [['Fecha reporte', ...cs.map(c => c[1])]].concat(todo.map(r => [r.fecha_reporte, ...cs.map(c => r[c[0]])]));
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), rec ? 'DETALLE RECOJOS' : 'DETALLE');
+  XLSX.writeFile(wb, `${rec ? 'recojos' : 'hrn'}_${$('#qDesde').value || 'inicio'}_${$('#qHasta').value || 'hoy'}.xlsx`);
 };
 
 // ---------- KPIs ----------
