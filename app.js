@@ -1536,13 +1536,34 @@ function pintarResumen(R, dias, prev, envios) {
 $('#kgAl').addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) irA(g.dataset.go); });
 // camión en video con fondo transparente: va y vuelve sobre los cuadros buenos (el 40 trae un parche de fondo y se descarta)
 const KG_CAM = { fps: 12, buenos: [...Array(60).keys()].filter(i => i !== 40), raf: 0, io: null };
+// Safari y iPhone: sin video con transparencia, el camión se anima con una hoja de 30 cuadros (mismo vaivén, cuadros mezclados para que sea fluido)
+const KG_HOJA = { n: 30, col: 6, w: 490, h: 320, img: null, estado: '' };
+function kgHoja(st) {
+  const H = KG_HOJA;
+  const arrancar = img => {
+    if (!st.isConnected) return;
+    const cv = document.createElement('canvas'); cv.width = H.w; cv.height = H.h; cv.className = 'kg-cv'; const x = cv.getContext('2d');
+    const cuadro = k => x.drawImage(img, (k % H.col) * H.w, Math.floor(k / H.col) * H.h, H.w, H.h, 0, 0, H.w, H.h);
+    const dibujar = p => { const a = Math.floor(p), b = Math.min(a + 1, H.n - 1), f = p - a; x.clearRect(0, 0, H.w, H.h); x.globalAlpha = 1; cuadro(a); if (f > .02 && b !== a) { x.globalAlpha = f; cuadro(b); } x.globalAlpha = 1; };
+    const reducir = matchMedia('(prefers-reduced-motion:reduce)').matches; let visible = true, ult = -1;
+    dibujar(reducir ? 7 : 0); st.innerHTML = '<div class="kg-refl"></div>'; st.appendChild(cv); requestAnimationFrame(() => cv.classList.add('lista'));
+    if (reducir) return;
+    const io = new IntersectionObserver(es => { visible = es[0].isIntersecting; }); io.observe(st); const t0 = performance.now(), ciclo = 2 * 58 / 12;
+    const paso = ahora => { if (!st.isConnected) return io.disconnect(); KG_CAM.raf = requestAnimationFrame(paso); if (!visible || document.hidden) return;
+      const f = (((ahora - t0) / 1000) % ciclo) / ciclo, tri = f < .5 ? f * 2 : 2 - f * 2, p = (1 - Math.cos(Math.PI * tri)) / 2 * (H.n - 1);
+      if (Math.abs(p - ult) > .04) { ult = p; dibujar(p); } };   // frena suavemente en los extremos
+    cancelAnimationFrame(KG_CAM.raf); KG_CAM.raf = requestAnimationFrame(paso);
+  };
+  if (H.img) return arrancar(H.img);
+  const im = new Image(); im.onload = () => { H.img = im; arrancar(im); }; im.src = 'camion_hoja.webp';   // si no carga, queda la foto fija
+}
 // iPhone, iPad y Safari no muestran el video WebM con transparencia (ni lo cargan solos): ahí va la foto
 const kgSinAlfa = () => { const u = navigator.userAgent; return /iP(hone|ad|od)/.test(u) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || (/Safari/.test(u) && !/Chrome|Chromium|Edg|OPR|Android/.test(u)); };
 function kgCamion() {
   cancelAnimationFrame(KG_CAM.raf); if (KG_CAM.io) KG_CAM.io.disconnect();
   const st = document.querySelector('#kgrid .kg-stage'), v = st && st.querySelector('video'); if (!v) return;
   const B = KG_CAM.buenos, N = B.length, reducir = matchMedia('(prefers-reduced-motion:reduce)').matches; let visible = true, ult = -1;
-  const foto = () => { cancelAnimationFrame(KG_CAM.raf); if (KG_CAM.io) KG_CAM.io.disconnect(); st.innerHTML = '<div class="kg-refl"></div><img class="kg-foto" src="camion.webp" alt="">'; };   // sin video con transparencia (p. ej. Safari) se usa la foto
+  const foto = () => { cancelAnimationFrame(KG_CAM.raf); if (KG_CAM.io) KG_CAM.io.disconnect(); st.innerHTML = '<div class="kg-refl"></div><img class="kg-foto" src="camion.webp" alt="">'; kgHoja(st); };   // sin video con transparencia (p. ej. Safari) se usa la foto
   if (kgSinAlfa() || (!v.canPlayType('video/webm; codecs="vp9"') && !v.canPlayType('video/webm; codecs="vp8"'))) return foto();
   setTimeout(() => { if (st.contains(v) && !v.classList.contains('lista')) foto(); }, 3500);   // si el video no llega a cargar, se muestra la foto
   const mostrar = k => { if (k === ult) return; ult = k; v.currentTime = (B[k] + .5) / KG_CAM.fps; };
