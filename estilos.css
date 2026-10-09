@@ -955,12 +955,11 @@
 
   /* Costo por unidad: camión en video con fondo transparente y tarjeta plana */
   .kg-stage { filter:none; pointer-events:none; aspect-ratio:490 / 320 }
-  .kg-stage video, .kg-foto { position:absolute; width:130.6%; left:-8.16%; top:-6.25%; height:auto; pointer-events:none; filter:drop-shadow(0 20px 18px rgba(11,61,130,.26)) }
-  .kg-stage video { opacity:0; transition:opacity .35s } .kg-stage video.lista { opacity:1 }
+  .kg-foto { position:absolute; height:auto; pointer-events:none }
   .kg-foto { width:100%; left:0; top:-4%; filter:drop-shadow(0 22px 22px rgba(11,61,130,.25)) }
   .kg-refl { position:absolute; left:10%; right:14%; bottom:2%; height:11%; border-radius:50%; background:radial-gradient(50% 50% at 50% 50%, rgba(11,61,130,.30), rgba(11,61,130,0) 70%); filter:blur(5px) }
   .kg-cv { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; opacity:0; transition:opacity .35s; filter:drop-shadow(0 20px 18px rgba(11,61,130,.26)) } .kg-cv.lista { opacity:1 }
-  @media (min-width:1181px) { .kg-stage video { left:-12.96% } .kg-cv { left:-4.8% } }
+  @media (min-width:1181px) { .kg-cv { left:-4.8% } }
   .kg-ant { font-size:12.5px; color:var(--mut); margin:6px 0 0 }
   .kg-tiles { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px }
   .kg-tile { background:var(--head); border-radius:20px; padding:12px 14px; min-width:0 } .kg-tile .t { display:flex; align-items:center; gap:7px; color:var(--mut); font-size:12.5px; white-space:nowrap } .kg-tile .t svg { width:16px; height:16px; color:#1a5db8; flex:none }
