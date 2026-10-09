@@ -1040,13 +1040,13 @@ function kaFilas(id, items, ref, S) {
 }
 function kaRanking(id, items, ref, buscar) {
   const c = KA[id], S = KS[id], T = kA.R.total, conSp = kA.act > 1 && id !== 'cuenta', cp = !!kA.prev.total, uT = items.reduce((s, x) => s + x.u, 0);
-  const th = (k, t, cls) => `<th data-s="${k}" class="${cls || ''} ${S.ord === k ? 'on' : ''}">${t}</th>`;
-  return `<div class="ka-card"><div class="ka-cab"><div><h3>${c.titulo}</h3><p class="ka-hint">El color de la última columna compara contra ${c.refName === 'promedio' ? 'el promedio' : 'la mediana'} del conjunto (${fmt(ref)}${id === 'cuenta' ? ' por pedido' : ' por caja'}).</p></div>
+  const th = (k, t, cls) => `<th data-s="${k}" class="${cls || ''} ${S.ord === k ? 'on' : ''}"${k === 'd' ? ' title="Variación frente al período anterior"' : ''}>${t}</th>`;
+  return `<div class="ka-card"><div class="ka-cab"><div><h3>${c.titulo}</h3><p class="ka-hint">El color de la última columna compara cada fila con ${c.refName === 'promedio' ? 'el promedio' : 'la mediana'} del conjunto (${fmt(ref)}${id === 'cuenta' ? ' por pedido' : ' por caja'}).</p></div>
     ${buscar ? `<input class="ka-q" placeholder="Buscar…" value="${esc(S.q)}" aria-label="Buscar">` : ''}</div>
-    <div class="ka-tw"><table class="ka-rt"><thead><tr><th></th>${th('nombre', 'Nombre')}${th('costo', 'Costo')}<th class="ka-num ka-oc">% del total</th>${cp ? th('d', 'Frente al anterior', 'ka-num ka-oc') : ''}${th('u', c.uName, 'ka-num ka-oc')}${th('r', c.rName, 'ka-num')}${conSp ? '<th class="ka-oc">Tendencia</th>' : ''}</tr></thead>
+    <div class="ka-tw"><table class="ka-rt"><thead><tr><th></th>${th('nombre', 'Nombre')}${th('costo', 'Costo')}<th class="ka-num ka-oc">% del total</th>${cp ? th('d', 'Variación', 'ka-num ka-oc') : ''}${th('u', c.uName, 'ka-num ka-oc')}${th('r', c.rName, 'ka-num')}${conSp ? '<th class="ka-oc">Tendencia</th>' : ''}</tr></thead>
     <tbody>${kaFilas(id, items, ref, S)}</tbody>
     <tfoot><tr><td></td><td class="l">Total</td><td>${kaF0(T)}</td><td class="ka-num ka-oc">100 %</td>${cp ? `<td class="ka-num ka-oc">${kaDl(T, kA.prev.total)}</td>` : ''}<td class="ka-num ka-oc">${fmtN(uT)}</td><td class="ka-num">${uT ? fmt(T / uT) : '-'}</td>${conSp ? '<td class="ka-oc"></td>' : ''}</tr></tfoot></table></div>
-    <div class="ka-ley">${id !== 'cuenta' ? '<span class="c">Contado</span><span class="r">Crédito</span>' : ''}<span class="g">en rango</span><span class="a">alta (hasta el doble de la ${c.refName})</span><span class="x">muy alta (más del doble)</span></div></div>`;
+    <div class="ka-ley">${id !== 'cuenta' ? '<span class="c">Contado</span><span class="r">Crédito</span>' : ''}<span class="g">en rango</span><span class="a">alta (hasta el doble ${c.refName === 'promedio' ? 'del promedio' : 'de la mediana'})</span><span class="x">muy alta (más del doble)</span></div></div>`;
 }
 
 // ---------- ficha de lo seleccionado ----------
@@ -1061,7 +1061,7 @@ function kaFicha(id, items, ref) {
   else if (id === 'nodo') det = blq('Cuentas principales', [...kA.R.cuentaNodos].map(([cu, m]) => [cu, m.get(it.name) || 0]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 4)) + blq('Transporte', top(e => e.transporte || '(SIN TRANSPORTE)')) + blq('Agencias', top(e => e.agencia || '(sin agencia)'));
   else det = blq('Nodos que atiende', top(e => e.nodo)) + blq('Transporte', top(e => e.transporte || '(SIN TRANSPORTE)'));
   const dias = c.dim && kA.act > 1;
-  return `<div class="ka-card ka-ficha" id="kaFicha"><span class="ka-eye">Detalle seleccionado</span><div class="ka-cab" style="margin-bottom:0"><div><h3>${esc(kaNom(it.name))}</h3><p class="ka-hint">N.º ${items.indexOf(it) + 1} de ${items.length} por costo${it.n ? ` · ${it.n} ${it.n === 1 ? 'registro' : 'registros'}` : ''}</p></div>${kaDl(it.costo, it.prev)}</div>
+  return `<div class="ka-card ka-ficha" id="kaFicha"><span class="ka-eye">Detalle de la selección</span><div class="ka-cab" style="margin-bottom:0"><div><h3>${esc(kaNom(it.name))}</h3><p class="ka-hint">N.º ${items.indexOf(it) + 1} de ${items.length} por costo${it.n ? ` · ${it.n} ${it.n === 1 ? 'registro' : 'registros'}` : ''}</p></div>${kaDl(it.costo, it.prev)}</div>
     <div class="ka-fk"><div><small>Costo del período</small><b>${kaF0(it.costo)}</b></div><div><small>% del total</small><b>${(it.costo / tot * 100).toFixed(1)} %</b></div>
     <div><small>${c.uName}</small><b>${fmtN(it.u)}</b></div><div><small>${c.rName}</small><b>${it.u ? fmt(it.r) : '-'}</b>${it.u ? `<em>${kaSg(dv)} % vs ${c.refName}</em>` : ''}</div></div>
     ${dias ? `<div class="ka-sec">Costo por ${kA.tr.sem ? 'semana' : 'día'}</div><div class="ka-ch" id="kaDias"></div>${pago ? `<div class="ka-ley" style="margin-top:4px"><span class="c">Contado ${kaF0(it.contado)}</span><span class="r">Crédito ${kaF0(it.credito)}</span></div>` : ''}` : ''}${det}</div>`;
@@ -1101,8 +1101,8 @@ function kaDispersion(P, ref) {
   const X = v => m.l + v / mx * (W - m.l - m.r), Y = v => H - m.b - v / my * (H - m.t - m.b);
   let g = ''; for (let i = 0; i <= 4; i++) { const v = my * i / 4; g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(0,0,0,${i ? .06 : .12})"/><text x="${m.l - 8}" y="${Y(v) + 4}" font-size="10.5" fill="#8e8e93" text-anchor="end">${v.toFixed(0)}</text>`; }
   for (let i = 0; i <= 4; i++) { const v = mx * i / 4; g += `<text x="${X(v)}" y="${H - 24}" font-size="10.5" fill="#8e8e93" text-anchor="middle">${Math.round(v)}</text>`; }
-  g += `<rect x="${m.l}" y="${m.t}" width="${Math.max(0, X(mu) - m.l)}" height="${Math.max(0, Y(ref) - m.t)}" fill="rgba(215,0,21,.045)"/><text x="${m.l + 10}" y="${m.t + 16}" font-size="11.5" font-weight="600" fill="#d70015" opacity=".8">Pocos pedidos y caro por pedido: revisar</text>`;
-  g += `<rect x="${X(mu)}" y="${Y(ref)}" width="${Math.max(0, W - m.r - X(mu))}" height="${Math.max(0, H - m.b - Y(ref))}" fill="rgba(36,138,61,.045)"/><text x="${W - m.r - 10}" y="${H - m.b - 10}" font-size="11.5" font-weight="600" fill="#248a3d" opacity=".85" text-anchor="end">Mucho volumen y barato: modelo a seguir</text>`;
+  g += `<rect x="${m.l}" y="${m.t}" width="${Math.max(0, X(mu) - m.l)}" height="${Math.max(0, Y(ref) - m.t)}" fill="rgba(215,0,21,.045)"/><text x="${m.l + 10}" y="${m.t + 16}" font-size="11.5" font-weight="600" fill="#d70015" opacity=".8">Bajo volumen y costo alto por pedido: revisar</text>`;
+  g += `<rect x="${X(mu)}" y="${Y(ref)}" width="${Math.max(0, W - m.r - X(mu))}" height="${Math.max(0, H - m.b - Y(ref))}" fill="rgba(36,138,61,.045)"/><text x="${W - m.r - 10}" y="${H - m.b - 10}" font-size="11.5" font-weight="600" fill="#248a3d" opacity=".85" text-anchor="end">Alto volumen y bajo costo por pedido: referencia</text>`;
   g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(ref)}" y2="${Y(ref)}" stroke="#6e6e73" stroke-dasharray="5 4"/><text x="${W - m.r}" y="${Y(ref) + 15}" font-size="11" fill="#6e6e73" text-anchor="end">promedio ${fmt(ref)}</text><line x1="${X(mu)}" x2="${X(mu)}" y1="${m.t}" y2="${H - m.b}" stroke="#6e6e73" stroke-dasharray="5 4" opacity=".6"/>`;
   g += `<text x="${(W + m.l) / 2}" y="${H - 5}" font-size="11.5" fill="#6e6e73" text-anchor="middle">Pedidos en el período</text><text transform="translate(13,${H / 2}) rotate(-90)" font-size="11.5" fill="#6e6e73" text-anchor="middle">Costo por pedido (S/)</text>`;
   // solo se rotulan las cuentas de mayor costo que no se pisen; el resto se ve al pasar el cursor
@@ -1132,7 +1132,7 @@ function kaLineas(items) {
 }
 function kaMix(items) {
   const L = [...items].filter(x => x.costo > 0).sort((a, b) => b.credito - a.credito);
-  return `<div class="ka-card ka-full"><div class="ka-cab"><div><h3>Contado y crédito por agencia</h3><p class="ka-hint">Las agencias con más crédito son las que acumulan facturas por cobrar o por conciliar. Ordenado por monto a crédito.</p></div></div>
+  return `<div class="ka-card ka-full"><div class="ka-cab"><div><h3>Contado y crédito por agencia</h3><p class="ka-hint">Distribución del costo según modalidad de pago. Las agencias con mayor crédito concentran facturas pendientes de pago o conciliación. Ordenado por monto a crédito.</p></div></div>
     ${L.map(x => { const pc = x.contado / x.costo * 100, pr = 100 - pc;
       return `<div class="ka-mx"><div class="n">${esc(kaNom(x.name))}<small>${x.n} ${x.n === 1 ? 'registro' : 'registros'}</small></div><div class="b"><i class="ka-c-bg" style="width:${pc}%">${pc > 14 ? pc.toFixed(0) + ' %' : ''}</i><i class="r" style="width:${pr}%">${pr > 14 ? pr.toFixed(0) + ' %' : ''}</i></div><div class="t"><b>${kaF0(x.credito)}</b><small>a crédito de ${kaF0(x.costo)}</small></div></div>`; }).join('')}
     <div class="ka-ley"><span class="c">Contado</span><span class="r">Crédito</span></div></div>`;
@@ -1146,28 +1146,28 @@ function kaVistaRanking(id) {
   if (id === 'cuenta') {
     const t3 = nom.slice(0, 3), p3 = nom.length ? t3.reduce((s, x) => s + x.costo, 0) / T * 100 : 0, peor = [...nom.filter(x => x.u)].sort((a, b) => b.r - a.r)[0], sinD = items.filter(x => kaSin(x.name)).reduce((s, x) => s + x.costo, 0);
     const Tn = nom.reduce((s, x) => s + x.costo, 0); let ac = 0, n80 = 0; for (const x of nom) { ac += x.costo; n80++; if (Tn && ac / Tn >= .8) break; }
-    hall = kaHall(`<b>${p3.toFixed(0)} %</b> del costo está en ${t3.length === 1 ? 'la primera cuenta' : `las ${t3.length} primeras cuentas`}.${peor && nom.length >= 3 && peor.r > ref * 1.3 ? ` <b>${esc(kaNom(peor.name))}</b> paga <b>${fmt(peor.r)}</b> por pedido, <b>${((peor.r / ref - 1) * 100).toFixed(0)} %</b> más que el promedio, con ${fmtN(peor.u)} ${peor.u === 1 ? 'pedido' : 'pedidos'}.` : ''}${sinD / T >= .1 ? ` Además, <b>${(sinD / T * 100).toFixed(0)} %</b> del costo aún no tiene cuenta asignada.` : ''}`);
-    if (!nom.length) hall = kaHall('Aún no hay detalle por cuenta para este rango: el costo aparece como <b>Sin detalle</b> hasta que se cargue el detalle de los nodos.');
+    hall = kaHall(`${t3.length === 1 ? 'La primera cuenta concentra' : `Las ${t3.length} primeras cuentas concentran`} el <b>${p3.toFixed(0)} %</b> del costo.${peor && nom.length >= 3 && peor.r > ref * 1.3 ? ` <b>${esc(kaNom(peor.name))}</b> registra <b>${fmt(peor.r)}</b> por pedido, <b>${((peor.r / ref - 1) * 100).toFixed(0)} %</b> sobre el promedio, con ${fmtN(peor.u)} ${peor.u === 1 ? 'pedido' : 'pedidos'}.` : ''}${sinD / T >= .1 ? ` El <b>${(sinD / T * 100).toFixed(0)} %</b> del costo aún no tiene cuenta asignada.` : ''}`);
+    if (!nom.length) hall = kaHall('No se cuenta con el detalle por cuenta para este rango: el costo se muestra como <b>Sin detalle</b> hasta cargar el detalle de los nodos.');
     kp = [['Costo del período', fmt(T), kaDl(T, kA.prev.total) + (hayP ? ' frente al período anterior' : '')], ['Cuentas con costo', nom.length, Tn ? `${n80} ${n80 === 1 ? 'explica' : 'explican'} el 80 % del costo` : ''], ['Concentración en las primeras 3', p3.toFixed(0) + ' %', esc(t3.map(x => kaNom(x.name)).join(', ') || '-')],
       ['Costo por pedido', R.pedidos ? fmt(ref) : '-', (P && P.pedidos ? kaDl(ref, kA.prev.total / P.pedidos) + ' frente al período anterior' : '')]];
-    if (nom.length >= 3) side = `<div class="ka-card"><div class="ka-cab" style="margin-bottom:0"><div><h3>Concentración del costo</h3><p class="ka-hint">Las barras oscuras son las cuentas que suman el 80 % del costo; la línea es el acumulado.</p></div></div><div class="ka-ch" id="kaPareto"></div></div>`;
+    if (nom.length >= 3) side = `<div class="ka-card"><div class="ka-cab" style="margin-bottom:0"><div><h3>Concentración del costo</h3><p class="ka-hint">Las barras oscuras corresponden a las cuentas que acumulan el 80 % del costo; la línea indica el porcentaje acumulado.</p></div></div><div class="ka-ch" id="kaPareto"></div></div>`;
     const PD = nom.filter(x => x.u);
-    if (PD.length >= 3) bottom = `<div class="ka-card ka-full"><div class="ka-cab"><div><h3>Volumen frente a costo por pedido</h3><p class="ka-hint">Cada burbuja es una cuenta; el tamaño es el costo total. Arriba a la izquierda están las cuentas con pocos pedidos y caras por pedido: suelen ser envíos aislados o entregas fraccionadas.</p></div></div><div class="ka-ch" id="kaDisp"></div></div>`;
+    if (PD.length >= 3) bottom = `<div class="ka-card ka-full"><div class="ka-cab"><div><h3>Volumen frente a costo por pedido</h3><p class="ka-hint">Cada burbuja representa una cuenta y su tamaño, el costo total. En la zona superior izquierda se ubican las cuentas con pocos pedidos y costo unitario alto, que suelen corresponder a envíos aislados o entregas fraccionadas.</p></div></div><div class="ka-ch" id="kaDisp"></div></div>`;
     kaPaint.push(() => nom.length >= 3 && kaPareto(nom), () => PD.length >= 3 && kaDispersion(PD, ref));
   } else if (id === 'nodo') {
     const cj = items.filter(x => x.u), caro = [...cj].sort((a, b) => b.r - a.r)[0], sob = cj.reduce((s, x) => s + Math.max(0, x.u * (x.r - ref)), 0), zN = new Set([...kA.info.values()].map(x => x.z).filter(z => z && z !== '(sin zona)')).size;
     const medP = P ? mediana([...P.nodos.values()].filter(x => x.cajas).map(x => x.costo / x.cajas)) : 0;
-    hall = kaHall(cj.length >= 3 && caro.r > ref * 1.3 ? `<b>${esc(kaNom(caro.name))}</b> cuesta <b>${fmt(caro.r)}</b> por caja, <b>${kaVeces(caro.r, ref)}</b>. En conjunto, los nodos por encima de la mediana suman <b>${kaF0(sob)}</b> de sobrecosto (${(sob / T * 100).toFixed(0)} % del costo).` : cj.length ? `La tarifa mediana por caja es <b>${fmt(ref)}</b> y ningún nodo se aleja más de 30 % de ella.` : 'Aún no hay cajas registradas para calcular la tarifa por caja.');
+    hall = kaHall(cj.length >= 3 && caro.r > ref * 1.3 ? `<b>${esc(kaNom(caro.name))}</b> registra una tarifa de <b>${fmt(caro.r)}</b> por caja, <b>${kaVeces(caro.r, ref)}</b>. Los nodos por encima de la mediana acumulan <b>${kaF0(sob)}</b> de sobrecosto (${(sob / T * 100).toFixed(0)} % del costo).` : cj.length ? `La tarifa mediana por caja es <b>${fmt(ref)}</b>; ningún nodo la supera en más de 30 %.` : 'No hay cajas registradas para calcular la tarifa por caja.');
     kp = [['Costo del período', fmt(T), kaDl(T, kA.prev.total) + (hayP ? ' frente al período anterior' : '')], ['Nodos con envíos', items.length, zN ? `${zN} ${zN === 1 ? 'zona' : 'zonas'}` : 'sin zona asignada'], ['Tarifa mediana por caja', ref ? fmt(ref) : '-', (medP && ref ? kaDl(ref, medP) + ' frente al período anterior' : '')], ['Sobrecosto sobre la mediana', kaF0(sob), `${(sob / T * 100).toFixed(0)} % del costo del período`]];
-    if (cj.length >= 2 && ref) side = kaDesvio(items, ref, c, 'Desviación frente a la mediana', 'Cuánto se aleja la tarifa por caja de cada nodo de la mediana. Pasa el cursor para ver el sobrecosto estimado.');
-    if (kA.act > 2 && items.length >= 2) bottom = `<div class="ka-card ka-full"><div class="ka-cab"><div><h3>Los ${Math.min(5, items.length)} nodos que más cuestan, en el tiempo</h3><p class="ka-hint">Costo por ${kA.tr.sem ? 'semana' : 'día'}. Sirve para distinguir un nodo caro de forma permanente de uno con un pico puntual.</p></div></div>
+    if (cj.length >= 2 && ref) side = kaDesvio(items, ref, c, 'Desviación frente a la mediana', 'Diferencia porcentual entre la tarifa por caja de cada nodo y la mediana. Al pasar el cursor se muestra el sobrecosto estimado.');
+    if (kA.act > 2 && items.length >= 2) bottom = `<div class="ka-card ka-full"><div class="ka-cab"><div><h3>Evolución de los ${Math.min(5, items.length)} nodos de mayor costo</h3><p class="ka-hint">Costo por ${kA.tr.sem ? 'semana' : 'día'}. Permite distinguir un nivel de costo sostenido de un pico puntual.</p></div></div>
       <div class="ka-lg">${items.slice(0, 5).map((x, k) => `<span style="--c:${KA_PAL[k]}">${esc(kaNom(x.name))}</span>`).join('')}</div><div class="ka-ch" id="kaLin"></div></div>`;
     kaPaint.push(() => kaLineas(items));
   } else {
     const g = items[0], cr = items.reduce((s, x) => s + x.credito, 0), may = [...items].filter(x => x.costo > 0).sort((a, b) => b.credito / b.costo - a.credito / a.costo)[0];
-    hall = kaHall(`<b>${esc(kaNom(g.name))}</b> concentra el <b>${(g.costo / T * 100).toFixed(0)} %</b> del costo. ${cr > 0 ? `<b>${kaF0(cr)}</b> (${(cr / T * 100).toFixed(0)} %) está a crédito${items.length > 1 ? `; <b>${esc(kaNom(may.name))}</b> tiene la mayor proporción: ${(may.credito / may.costo * 100).toFixed(0)} % de lo que se le paga` : ''}.` : 'Todo el costo del período se pagó al contado.'}`);
-    kp = [['Costo del período', fmt(T), kaDl(T, kA.prev.total) + (hayP ? ' frente al período anterior' : '')], ['Agencias', items.length, `${R.nodos.size} ${R.nodos.size === 1 ? 'nodo atendido' : 'nodos atendidos'}`], ['Participación de la mayor', (g.costo / T * 100).toFixed(0) + ' %', esc(kaNom(g.name))], ['Crédito por cubrir', kaF0(cr), `${(cr / T * 100).toFixed(0)} % del costo`]];
-    if (items.filter(x => x.u).length >= 2 && ref) side = kaDesvio(items, ref, c, 'Tarifa por caja frente a la mediana', 'Compara cuánto cobra cada agencia por caja. Una diferencia grande puede ser una negociación pendiente o una ruta más difícil.');
+    hall = kaHall(`<b>${esc(kaNom(g.name))}</b> concentra el <b>${(g.costo / T * 100).toFixed(0)} %</b> del costo. ${cr > 0 ? `<b>${kaF0(cr)}</b> (${(cr / T * 100).toFixed(0)} %) corresponde a operaciones a crédito${items.length > 1 ? `; <b>${esc(kaNom(may.name))}</b> presenta la mayor proporción a crédito (${(may.credito / may.costo * 100).toFixed(0)} %)` : ''}.` : 'La totalidad del costo del período corresponde a pagos al contado.'}`);
+    kp = [['Costo del período', fmt(T), kaDl(T, kA.prev.total) + (hayP ? ' frente al período anterior' : '')], ['Agencias', items.length, `${R.nodos.size} ${R.nodos.size === 1 ? 'nodo atendido' : 'nodos atendidos'}`], ['Participación de la principal', (g.costo / T * 100).toFixed(0) + ' %', esc(kaNom(g.name))], ['Operaciones a crédito', kaF0(cr), `${(cr / T * 100).toFixed(0)} % del costo`]];
+    if (items.filter(x => x.u).length >= 2 && ref) side = kaDesvio(items, ref, c, 'Tarifa por caja frente a la mediana', 'Compara la tarifa por caja de cada agencia con la mediana. Una diferencia significativa puede indicar una negociación pendiente o una ruta de mayor complejidad.');
     if (cr > 0) bottom = kaMix(items);
   }
   return `${hall}${kaKpis(kp)}<div class="ka-grid"><div class="ka-stack">${kaRanking(id, items, ref, true)}${side}</div><div class="ka-fix">${kaFicha(id, items, ref)}</div></div>${bottom}`;
@@ -1184,8 +1184,8 @@ function kaVistaZona() {
   const R = kA.R, T = R.total, tr = kaItems('trans'), A = kaAhorro(), refT = R.cajas ? T / R.cajas : 0, P = kA.prev.R, hayP = !!kA.prev.total;
   const conTar = tr.filter(x => x.cajas && !kaSin(x.name)), barato = [...conTar].sort((a, b) => a.r - b.r)[0];
   const { items: zi, ref: zref } = kaDatosVista('zona'), pctA = T ? A.tot / T * 100 : 0;
-  const hall = kaHall(A.det.length ? `Si cada zona usara el transporte más barato de su propia ruta, el ahorro estimado sería de <b>${kaF0(A.tot)}</b> (<b>${pctA.toFixed(0)} %</b> del costo del período).${barato ? ` <b>${esc(kaNom(barato.name))}</b> es el transporte con menor tarifa por caja: ${fmt(barato.r)}.` : ''}` : `Aún no hay zonas con al menos dos transportes y ${KA_MIN} cajas cada uno para estimar un ahorro por transporte.${barato ? ` <b>${esc(kaNom(barato.name))}</b> es el transporte con menor tarifa por caja: ${fmt(barato.r)}.` : ''}`);
-  const kp = kaKpis([['Costo del período', fmt(T), kaDl(T, kA.prev.total) + (hayP ? ' frente al período anterior' : '')], ['Tarifa promedio por caja', refT ? fmt(refT) : '-', (P && P.cajas && refT ? kaDl(refT, kA.prev.total / P.cajas) + ' frente al período anterior' : '')], ['Transporte más barato', barato ? esc(kaNom(barato.name)) : '-', barato ? `${fmt(barato.r)} por caja` : 'sin cajas registradas'], ['Ahorro potencial estimado', kaF0(A.tot), `${pctA.toFixed(0)} % del costo del período`]]);
+  const hall = kaHall(A.det.length ? `Si cada zona operara con el transporte de menor tarifa en su ruta, el ahorro estimado sería de <b>${kaF0(A.tot)}</b> (<b>${pctA.toFixed(0)} %</b> del costo del período).${barato ? ` <b>${esc(kaNom(barato.name))}</b> presenta la menor tarifa por caja (${fmt(barato.r)}).` : ''}` : `No existen zonas con al menos dos transportes y ${KA_MIN} cajas cada uno que permitan estimar el ahorro.${barato ? ` <b>${esc(kaNom(barato.name))}</b> presenta la menor tarifa por caja (${fmt(barato.r)}).` : ''}`);
+  const kp = kaKpis([['Costo del período', fmt(T), kaDl(T, kA.prev.total) + (hayP ? ' frente al período anterior' : '')], ['Tarifa promedio por caja', refT ? fmt(refT) : '-', (P && P.cajas && refT ? kaDl(refT, kA.prev.total / P.cajas) + ' frente al período anterior' : '')], ['Transporte de menor tarifa', barato ? esc(kaNom(barato.name)) : '-', barato ? `${fmt(barato.r)} por caja` : 'sin cajas registradas'], ['Ahorro potencial estimado', kaF0(A.tot), `${pctA.toFixed(0)} % del costo del período`]]);
   const cards = tr.map(x => { const cl = kaClase(x.r, refT);
     return `<div class="ka-card ka-tc"><div class="top"><h3>${esc(kaNom(x.name))}</h3><span class="ka-share">${(x.costo / T * 100).toFixed(0)} % del costo</span></div>
       <div class="big">${kaF0(x.costo)}</div>${hayP ? `<div class="row"><span>frente al período anterior</span>${kaDl(x.costo, x.prev)}</div>` : ''}
@@ -1193,14 +1193,14 @@ function kaVistaZona() {
       <div class="row"><span>${fmtN(x.cajas)} cajas · ${x.n} ${x.n === 1 ? 'registro' : 'registros'}</span><span>${kaSpark(x.b)}</span></div>
       <div class="ka-mb"><i class="c" style="width:${x.contado / x.costo * 100}%"></i><i class="r" style="width:${x.credito / x.costo * 100}%"></i></div>
       <div class="row" style="margin-top:6px"><span>Contado <b>${(x.contado / x.costo * 100).toFixed(0)} %</b></span><span>Crédito <b>${(x.credito / x.costo * 100).toFixed(0)} %</b></span></div></div>`; }).join('');
-  const ah = A.det.length ? `<div class="ka-card ka-ah"><span class="ka-eye" style="color:var(--kok)">Oportunidad</span><h3>Ahorro potencial por zona</h3><div class="big">${kaF0(A.tot)}</div><p class="ka-hint">Costo adicional frente a mover las mismas cajas con el transporte más barato de cada zona.</p>
-    ${[...A.det].sort((a, b) => b.a - a.a).map(d => `<div class="li"><span><b>Zona ${esc(d.z)}</b></span><b style="color:var(--kok)">${kaF0(d.a)}</b><small>${esc(kaNom(d.best.t))} cobra ${fmt(d.best.tar)} por caja; ${esc(kaNom(d.worst.t))}, ${fmt(d.worst.tar)}</small></div>`).join('')}
-    <p class="ka-aviso">Estimación. No considera capacidad, plazos de entrega ni condiciones contractuales. Solo se comparan rutas con al menos ${KA_MIN} cajas.</p></div>` : '';
+  const ah = A.det.length ? `<div class="ka-card ka-ah"><span class="ka-eye" style="color:var(--kok)">Oportunidad de ahorro</span><h3>Ahorro potencial por zona</h3><div class="big">${kaF0(A.tot)}</div><p class="ka-hint">Costo adicional respecto de transportar las mismas cajas con el transporte de menor tarifa en cada zona.</p>
+    ${[...A.det].sort((a, b) => b.a - a.a).map(d => `<div class="li"><span><b>Zona ${esc(d.z)}</b></span><b style="color:var(--kok)">${kaF0(d.a)}</b><small>${esc(kaNom(d.best.t))}: ${fmt(d.best.tar)} por caja; ${esc(kaNom(d.worst.t))}: ${fmt(d.worst.tar)} por caja</small></div>`).join('')}
+    <p class="ka-aviso">Estimación referencial: no considera capacidad, plazos de entrega ni condiciones contractuales. Solo se comparan rutas con al menos ${KA_MIN} cajas.</p></div>` : '';
   const vals = []; A.trs.forEach(t => A.zs.forEach(z => { const x = A.cel[t + '|' + z]; if (x && x.c >= KA_MIN) vals.push(x.k / x.c); })); const lo = Math.min(...vals), hi = Math.max(...vals), best = {}; A.det.forEach(d => best[d.z] = d.best.t);
-  const mx = A.trs.length && A.zs.length ? `<div class="ka-card ka-full"><div class="ka-cab"><div><h3>Tarifa por caja según transporte y zona</h3><p class="ka-hint">Cuanto más oscura la celda, más cara la ruta por caja. El borde verde marca el transporte más barato de cada zona. Las rutas con pocas cajas no se comparan.</p></div></div>
+  const mx = A.trs.length && A.zs.length ? `<div class="ka-card ka-full"><div class="ka-cab"><div><h3>Tarifa por caja según transporte y zona</h3><p class="ka-hint">A mayor intensidad del color, mayor tarifa por caja. El borde verde identifica el transporte de menor tarifa en cada zona. Las rutas con pocas cajas no se comparan.</p></div></div>
     <div class="ka-tw"><table class="ka-hm"><thead><tr><th>Transporte</th>${A.zs.map(z => `<th>${esc(kaNom(z))}</th>`).join('')}</tr></thead><tbody>${A.trs.map(t => `<tr><td class="r">${esc(kaNom(t))}</td>${A.zs.map(z => { const x = A.cel[t + '|' + z];
       if (!x) return '<td class="c z"><b>-</b><small>sin envíos</small></td>'; const v = x.c ? x.k / x.c : 0;
-      if (x.c < KA_MIN) return `<td class="c z"><b>${x.c ? fmt(v) : '-'}</b><small>${fmtN(x.c)} cajas · poca muestra</small></td>`;
+      if (x.c < KA_MIN) return `<td class="c z"><b>${x.c ? fmt(v) : '-'}</b><small>${fmtN(x.c)} cajas · muestra insuficiente</small></td>`;
       const q = (v - lo) / (hi - lo || 1), a = .07 + q * .5; return `<td class="c ${best[z] === t ? 'best' : ''}" style="background:rgba(26,93,184,${a.toFixed(2)});color:${a > .34 ? '#fff' : '#1d1d1f'}" ${kaTipA(`<b>${esc(kaNom(t))} · ${esc(kaNom(z))}</b>${kaTf('Tarifa por caja', fmt(v))}${kaTf('Cajas', fmtN(x.c))}${kaTf('Costo', fmt(x.k))}`)}><b>${fmt(v)}</b><small>${fmtN(x.c)} cajas</small></td>`; }).join('')}</tr>`).join('')}</tbody></table></div></div>` : '';
   kaPaint = [];
   return `${hall}${kp}<div class="ka-tg">${cards}</div><div class="ka-grid"${ah ? '' : ' style="grid-template-columns:minmax(0,1fr)"'}><div>${kaRanking('zona', zi, zref, false)}</div>${ah ? `<div class="ka-stack">${ah}</div>` : ''}</div>${mx}`;
@@ -1210,7 +1210,7 @@ function kaVistaZona() {
 function kaPintar(id) {
   const el = $('#kp-' + id); if (!el) return;
   if (!kA) { el.innerHTML = ''; kaPaint = []; return; }
-  if (!kA.R.conImporte) { kaPaint = []; el.innerHTML = kaVacio('Aún no hay importes en este rango', 'Completa el importe de los registros para ver el análisis.'); return; }
+  if (!kA.R.conImporte) { kaPaint = []; el.innerHTML = kaVacio('Sin importes registrados en el rango seleccionado', 'Completar el importe de los registros para visualizar el análisis.'); return; }
   el.innerHTML = id === 'zona' ? kaVistaZona() : kaVistaRanking(id);
   kaEnlazar(id); kaPaint.forEach(f => f());
 }
@@ -1377,7 +1377,7 @@ function kgUnidad(envios, prev, tipo) {
 }
 function kgTransportes(R) {
   const trs = [...R.transportes].sort((a, b) => b[1].costo - a[1].costo), tot = trs.reduce((x, [, v]) => x + v.costo, 0) || 1;
-  return `<div class="kg-sep"></div><h3 class="kg-t kg-t2">Transportes</h3><p class="kg-h">Quién concentra el costo</p><div class="kg-trl">${trs.map(([k, v], i) => { const nm = k.startsWith('(') ? 'Sin transporte' : k, pct = Math.round(v.costo / tot * 100), col = KG_COL[i % KG_COL.length];
+  return `<div class="kg-sep"></div><h3 class="kg-t kg-t2">Distribución por transporte</h3><p class="kg-h">Participación de cada transporte en el costo</p><div class="kg-trl">${trs.map(([k, v], i) => { const nm = k.startsWith('(') ? 'Sin transporte' : k, pct = Math.round(v.costo / tot * 100), col = KG_COL[i % KG_COL.length];
     return `<div class="kg-tr"><span class="kg-av" style="background:${col}">${esc(nm.slice(0, 2).toUpperCase())}</span><div class="t"><b title="${esc(nm)}">${esc(nm)}</b><small>${v.n} ${v.n === 1 ? 'registro' : 'registros'}</small><div class="kg-mini"><i style="width:${Math.max(3, pct)}%;background:${col}"></i></div></div><div class="m"><b>${fmt(v.costo)}</b><small>${pct} %</small></div></div>`; }).join('')}</div>`;
 }
 // una sola tarjeta: camión (sobresale), costo por unidad y reparto por transporte
@@ -1385,11 +1385,11 @@ function kgFlota(R, envios, prev) {
   const U = kgUnidad(envios, prev, kgTipo), v = x => x ? fmt(x) : '-', cred = kgTipo === 'CREDITO', rg = n => `${n} ${n === 1 ? 'registro' : 'registros'}`;
   const st = (ic, t, val, tag) => `<div class="kg-st"><span class="i">${KG_IC[ic]}</span><div><small>${t}</small><b>${val}</b></div>${tag}</div>`;
   return `<section class="kg-c kg-flota"><img class="kg-truck" src="camion.webp" alt="Camión Dinet">
-    <div class="kg-tit"><div><h3 class="kg-t">Costo por unidad</h3><p class="kg-h">Lo que cuesta mover cada unidad</p></div>
+    <div class="kg-tit"><div><h3 class="kg-t">Costo por unidad</h3><p class="kg-h">Costo unitario del transporte</p></div>
       <div class="kg-seg" role="tablist" aria-label="Tipo de pago">${[['todo', 'Todo'], ['CONTADO', 'Contado'], ['CREDITO', 'Crédito']].map(([k, t]) => `<button type="button" data-ut="${k}" class="${kgTipo === k ? 'on' : ''}">${t}</button>`).join('')}</div></div>
     <div class="kg-uh"><div class="kg-un"><small>S/</small><span>${U.cpp ? kgNum(U.cpp) : '-'}</span><em>por pedido</em></div>${U.dpp}</div>
     <div class="kg-sts">${st('caja', 'Tarifa por caja', v(U.cpc), U.dpc)}
-      ${cred ? st('sol', 'No se liquida', rg(U.n), '<span class="kg-tag eq">a crédito</span>') : st('sol', 'Por liquidar', fmt(U.sumLiq), `<span class="kg-tag eq">${rg(U.liq)}</span>`)}</div>
+      ${cred ? st('sol', 'No sujeto a liquidación', rg(U.n), '<span class="kg-tag eq">a crédito</span>') : st('sol', 'Por liquidar', fmt(U.sumLiq), `<span class="kg-tag eq">${rg(U.liq)}</span>`)}</div>
     ${kgTransportes(R)}</section>`;
 }
 function kgRanking(R, envios) {
@@ -1400,27 +1400,27 @@ function kgRanking(R, envios) {
   const top = lista.sort((a, b) => b[1].costo - a[1].costo).slice(0, 5), mx = Math.max(...top.map(x => x[1].costo), 1);
   const sub = (k, v) => kgRank === 'nodo' ? [info.get(k)?.t, info.get(k)?.z !== '(sin zona)' ? info.get(k)?.z : 'Sin zona'].filter(Boolean).join(' · ') : kgRank === 'cuenta' ? `${(R.cuentaNodos.get(k) || new Map()).size} nodos` : `${v.nodos.size} ${v.nodos.size === 1 ? 'nodo' : 'nodos'}`;
   const est = x => !x || !ref ? '' : x <= ref * 1.3 ? '<span class="kg-pill g">En rango</span>' : x <= ref * 2 ? '<span class="kg-pill a">Alta</span>' : '<span class="kg-pill r">Muy alta</span>';
-  const hint = kgRank === 'cuenta' ? `El costo por pedido se compara con el promedio (${fmt(ref)})` : `La tarifa por caja se compara con la mediana (${fmt(ref)})`;
+  const hint = kgRank === 'cuenta' ? `Costo por pedido comparado con el promedio general (${fmt(ref)})` : `Tarifa por caja comparada con la mediana (${fmt(ref)})`;
   const nom = k => k.startsWith('(') ? 'Sin ' + k.slice(1, -1).toLowerCase().replace(/^sin /, '') : k;
-  return `<section class="kg-c kg-rank"><div class="kg-rh"><div><h3 class="kg-t">Dónde se concentra el costo</h3><p class="kg-h">${hint}</p></div>
+  return `<section class="kg-c kg-rank"><div class="kg-rh"><div><h3 class="kg-t">Concentración del costo</h3><p class="kg-h">${hint}</p></div>
       <div class="kg-seg" role="tablist" aria-label="Agrupar por">${[['nodo', 'Nodos'], ['cuenta', 'Cuentas'], ['age', 'Agencias']].map(([k, t]) => `<button type="button" data-rk="${k}" class="${kgRank === k ? 'on' : ''}">${t}</button>`).join('')}</div></div>
     <div class="kg-rows"><div class="kg-row hd"><span>${tit.slice(0, -1)}</span><span>Costo</span><span class="n ped">Pedidos</span><span class="n tar">${base === 'cajas' ? 'Tarifa por caja' : 'Costo por pedido'}</span><span>Estado</span></div>
-    ${top.map(([k, v]) => `<div class="kg-row"><span><b title="${esc(k)}">${esc(nom(k))}</b><small>${esc(sub(k, v))}</small></span><span class="kg-bar"><span><i style="width:${Math.max(3, v.costo / mx * 100)}%"></i></span><b>${fmt(v.costo)}</b></span><span class="n ped">${fmtN(v.pedidos)}</span><span class="n tar">${tarifa(v) ? fmt(tarifa(v)) : '-'}</span>${est(tarifa(v)) || '<span></span>'}</div>`).join('') || '<p class="kg-h">Sin datos en este rango.</p>'}</div>
-    ${lista.length > 5 ? `<button type="button" class="kg-ver" data-kt="${kgRank}">Ver los ${lista.length} ${tit.toLowerCase()}</button>` : ''}</section>`;
+    ${top.map(([k, v]) => `<div class="kg-row"><span><b title="${esc(k)}">${esc(nom(k))}</b><small>${esc(sub(k, v))}</small></span><span class="kg-bar"><span><i style="width:${Math.max(3, v.costo / mx * 100)}%"></i></span><b>${fmt(v.costo)}</b></span><span class="n ped">${fmtN(v.pedidos)}</span><span class="n tar">${tarifa(v) ? fmt(tarifa(v)) : '-'}</span>${est(tarifa(v)) || '<span></span>'}</div>`).join('') || '<p class="kg-h">Sin datos en el rango seleccionado.</p>'}</div>
+    ${lista.length > 5 ? `<button type="button" class="kg-ver" data-kt="${kgRank}">Ver detalle de ${lista.length} ${tit.toLowerCase()}</button>` : ''}</section>`;
 }
 function pintarResumen(R, dias, prev, envios) {
   kRes = { R, dias, prev, envios };
-  if (!R.conImporte) { $('#kgrid').innerHTML = `<div class="kg-c kg-vacio"><b>Aún no hay importes en este rango</b><span>Completa el importe de los registros para ver los costos.</span></div>`; $('#kgAl').innerHTML = ''; return; }
+  if (!R.conImporte) { $('#kgrid').innerHTML = `<div class="kg-c kg-vacio"><b>Sin importes registrados en el rango seleccionado</b><span>Completar el importe de los registros para visualizar los costos.</span></div>`; $('#kgAl').innerHTML = ''; return; }
   const conta = dias.reduce((x, d) => x + d.contado, 0), cred = dias.reduce((x, d) => x + d.credito, 0), sumaCD = conta + cred, pc = sumaCD ? Math.round(conta / sumaCD * 100) : 0;
   const costos = dias.filter(d => d.costo > 0), mxd = costos.length ? costos.reduce((a, b) => b.costo > a.costo ? b : a) : null;
   const hero = `<section class="kg-c kg-hero"><h3 class="kg-t">Costo del período</h3><p class="kg-h">${R.conImporte} ${R.conImporte === 1 ? 'registro con importe' : 'registros con importe'}</p><img class="kg-arte" src="costos_arte.webp" alt="" aria-hidden="true">
     <div class="kg-cifra"><div class="kg-n"><small>S/</small>${kgNum(R.total)}</div><div class="kg-d">${kgDelta(R.total, prev.total)}${prev.total ? `<span>frente al período anterior (${fmt(prev.total)})</span>` : ''}<span>${fmtN(R.pedidos)} pedidos</span></div></div>
-    <div class="kg-mez">${sumaCD ? `${pc ? `<div class="a${pc < 25 ? ' s' : ''}" style="width:${pc}%">${pc} %<small>contado</small></div>` : ''}${pc < 100 ? `<div class="b${100 - pc < 25 ? ' s' : ''}">${100 - pc} %<small>crédito</small></div>` : ''}` : '<div class="b">Sin pagos registrados</div>'}</div>
+    <div class="kg-mez">${sumaCD ? `${pc ? `<div class="a${pc < 25 ? ' s' : ''}" style="width:${pc}%">${pc} %<small>contado</small></div>` : ''}${pc < 100 ? `<div class="b${100 - pc < 25 ? ' s' : ''}">${100 - pc} %<small>crédito</small></div>` : ''}` : '<div class="b">Sin modalidad de pago registrada</div>'}</div>
     <div class="kg-ley"><span>Contado ${fmt(conta)}</span><span>Crédito ${fmt(cred)}</span></div>${metaHtml(R)}</section>`;
   const evo = `<section class="kg-c kg-evo"><h3 class="kg-t">Evolución diaria</h3><p class="kg-h">Costo de cada día y promedio móvil de 7 días</p><span class="kg-ico">${KG_IC.barras}</span>
     ${kgEvoSvg(dias)}${mxd ? `<div class="kg-top"><span class="p">${KG_IC.alerta}</span><div><b>${costos.length > 1 ? 'Día de mayor costo' : 'Único día con costo'}</b><small>${fdmy(mxd.fecha)} · ${fmt(mxd.costo)}</small></div>${costos.length > 1 ? `<span class="tg">${Math.round(mxd.costo / R.total * 100)} %</span>` : ''}</div>` : ''}
     </section>`;
-  const alertas = kHall.length ? `<section class="kg-c kg-al"><h3 class="kg-t">Alertas</h3><p class="kg-h">Lo que conviene revisar en este período</p>
+  const alertas = kHall.length ? `<section class="kg-c kg-al"><h3 class="kg-t">Alertas y hallazgos</h3><p class="kg-h">Puntos que requieren revisión en el período</p>
     <div class="kg-alg">${kHall.slice(0, 6).map(h => `<div class="kg-hl"${h.kt ? ` data-kt="${h.kt}"` : h.go ? ` data-go="${h.go}"` : ''}><i class="${h.c}"></i><div><b>${esc(h.t)}</b><small>${esc(h.d)}</small></div></div>`).join('')}</div></section>` : '';
   $('#kgrid').innerHTML = hero + evo + kgFlota(R, envios, prev) + kgRanking(R, envios); $('#kgAl').innerHTML = alertas;
 }
@@ -1433,21 +1433,21 @@ $('#kgrid').addEventListener('click', e => {
 // avisos y hallazgos: lo más grave primero
 function hallazgosKpi(R, envios) {
   const out = [], T = R.total; if (!R.conImporte) return out;
-  if (R.sinHrn) { const n = R.sinHrnNodos.size, f = [...R.sinHrnFechas].sort().map(x => fdmy(x).slice(0, 5)); out.push({ c: 'w', t: `${fmt(R.sinHrn)} sin cuenta asignada`, d: `Falta el detalle de ${n} ${n === 1 ? 'nodo' : 'nodos'} (${f.slice(0, 4).join(', ')}${f.length > 4 ? '…' : ''}).`, go: 'detalle' }); }
-  if (R.pendientes) out.push({ c: 'w', t: `${R.pendientes} ${R.pendientes === 1 ? 'registro sin importe' : 'registros sin importe'}`, d: `No ${R.pendientes === 1 ? 'entra' : 'entran'} al cálculo. Complétalos en Registros.`, go: 'registros' });
+  if (R.sinHrn) { const n = R.sinHrnNodos.size, f = [...R.sinHrnFechas].sort().map(x => fdmy(x).slice(0, 5)); out.push({ c: 'w', t: `${fmt(R.sinHrn)} sin cuenta asignada`, d: `Falta cargar el detalle de ${n} ${n === 1 ? 'nodo' : 'nodos'} (${f.slice(0, 4).join(', ')}${f.length > 4 ? '…' : ''}).`, go: 'detalle' }); }
+  if (R.pendientes) out.push({ c: 'w', t: `${R.pendientes} ${R.pendientes === 1 ? 'registro sin importe' : 'registros sin importe'}`, d: `Se ${R.pendientes === 1 ? 'excluye' : 'excluyen'} del cálculo. Completar el importe en Registros.`, go: 'registros' });
   const rep = {}; envios.forEach(e => { const k = norm(e.factura); if (k) (rep[k] = rep[k] || []).push(e); });
   const dup = Object.values(rep).filter(l => l.length > 1);
-  if (dup.length) out.push({ c: 'r', t: `Factura ${dup[0][0].factura} repetida`, d: `${[...new Set(dup[0].map(e => e.nodo))].slice(0, 3).join(', ')}${dup.length > 1 ? ` y ${dup.length - 1} más` : ''}: revisa que no se pague dos veces.`, go: 'registros' });
+  if (dup.length) out.push({ c: 'r', t: `Factura ${dup[0][0].factura} repetida`, d: `${[...new Set(dup[0].map(e => e.nodo))].slice(0, 3).join(', ')}${dup.length > 1 ? ` y ${dup.length - 1} más` : ''}: verificar que no se pague dos veces.`, go: 'registros' });
   const tr = [...R.transportes].filter(([, v]) => v.pedidos).map(([k, v]) => ({ k, cpp: v.costo / v.pedidos })).sort((a, b) => b.cpp - a.cpp);
-  if (tr.length > 1 && tr[0].cpp / tr[tr.length - 1].cpp >= 1.3) { const f = tr[0].cpp / tr[tr.length - 1].cpp; out.push({ c: f >= 2 ? 'r' : 'w', t: `${tr[0].k} cuesta ${f.toFixed(1)}× más por pedido que ${tr[tr.length - 1].k}`, d: `${fmt(tr[0].cpp)} frente a ${fmt(tr[tr.length - 1].cpp)} por pedido.`, kt: 'trans' }); }
+  if (tr.length > 1 && tr[0].cpp / tr[tr.length - 1].cpp >= 1.3) { const f = tr[0].cpp / tr[tr.length - 1].cpp; out.push({ c: f >= 2 ? 'r' : 'w', t: `${tr[0].k} presenta un costo por pedido ${f.toFixed(1)}× superior al de ${tr[tr.length - 1].k}`, d: `${fmt(tr[0].cpp)} frente a ${fmt(tr[tr.length - 1].cpp)} por pedido.`, kt: 'trans' }); }
   const nod = [...R.nodos].filter(([, v]) => v.cajas).map(([k, v]) => ({ k, t: v.costo / v.cajas })), med = mediana(nod.map(x => x.t)), caros = nod.filter(x => nod.length >= 4 && x.t > med * 2).sort((a, b) => b.t - a.t);
-  if (caros.length) out.push({ c: 'w', t: `${caros.length} ${caros.length === 1 ? 'nodo paga' : 'nodos pagan'} más del doble de la tarifa mediana por caja`, d: `${caros.slice(0, 3).map(x => `${x.k} ${fmt(x.t)}`).join(', ')}. La mediana es ${fmt(med)}.`, kt: 'nodo' });
+  if (caros.length) out.push({ c: 'w', t: `${caros.length} ${caros.length === 1 ? 'nodo supera' : 'nodos superan'} el doble de la tarifa mediana por caja`, d: `${caros.slice(0, 3).map(x => `${x.k} ${fmt(x.t)}`).join(', ')}. La mediana es ${fmt(med)}.`, kt: 'nodo' });
   const sinAg = envios.filter(e => !e.agencia);
-  if (sinAg.length) out.push({ c: 'w', t: `${sinAg.length} ${sinAg.length === 1 ? 'registro sin agencia asignada' : 'registros sin agencia asignada'}`, d: `${[...new Set(sinAg.map(e => e.nodo))].slice(0, 4).join(', ')}${new Set(sinAg.map(e => e.nodo)).size > 4 ? '…' : ''}: completa la agencia en Registros.`, kt: 'cal' });
+  if (sinAg.length) out.push({ c: 'w', t: `${sinAg.length} ${sinAg.length === 1 ? 'registro sin agencia asignada' : 'registros sin agencia asignada'}`, d: `${[...new Set(sinAg.map(e => e.nodo))].slice(0, 4).join(', ')}${new Set(sinAg.map(e => e.nodo)).size > 4 ? '…' : ''}: falta asignar la agencia en Registros.`, kt: 'cal' });
   const sinFac = envios.filter(e => !e.factura && Number(e.importe) > 0), mFac = sinFac.reduce((s, e) => s + Number(e.importe), 0);
-  if (sinFac.length) out.push({ c: 'w', t: `${fmt(mFac)} (${Math.round(mFac / T * 100)}%) sin N° de factura`, d: `${sinFac.length} de ${R.conImporte} registros aún no tienen su factura registrada.`, kt: 'cal' });
+  if (sinFac.length) out.push({ c: 'w', t: `${fmt(mFac)} (${Math.round(mFac / T * 100)} %) sin N° de factura`, d: `${sinFac.length} de ${R.conImporte} registros no cuentan con factura registrada.`, kt: 'cal' });
   const cu = [...R.cuentas].filter(([k]) => !k.startsWith('(')).sort((a, b) => b[1].costo - a[1].costo)[0];
-  if (cu && cu[1].costo / T >= 0.3) out.push({ c: 'b', t: `${cu[0]} concentra el ${Math.round(cu[1].costo / T * 100)}% del costo`, d: `${fmtN(cu[1].pedidos)} de ${fmtN(R.pedidos)} pedidos del período.`, kt: 'cuenta' });
+  if (cu && cu[1].costo / T >= 0.3) out.push({ c: 'b', t: `${cu[0]} concentra el ${Math.round(cu[1].costo / T * 100)} % del costo`, d: `${fmtN(cu[1].pedidos)} de ${fmtN(R.pedidos)} pedidos del período.`, kt: 'cuenta' });
   const orden = { r: 0, w: 1, b: 2, g: 3 }; return out.sort((a, b) => orden[a.c] - orden[b.c]);
 }
 function calidadKpi(R, envios) {
@@ -1458,11 +1458,11 @@ function calidadKpi(R, envios) {
   const hrnPc = R.total - R.recojo > 0 ? (1 - R.sinHrn / (R.total - R.recojo)) * 100 : 100;
   $('#calList').innerHTML =
     item('', '', 'Registros con importe', 'Los registros sin importe no se incluyen en los indicadores.', sinImp.length, 'registros', 'Ir a Registros') +
-    item('', '#fffbeb', 'Con N° de factura', `${fmt(sinFac.reduce((s, e) => s + (Number(e.importe) || 0), 0))} aún sin número de factura.`, sinFac.length, 'registros', 'Completar en Registros') +
-    item('', '', 'Con foto de factura adjunta', 'La lectura automática completa la factura y el importe a partir de la foto.', sinAdj.length, 'registros', 'Adjuntar fotos') +
-    item('', '#fef2f2', 'Con agencia asignada', `${esc([...new Set(sinAg.map(e => e.nodo))].join(', ') || 'Todos los nodos tienen agencia')}${sinAg.length ? ': completa la agencia en Registros.' : '.'}`, sinAg.length, 'registros', 'Ir a Registros') +
-    item('', '', 'Con zona', 'Necesaria para el análisis por zona y la matriz transporte × zona. Se completa con Editar en Registros.', sinZona.length, 'registros', 'Ir a Registros') +
-    `<div class="cq-i"><div class="tx"><b>Importe repartido entre cuentas</b><span>${R.sinHrn ? `${fmt(R.sinHrn)} sin cuenta: falta el detalle de ${R.sinHrnNodos.size} ${R.sinHrnNodos.size === 1 ? 'nodo' : 'nodos'}.` : 'Todo el costo está asignado a una cuenta.'}</span></div><div class="mt"><div class="tr"><i style="width:${hrnPc}%;background:${hrnPc >= 95 ? 'var(--grn)' : 'var(--amb)'}"></i></div><small>${hrnPc.toFixed(0)}% asignado</small></div><button class="b sec" data-go="detalle">Cargar detalle</button></div>`;
+    item('', '#fffbeb', 'Con N° de factura', `${fmt(sinFac.reduce((s, e) => s + (Number(e.importe) || 0), 0))} sin número de factura registrado.`, sinFac.length, 'registros', 'Completar en Registros') +
+    item('', '', 'Con foto de factura adjunta', 'Permite la lectura automática del N° de factura y del importe a partir de la imagen.', sinAdj.length, 'registros', 'Adjuntar fotos') +
+    item('', '#fef2f2', 'Con agencia asignada', `${esc([...new Set(sinAg.map(e => e.nodo))].join(', ') || 'Todos los nodos tienen agencia')}${sinAg.length ? ': falta asignar la agencia en Registros.' : '.'}`, sinAg.length, 'registros', 'Ir a Registros') +
+    item('', '', 'Con zona', 'Requerida para el análisis por zona y la matriz transporte por zona. Se completa con la opción Editar en Registros.', sinZona.length, 'registros', 'Ir a Registros') +
+    `<div class="cq-i"><div class="tx"><b>Importe repartido entre cuentas</b><span>${R.sinHrn ? `${fmt(R.sinHrn)} sin cuenta asignada: falta el detalle de ${R.sinHrnNodos.size} ${R.sinHrnNodos.size === 1 ? 'nodo' : 'nodos'}.` : 'Todo el costo está asignado a una cuenta.'}</span></div><div class="mt"><div class="tr"><i style="width:${hrnPc}%;background:${hrnPc >= 95 ? 'var(--grn)' : 'var(--amb)'}"></i></div><small>${hrnPc.toFixed(0)} % asignado</small></div><button class="b sec" data-go="detalle">Cargar detalle</button></div>`;
   $('#dotCal').className = (sinImp.length || sinFac.length || sinAdj.length || sinAg.length || sinZona.length || R.sinHrn) ? 'dotw' : '';
 }
 document.addEventListener('click', e => {
@@ -1502,21 +1502,21 @@ async function cargarMeta() {
 }
 function metaHtml(R) {
   const m = kMeta;
-  if (!m.aplica) return m.motivo === 'filtros' ? '<div class="goal"><small>La meta mensual aplica al total, sin filtros.</small></div>' : '';
+  if (!m.aplica) return m.motivo === 'filtros' ? '<div class="goal"><small>La meta mensual se evalúa sobre el total, sin filtros.</small></div>' : '';
   if (!m.monto) return `<div class="goal"><button class="link" id="metaBtn">+ Definir meta de ${esc(mesNombre(m.mes))}</button></div>`;
   const uso = R.total / m.monto * 100; let px = '';
   const hoy = new Date(), [y, n] = m.mes.split('-').map(Number);
   if (ym(hoy) === m.mes) { const dm = new Date(y, n, 0).getDate(), tr = hoy.getDate(); if (tr < dm && R.total) { const pr = R.total / tr * dm, dif = (pr / m.monto - 1) * 100;
-    px = `<div class="px">Al ritmo actual cerrarías en <b>${fmt(pr)}</b> (${dif >= 0 ? '+' : ''}${dif.toFixed(0)}% ${dif >= 0 ? 'sobre' : 'bajo'} la meta)</div>`; } }
-  return `<div class="goal"><div class="tr"><i style="width:${Math.min(100, uso)}%;background:${uso > 100 ? '#d70015' : '#1d1d1f'}"></i></div><div class="tx"><span>Meta ${fmt(m.monto)}, <button class="link" id="metaBtn">editar</button></span><span>${uso.toFixed(0)}% usado</span></div>${px}</div>`;
+    px = `<div class="px">Proyección al cierre del mes: <b>${fmt(pr)}</b> (${dif >= 0 ? '+' : ''}${dif.toFixed(0)} % ${dif >= 0 ? 'sobre' : 'bajo'} la meta)</div>`; } }
+  return `<div class="goal"><div class="tr"><i style="width:${Math.min(100, uso)}%;background:${uso > 100 ? '#d70015' : '#1d1d1f'}"></i></div><div class="tx"><span>Meta ${fmt(m.monto)}, <button class="link" id="metaBtn">editar</button></span><span>${uso.toFixed(0)} % ejecutado</span></div>${px}</div>`;
 }
 function abrirMeta() {
-  const m = kMeta; if (!m.mes) return; $('#metaT').textContent = 'Meta de ' + mesNombre(m.mes); $('#metaS').textContent = 'Se compara contra el costo total del mes, sin filtros.';
+  const m = kMeta; if (!m.mes) return; $('#metaT').textContent = 'Meta de ' + mesNombre(m.mes); $('#metaS').textContent = 'Se compara con el costo total del mes, sin filtros.';
   $('#metaV').value = m.monto || ''; $('#metaQ').classList.toggle('hide', !m.monto); $('#metaDlg').showModal(); $('#metaV').focus();
 }
 $('#metaX').onclick = () => $('#metaDlg').close();
 $('#metaOk').onclick = async () => {
-  const v = Number($('#metaV').value); if (!(v > 0)) return toast('Escribe un monto mayor que cero', 'err');
+  const v = Number($('#metaV').value); if (!(v > 0)) return toast('Ingresar un monto mayor que cero', 'err');
   const { error } = await sb.from('metas').upsert({ mes: kMeta.mes, monto: v, updated_at: new Date().toISOString() });
   if (error) return toast('No se pudo guardar la meta. Verifica que se haya ejecutado supabase_fase2.sql. ' + error.message, 'err');
   $('#metaDlg').close(); toast('Meta guardada', 'ok'); calcularKpis();
@@ -1545,11 +1545,11 @@ function kAplicar(qs) {
   $('#kAgencia').value = p.get('ag') || ''; $('#kZona').value = p.get('zo') || ''; kst.m = MOTIVOS.includes(p.get('mo')) ? p.get('mo') : '';
   kSync(); if (KT.includes(p.get('v'))) kTab(p.get('v'));
 }
-$('#kLink').onclick = () => { history.replaceState(null, '', '#kpis?' + kParams()); (navigator.clipboard ? navigator.clipboard.writeText(location.href) : Promise.reject()).then(() => toast('Enlace copiado: abre estos mismos filtros', 'ok'), () => toast('No se pudo copiar el enlace', 'err')); };
+$('#kLink').onclick = () => { history.replaceState(null, '', '#kpis?' + kParams()); (navigator.clipboard ? navigator.clipboard.writeText(location.href) : Promise.reject()).then(() => toast('Enlace copiado, con los filtros aplicados', 'ok'), () => toast('No se pudo copiar el enlace', 'err')); };
 
 // ---------- costo por período: semanas, meses, trimestres y años ----------
 const KP_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'set', 'oct', 'nov', 'dic'];
-const KP_N = { sem: ['semana', 'semanas', 'Semana más alta'], mes: ['mes', 'meses', 'Mes más alto'], tri: ['trimestre', 'trimestres', 'Trimestre más alto'], anio: ['año', 'años', 'Año más alto'] };
+const KP_N = { sem: ['semana', 'semanas', 'Semana de mayor costo'], mes: ['mes', 'meses', 'Mes de mayor costo'], tri: ['trimestre', 'trimestres', 'Trimestre de mayor costo'], anio: ['año', 'años', 'Año de mayor costo'] };
 const KP_T = { sem: 'Últimas 12 semanas', mes: 'Últimos 12 meses', tri: 'Últimos 6 trimestres', anio: 'Últimos 5 años' };
 let kpVista = 'mes', kpFilas = [], kpSeq = 0; const kpCache = new Map();
 const kpYMD = f => String(f).slice(0, 10).split('-').map(Number), kp2 = n => String(n).padStart(2, '0');
@@ -1587,18 +1587,18 @@ async function kpCargar() {
 function kpMsg(t) { const b = $('#kpBox'); b.querySelector('svg')?.remove(); b.querySelector('.kc-vacio')?.remove(); b.insertAdjacentHTML('afterbegin', `<div class="kc-vacio">${esc(t)}</div>`); }
 function kpPintar() {
   const v = kpVista, rows = kpFilas, n = rows.length, N = KP_N[v], tot = rows.reduce((a, x) => a + x.t, 0);
-  $('#kpHint').textContent = KP_T[v] + '. Se respetan los filtros de transporte, motivo, agencia y zona.';
+  $('#kpHint').textContent = KP_T[v] + '. Se aplican los filtros seleccionados de transporte, motivo, agencia y zona.';
   document.querySelectorAll('#kpVista button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   if (!tot) { $('#kpKpis').innerHTML = ''; $('#kpProm').textContent = ''; kpMsg('Sin costos registrados en este período.'); return; }
   const cer = rows.filter(x => !x.enCurso), base = cer.length ? cer : rows, prom = base.reduce((a, x) => a + x.t, 0) / base.length, mx = rows.reduce((m, x) => x.t > m.t ? x : m, rows[0]);
   const conta = Math.round(rows.reduce((a, x) => a + x.c, 0) / tot * 100);
   const [a1, b1] = [cer[cer.length - 1], cer[cer.length - 2]], dl = a1 && b1 && b1.t > 0 ? (a1.t - b1.t) / b1.t * 100 : null;
   $('#kpKpis').innerHTML =
-    `<div class="kc-k"><small>Total del gráfico</small><b>${fmt(tot)}</b><em>${n} ${n === 1 ? N[0] : N[1]}</em></div>` +
+    `<div class="kc-k"><small>Total del período graficado</small><b>${fmt(tot)}</b><em>${n} ${n === 1 ? N[0] : N[1]}</em></div>` +
     `<div class="kc-k"><small>Promedio por ${N[0]}</small><b>${fmt(prom)}</b><em>${conta} % al contado</em></div>` +
     `<div class="kc-k"><small>${N[2]}</small><b>${fmt(mx.t)}</b><em>${esc(mx.l)}</em></div>` +
-    (dl == null ? `<div class="kc-k"><small>Último cerrado frente al anterior</small><b>-</b><em>sin períodos para comparar</em></div>`
-      : `<div class="kc-k"><small>Último cerrado frente al anterior</small><b>${dl > 0 ? '+' : ''}${dl.toFixed(1)} %<span class="kg-tag ${Math.abs(dl) < .5 ? 'eq' : dl > 0 ? 'up' : 'dn'}">${Math.abs(dl) < .5 ? 'igual' : dl > 0 ? 'sube' : 'baja'}</span></b><em>${esc(a1.l)} frente a ${esc(b1.l)}</em></div>`);
+    (dl == null ? `<div class="kc-k"><small>Variación del último período cerrado</small><b>-</b><em>sin períodos comparables</em></div>`
+      : `<div class="kc-k"><small>Variación del último período cerrado</small><b>${dl > 0 ? '+' : ''}${dl.toFixed(1)} %<span class="kg-tag ${Math.abs(dl) < .5 ? 'eq' : dl > 0 ? 'up' : 'dn'}">${Math.abs(dl) < .5 ? 'sin variación' : dl > 0 ? 'aumento' : 'reducción'}</span></b><em>${esc(a1.l)} frente a ${esc(b1.l)}</em></div>`);
   $('#kpProm').textContent = 'Promedio ' + fmt(prom);
   kpDibujar(rows, prom);
 }
@@ -1622,7 +1622,7 @@ function kpDibujar(rows, prom) {
   box.querySelector('svg')?.remove(); box.querySelector('.kc-vacio')?.remove(); box.insertAdjacentHTML('afterbegin', `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Costo por período">${g}</svg>`);
   box.querySelectorAll('.col').forEach(c => {
     const i = +c.dataset.i, x = rows[i], p = rows[i - 1], d = p && p.t > 0 && !x.enCurso ? (x.t - p.t) / p.t * 100 : null;
-    const mostrar = () => { tip.innerHTML = `<b>${esc(x.l)}</b><div class="f"><span>Contado</span><span>${fmt(x.c)}</span></div><div class="f"><span>Crédito</span><span>${fmt(x.r)}</span></div><hr><div class="f"><span>Total</span><span><b style="display:inline;margin:0">${fmt(x.t)}</b></span></div>${d == null ? '' : `<div class="f"><span>Frente al anterior</span><span class="d ${d > 0 ? 'up' : 'dn'}">${d > 0 ? '+' : ''}${d.toFixed(1)} %</span></div>`}${x.enCurso ? '<i>Período en curso: aún no está completo</i>' : ''}`;
+    const mostrar = () => { tip.innerHTML = `<b>${esc(x.l)}</b><div class="f"><span>Contado</span><span>${fmt(x.c)}</span></div><div class="f"><span>Crédito</span><span>${fmt(x.r)}</span></div><hr><div class="f"><span>Total</span><span><b style="display:inline;margin:0">${fmt(x.t)}</b></span></div>${d == null ? '' : `<div class="f"><span>Variación frente al anterior</span><span class="d ${d > 0 ? 'up' : 'dn'}">${d > 0 ? '+' : ''}${d.toFixed(1)} %</span></div>`}${x.enCurso ? '<i>Período en curso: información parcial</i>' : ''}`;
       const cx = m.l + i * step + step / 2, w = tip.offsetWidth || 180, left = Math.min(Math.max(0, cx - w / 2), W - w);
       tip.style.left = left + 'px'; tip.style.top = Math.max(0, Y(x.t) - tip.offsetHeight - 10) + 'px'; tip.classList.add('on'); };
     c.addEventListener('mouseenter', mostrar); c.addEventListener('click', mostrar); c.addEventListener('mouseleave', () => tip.classList.remove('on'));
@@ -1633,12 +1633,12 @@ $('#kpVista').onclick = e => { const b = e.target.closest('button'); if (!b || b
 
 // ---------- informe PDF (se imprime / guarda como PDF desde el navegador) ----------
 function informePDF() {
-  const R = kpiResultado; if (!R) return toast('Espera a que terminen de calcularse los indicadores', 'err');
-  const w = window.open('', '_blank'); if (!w) return toast('El navegador bloqueó la ventana del informe: permite ventanas emergentes.', 'err');
+  const R = kpiResultado; if (!R) return toast('Esperar a que finalice el cálculo de los indicadores', 'err');
+  const w = window.open('', '_blank'); if (!w) return toast('El navegador bloqueó la ventana del informe. Habilitar las ventanas emergentes para este sitio.', 'err');
   const T = R.total, dias = diasResultado, env = kpEnvios, nF = env.filter(e => e.factura).length, conta = dias.reduce((x, d) => x + d.contado, 0), cred = dias.reduce((x, d) => x + d.credito, 0);
   const filtros = [...document.querySelectorAll('#kAct .pill')].map(x => x.textContent).join(', '), hall = kHall.map(h => `<li><b>${esc(h.t)}.</b> ${esc(h.d)}</li>`).join('');
   const tabla = (t, cab, filas) => `<h2>${t}</h2><table><tr>${cab.map((c, i) => `<th${i ? ' class="r"' : ''}>${c}</th>`).join('')}</tr>${filas.map(f => `<tr>${f.map((c, i) => `<td${i ? ' class="r"' : ''}>${c}</td>`).join('')}</tr>`).join('')}</table>`;
-  const top = (mapa, n) => [...mapa].sort((a, b) => b[1].costo - a[1].costo).slice(0, n), pc = x => T ? (x / T * 100).toFixed(1) + '%' : '-';
+  const top = (mapa, n) => [...mapa].sort((a, b) => b[1].costo - a[1].costo).slice(0, n), pc = x => T ? (x / T * 100).toFixed(1) + ' %' : '-';
   const caja = v => v.cajas ? fmt(v.costo / v.cajas) : '-', ped = v => v.pedidos ? fmt(v.costo / v.pedidos) : '-';
   const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de costos de Red Troncal</title><style>
     @page { size:A4; margin:14mm } * { box-sizing:border-box } body { font:11px/1.45 Inter,system-ui,Arial,sans-serif; color:#0f172a; margin:0 }
@@ -1654,15 +1654,15 @@ function informePDF() {
       <div><span>Costo por pedido</span><b>${R.pedidos ? fmt(T / R.pedidos) : '-'}</b><small>${fmtN(R.pedidos)} pedidos</small></div>
       <div><span>Costo por caja (tarifa efectiva)</span><b>${R.cajas ? fmt(T / R.cajas) : '-'}</b><small>${fmtN(R.cajas)} cajas</small></div>
       <div><span>Promedio por día</span><b>${dias.length ? fmt(T / dias.length) : '-'}</b><small>${dias.length} ${dias.length === 1 ? 'día' : 'días'} con envíos</small></div>
-      <div><span>Contado y crédito</span><b>${fmt(conta)} / ${fmt(cred)}</b><small>${conta + cred ? Math.round(conta / (conta + cred) * 100) : 0}% contado</small></div>
-      <div><span>Respaldo documental</span><b>${env.length ? Math.round(nF / env.length * 100) : 0}%</b><small>${nF} de ${env.length} con N° de factura</small></div>
+      <div><span>Contado y crédito</span><b>${fmt(conta)} / ${fmt(cred)}</b><small>${conta + cred ? Math.round(conta / (conta + cred) * 100) : 0} % contado</small></div>
+      <div><span>Respaldo documental</span><b>${env.length ? Math.round(nF / env.length * 100) : 0} %</b><small>${nF} de ${env.length} con N° de factura</small></div>
     </div>
     ${hall ? `<h2>Hallazgos</h2><ul>${hall}</ul>` : ''}
-    ${tabla('Costo por cuenta (top 15)', ['Cuenta', 'Costo', '% total', 'Pedidos', 'Costo x pedido'], top(R.cuentas, 15).map(([k, v]) => [esc(k), fmt(v.costo), pc(v.costo), fmtN(v.pedidos), ped(v)]))}
+    ${tabla('Costo por cuenta (top 15)', ['Cuenta', 'Costo', '% total', 'Pedidos', 'Costo por pedido'], top(R.cuentas, 15).map(([k, v]) => [esc(k), fmt(v.costo), pc(v.costo), fmtN(v.pedidos), ped(v)]))}
     ${tabla('Costo por nodo (top 15)', ['Nodo', 'Costo', '% total', 'Cajas', 'Tarifa por caja'], top(R.nodos, 15).map(([k, v]) => [esc(k), fmt(v.costo), pc(v.costo), fmtN(v.cajas), caja(v)]))}
     ${tabla('Costo por agencia', ['Agencia', 'Costo', '% total', 'Cajas', 'Tarifa por caja', 'Contado', 'Crédito'], top(R.agencias, 20).map(([k, v]) => [esc(k), fmt(v.costo), pc(v.costo), fmtN(v.cajas), caja(v), fmt(v.contado), fmt(v.credito)]))}
     ${tabla('Costo por zona', ['Zona', 'Costo', '% total', 'Cajas', 'Tarifa por caja'], top(R.zonas, 20).map(([k, v]) => [esc(k), fmt(v.costo), pc(v.costo), fmtN(v.cajas), caja(v)]))}
-    ${tabla('Costo por transporte', ['Transporte', 'Costo', '% total', 'Pedidos', 'Costo x pedido', 'Tarifa por caja'], top(R.transportes, 20).map(([k, v]) => [esc(k), fmt(v.costo), pc(v.costo), fmtN(v.pedidos), ped(v), caja(v)]))}
+    ${tabla('Costo por transporte', ['Transporte', 'Costo', '% total', 'Pedidos', 'Costo por pedido', 'Tarifa por caja'], top(R.transportes, 20).map(([k, v]) => [esc(k), fmt(v.costo), pc(v.costo), fmtN(v.pedidos), ped(v), caja(v)]))}
     ${dias.length > 1 ? tabla('Costo por día', ['Día', 'Registros', 'Pedidos', 'Contado', 'Crédito', 'Costo total'], dias.map(d => [fdmy(d.fecha), d.registros, fmtN(d.pedidos), fmt(d.contado), fmt(d.credito), fmt(d.costo)])) : ''}
     <footer>Generado el ${new Date().toLocaleString('es-PE')}. Red Troncal, Dinet Logística.</footer>
   </body></html>`;
@@ -1672,7 +1672,7 @@ $('#kPdf').onclick = informePDF;
 
 async function calcularKpis(silencioso) {
   const desde = $('#kDesde').value, hasta = $('#kHasta').value, trans = $('#kTrans').value, mi = ++kSeq;
-  if (desde && hasta && desde > hasta) { $('#kgrid').innerHTML = '<div class="kg-c kg-vacio"><b>La fecha inicial es posterior a la final</b><span>Corrige el rango para ver los costos.</span></div>'; $('#kgAl').innerHTML = ''; $('#tab-kpis').classList.remove('kload'); return; }
+  if (desde && hasta && desde > hasta) { $('#kgrid').innerHTML = '<div class="kg-c kg-vacio"><b>La fecha inicial es posterior a la fecha final</b><span>Corregir el rango para visualizar los costos.</span></div>'; $('#kgAl').innerHTML = ''; $('#tab-kpis').classList.remove('kload'); return; }
   $('#kRefrescar').disabled = true;
   poblarFiltros(); pintarActivos();
   // si ya había resultados se dejan a la vista (atenuados) mientras se recalcula; solo la primera vez se muestra el esqueleto
@@ -1703,7 +1703,7 @@ async function calcularKpis(silencioso) {
     $('#kpMsg').className = 'msg'; kUpdTs = Date.now(); pintarUpd(); kHash();
   } catch (err) {
     flash($('#kpMsg'), 'No se pudo calcular: ' + err.message, 'err');
-    if (mi === kSeq && !$('#kgrid .kg-hero')) $('#kgrid').innerHTML = '<div class="kg-c kg-vacio"><b>No se pudieron calcular los costos</b><span>Revisa tu conexión y pulsa Actualizar.</span></div>';
+    if (mi === kSeq && !$('#kgrid .kg-hero')) $('#kgrid').innerHTML = '<div class="kg-c kg-vacio"><b>No fue posible calcular los costos</b><span>Verificar la conexión y presionar Actualizar.</span></div>';
   }
   if (mi === kSeq) { $('#kRefrescar').disabled = false; $('#tab-kpis').classList.remove('kload'); }
 }
