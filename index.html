@@ -8,7 +8,7 @@
 <link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilos.css?v=20261009e">
+<link rel="stylesheet" href="estilos.css?v=20261009f">
 </head>
 <body>
 
@@ -67,8 +67,9 @@
   <div class="top"><div><h1>Cargar despacho</h1><div class="sub">Sube el Excel del día y revisa antes de guardar</div></div><div class="cps" id="cPasos"></div></div>
   <div id="cS1">
     <div class="card">
-      <div class="cdrop" id="cDrop" role="button" tabindex="0" aria-label="Elegir el Excel del día"><div class="ic" id="cIcSube"></div><div><b>Arrastra el Excel aquí</b><span>o elige un archivo de tu equipo</span></div><button type="button" class="b" id="cElegir">Elegir archivo</button></div>
+      <div class="cdrop" id="cDrop" role="button" tabindex="0" aria-label="Elegir el Excel del día"><svg class="borde" aria-hidden="true"><rect x="1" y="1" rx="17"/></svg><div class="ctr"><div class="icw"><i class="onda"></i><i class="onda"></i><i class="onda"></i><div class="nuc" id="cIcSube"></div></div><b>Arrastra el Excel aquí</b><span>o elige un archivo de tu equipo</span><button type="button" class="b" id="cElegir">Elegir archivo</button></div></div>
       <div class="carch hide" id="cArch"><div class="ic" id="cIcDoc"></div><div><b id="cArchN"></b><span id="cArchS"></span></div><button type="button" class="b sec" id="cCambiar">Cambiar</button></div>
+  <div class="chojas hide" id="cHojas"></div>
       <div class="cayuda"><span>El Excel puede traer</span><span class="chip" data-h="despacho">Despacho</span><span class="chip" data-h="recojos">Recojos</span><span class="chip" data-h="detalle">Detalle</span><span class="sp"></span><button type="button" class="lnk" id="cPlantilla">Descargar plantilla</button></div>
       <details class="how" id="cHow"><summary>¿Cómo debe ser el Excel?</summary>
         <ul>
@@ -309,6 +310,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 <script src="config.js"></script>
 <script src="ocr.js?v=4"></script>
-<script src="app.js?v=20261009e"></script>
+<script src="app.js?v=20261009f"></script>
 </body>
 </html>

@@ -191,7 +191,7 @@
     --pri:#0066cc; --pri-h:#0058b0; --grn:#1d1d1f; --grn-h:#000; --ind:#0066cc; --brand:#1d1d1f;
     --ok:#248a3d; --okbg:rgba(36,138,61,.1); --okln:transparent; --indbg:rgba(0,102,204,.1); --indln:transparent;
     --warn:#b25000; --warnbg:rgba(255,149,0,.12); --bad:#d70015; --badbg:rgba(215,0,21,.08); --amb:#ff9f0a;
-    --rad:18px; --shadow:none;
+    --rad:18px; --shadow:none; --ease:cubic-bezier(.22,.9,.3,1);
     --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",system-ui,sans-serif;
   }
   body { font:15px/1.47 var(--font); letter-spacing:-.011em }
@@ -559,15 +559,33 @@
   /* Cargar despacho */
   #tab-cargar.conbarra { padding-bottom:120px }
   .cps { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--mut) }
-  .cps .ps { display:flex; align-items:center; gap:8px } .cps .pn { width:24px; height:24px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:600; background:var(--head); color:var(--mut) }
+  .cps .ps { display:flex; align-items:center; gap:8px } .cps .pn { width:24px; height:24px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:600; background:var(--head); color:var(--mut); transition:background .35s, color .35s, transform .35s var(--ease) }
   .cps .pn .ico { width:13px; height:13px; stroke-width:3 }
-  .cps .ps.on { color:var(--ink); font-weight:600 } .cps .ps.on .pn { background:var(--pri); color:#fff } .cps .ps.hecho { color:var(--ink) } .cps .ps.hecho .pn { background:var(--ok); color:#fff }
-  .cps .ln { width:28px; height:2px; background:#d2d2d7; border-radius:2px } .cps .ln.hecho { background:var(--ok) }
-  .cdrop { border:1.5px dashed #c7c7cc; border-radius:16px; background:#fafafc; display:flex; align-items:center; gap:18px; padding:22px 24px; cursor:pointer; transition:.15s; min-height:104px; height:100% }
-  .cdrop:hover, .cdrop.on { border-color:var(--pri); background:#f0f6fd } .cdrop:focus-visible { outline:2px solid rgba(0,102,204,.45) }
-  .cdrop .ic, .carch .ic { width:52px; height:52px; border-radius:14px; background:#e8f1fc; color:var(--pri); display:grid; place-items:center; flex:none } .cdrop .ic .ico, .carch .ic .ico { width:26px; height:26px }
-  .cdrop b, .carch b { display:block; font-size:16px } .cdrop span, .carch span { color:var(--mut); font-size:13px } .cdrop .b, .carch .b { margin-left:auto }
-  .carch { display:flex; align-items:center; gap:14px; border-radius:16px; background:var(--okbg); padding:18px 20px; min-height:104px; height:100% } .carch .ic { background:#fff; color:var(--ok); width:46px; height:46px } .carch b { font-size:15px; word-break:break-all } .carch span { color:#3d6b4a }
+  .cps .ps.on { color:var(--ink); font-weight:600 } .cps .ps.on .pn { background:var(--pri); color:#fff; transform:scale(1.12) } .cps .ps.hecho { color:var(--ink) } .cps .ps.hecho .pn { background:var(--ok); color:#fff }
+  .cps .ln { width:28px; height:2px; background:#d2d2d7; border-radius:2px; position:relative; overflow:hidden } .cps .ln::after { content:""; position:absolute; inset:0; background:var(--ok); transform:scaleX(0); transform-origin:left; transition:transform .6s var(--ease) } .cps .ln.hecho::after { transform:scaleX(1) }
+  .cdrop { position:relative; border-radius:18px; background:linear-gradient(180deg,#f7faff,#fafafc); min-height:220px; display:grid; place-items:center; text-align:center; cursor:pointer; padding:28px 20px; transition:background .25s, transform .25s var(--ease) }
+  .cdrop .borde { position:absolute; inset:0; width:100%; height:100%; pointer-events:none } .cdrop .borde rect { width:calc(100% - 2px); height:calc(100% - 2px); fill:none; stroke:#b9c9e0; stroke-width:1.5; stroke-dasharray:7 7; animation:cmarcha 1.6s linear infinite }
+  .cdrop:hover, .cdrop.on { background:linear-gradient(180deg,#eef5fd,#f6faff) } .cdrop:focus-visible { outline:2px solid rgba(0,102,204,.45) }
+  .cdrop.on { transform:scale(1.01) } .cdrop.on .borde rect { stroke:var(--pri); animation-duration:.6s }
+  .cdrop .ctr { position:relative; display:grid; justify-items:center; gap:6px }
+  .icw { position:relative; width:64px; height:64px; margin-bottom:6px }
+  .icw .onda { position:absolute; inset:0; border-radius:50%; border:2px solid var(--pri); opacity:0; animation:conda 2.8s ease-out infinite } .icw .onda:nth-child(2) { animation-delay:.9s } .icw .onda:nth-child(3) { animation-delay:1.8s }
+  .icw .nuc { position:absolute; inset:0; border-radius:50%; background:#e1edfb; color:var(--pri); display:grid; place-items:center; animation:cflota 3s ease-in-out infinite } .icw .nuc .ico { width:28px; height:28px }
+  .cdrop.on .icw .nuc { animation:none; transform:translateY(-8px) scale(1.12); transition:transform .3s var(--ease) }
+  .cdrop b { display:block; font-size:19px; letter-spacing:-.01em } .cdrop span { color:var(--mut); font-size:13px } .cdrop .b { margin-top:10px }
+  @keyframes cmarcha { to { stroke-dashoffset:-28 } } @keyframes conda { 0% { transform:scale(.7); opacity:.45 } 100% { transform:scale(1.9); opacity:0 } } @keyframes cflota { 50% { transform:translateY(-5px) } }
+  .carch .ic { width:46px; height:46px; border-radius:14px; background:#fff; color:var(--ok); display:grid; place-items:center; flex:none } .carch .ic .ico { width:24px; height:24px }
+  .carch b { display:block; font-size:15px; word-break:break-all } .carch span { color:#3d6b4a; font-size:13px } .carch .b { margin-left:auto }
+  .carch { display:flex; align-items:center; gap:14px; border-radius:16px; background:var(--okbg); padding:18px 20px; min-height:84px }
+  .chojas { display:grid; gap:10px; margin-top:14px }
+  .chj { display:grid; grid-template-columns:34px 1fr auto; gap:14px; align-items:center; padding:13px 16px; border:1px solid var(--line); border-radius:14px; background:var(--card); opacity:.5; transform:translateX(-8px); transition:opacity .4s, transform .5s var(--ease), border-color .3s, background .3s; position:relative; overflow:hidden }
+  .chj.busca { opacity:1; transform:none; border-color:#b9d4f1 } .chj.busca::after { content:""; position:absolute; top:0; bottom:0; width:70px; left:-80px; background:linear-gradient(90deg,transparent,rgba(0,102,204,.14),transparent); animation:cbarre 1s ease-in-out infinite }
+  .chj.listo { opacity:1; transform:none; border-color:#bfe0c8; background:#fbfefc } .chj.sin { opacity:.55; transform:none }
+  .chj .pt { width:34px; height:34px; border-radius:50%; background:var(--head); display:grid; place-items:center; color:#fff; transition:background .3s, transform .4s var(--ease) } .chj .pt .ico { width:16px; height:16px; stroke-width:3; opacity:0; transition:opacity .2s .15s }
+  .chj.listo .pt { background:var(--ok); transform:scale(1.08) } .chj.listo .pt .ico { opacity:1 } .chj.busca .pt { background:none; border:3px solid #cfe0f4; border-top-color:var(--pri); animation:cgira .7s linear infinite }
+  .chj .t b { display:block; font-size:14px } .chj .t span { color:var(--mut); font-size:12.5px }
+  .chj .num { font-size:22px; font-weight:700; letter-spacing:-.02em; color:#0b3d82; font-variant-numeric:tabular-nums; min-width:44px; text-align:right } .chj .num small { display:block; font-size:11px; font-weight:500; color:var(--mut); letter-spacing:0 } .chj.sin .num { font-size:13px; font-weight:500; color:var(--mut) }
+  @keyframes cbarre { to { left:110% } } @keyframes cgira { to { transform:rotate(360deg) } }
   .cayuda { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:16px; color:var(--mut); font-size:13px } .cayuda .sp { flex:1 }
   .chip { display:inline-flex; align-items:center; gap:5px; padding:4px 11px; border-radius:99px; background:var(--head); color:var(--mut); font-size:12.5px; font-weight:500 }
   .chip.si { background:var(--okbg); color:var(--ok) } .chip.no { color:#98989d; text-decoration:line-through } .chip .ico { width:12px; height:12px; stroke-width:3 }
@@ -590,7 +608,11 @@
   .cbarra .res { flex:1; min-width:0 } .cbarra .res b { font-size:15px } .cbarra .res span { display:block; color:var(--mut); font-size:13px }
   .cok { text-align:center; padding:44px 20px } .cok .big { width:64px; height:64px; border-radius:50%; background:var(--okbg); color:var(--ok); display:grid; place-items:center; margin:0 auto 16px } .cok .big .ico { width:30px; height:30px; stroke-width:2.6 }
   .cok h2 { margin:0 0 6px; font-size:24px; letter-spacing:-.02em } .cok p { margin:0 auto 20px; color:var(--mut); max-width:460px } .cok .acc { display:flex; gap:10px; justify-content:center; flex-wrap:wrap }
-  @media (max-width:900px) { .ctiles { grid-template-columns:1fr } .cps .pt { display:none } .cdrop { flex-wrap:wrap } .cdrop .b { margin-left:0; width:100%; justify-content:center } }
+  @keyframes centra { from { opacity:0; transform:translateY(14px) } } @keyframes cfila { from { opacity:0; transform:translateX(-12px) } } @keyframes cpop { from { transform:scale(.3); opacity:0 } 60% { transform:scale(1.12) } } @keyframes ctrazo { to { stroke-dashoffset:0 } }
+  .ctiles.ent .ctile { animation:centra .6s var(--ease) both } .ctiles.ent .ctile:nth-child(2) { animation-delay:.08s } .ctiles.ent .ctile:nth-child(3) { animation-delay:.16s }
+  #cTabla.ent tr:nth-child(n+2) { animation:cfila .5s var(--ease) both } #cTabla.ent tr:nth-child(3) { animation-delay:.05s } #cTabla.ent tr:nth-child(4) { animation-delay:.1s } #cTabla.ent tr:nth-child(5) { animation-delay:.15s } #cTabla.ent tr:nth-child(6) { animation-delay:.2s } #cTabla.ent tr:nth-child(7) { animation-delay:.25s } #cTabla.ent tr:nth-child(n+8) { animation-delay:.3s }
+  .cok:not(.hide) .big { animation:cpop .6s var(--ease) both } .cok:not(.hide) .big path { stroke-dasharray:30; stroke-dashoffset:30; animation:ctrazo .5s .35s ease-out forwards }
+  @media (max-width:900px) { .ctiles { grid-template-columns:1fr } .cps .pt { display:none } }
   @media (max-width:760px) {
     .tw:has(#cTabla) { max-height:none !important; overflow:visible } .tcard:has(#cTabla) { overflow:hidden }
     #cTabla, #cTabla tbody { display:block; min-width:0 } #cTabla tr:has(th) { display:none }

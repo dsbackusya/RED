@@ -34,8 +34,15 @@ function confirmar(titulo, mensaje, ok = 'Aceptar', peligro = false) {
 }
 document.addEventListener('change', e => { if (e.target.dataset && 'v' in e.target.dataset) e.target.dataset.v = e.target.value; });
 function setPaso(n) {
-  $('#cPasos').innerHTML = ['Archivo', 'Revisar', 'Listo'].map((t, i) => { const k = i + 1, c = k < n ? 'hecho' : k === n ? 'on' : '';
-    return (i ? `<span class="ln${k <= n ? ' hecho' : ''}"></span>` : '') + `<span class="ps ${c}"><span class="pn">${k < n ? ICO.check : k}</span><span class="pt">${t}</span></span>`; }).join('');
+  const h = $('#cPasos');
+  if (h.children.length !== 5) {
+    h.innerHTML = ['Archivo', 'Revisar', 'Listo'].map((t, i) => (i ? '<span class="ln"></span>' : '') + `<span class="ps"><span class="pn"></span><span class="pt">${t}</span></span>`).join('');
+  }
+  [...h.children].forEach((el, q) => {
+    if (q % 2) { el.classList.toggle('hecho', q / 2 + 0.5 < n); return; }
+    const k = q / 2 + 1; el.className = 'ps ' + (k < n ? 'hecho' : k === n ? 'on' : '');
+    const pn = el.firstElementChild, txt = k < n ? 'c' : String(k); if (pn.dataset.s !== txt) { pn.dataset.s = txt; pn.innerHTML = k < n ? ICO.check : k; }
+  });
 }
 function toast(text, type) {
   const t = document.createElement('div'); t.className = 'toast ' + (type === 'err' ? 'err' : 'ok');
@@ -158,7 +165,7 @@ function leerTabla(wb) {
 // detalle del gasto automático: "ENVIO DE PEDIDOS X" o "RECOJO DE PEDIDOS X" (se puede editar después en Registros)
 const detalleGasto = r => (r.motivo === 'RECOJO' ? 'RECOJO' : 'ENVIO') + ' DE PEDIDOS ' + r.nodo;
 
-let cArchivo = null, cFiltro = '';
+let cArchivo = null, cFiltro = '', cSeq = 0;
 const cFechas = () => [...new Set(previa.map(r => r.fecha).filter(Boolean))].sort();
 const cFechasTodas = () => [...new Set([...previa.map(r => r.fecha), ...(hrnCarga || []).map(r => r.fecha_reporte)].filter(Boolean))].sort();
 const cSinFecha = () => previa.filter(r => !r.fecha).length + (hrnCarga || []).filter(r => !r.fecha_reporte).length;
@@ -169,9 +176,34 @@ function cChips() {
 }
 document.querySelectorAll('.chip[data-h]').forEach(c => c.dataset.t = c.textContent);
 function cReiniciar() {
-  previa = []; hrnCarga = null; cArchivo = null; cFiltro = ''; $('#cFile').value = ''; $('#cMsg').className = 'msg';
-  ['#cPrev', '#cOk', '#cArch'].forEach(q => $(q).classList.add('hide')); ['#cS1', '#cDrop', '#cPlantilla', '#cHow'].forEach(q => $(q).classList.remove('hide'));
+  cSeq++; previa = []; hrnCarga = null; cArchivo = null; cFiltro = ''; $('#cFile').value = ''; $('#cHojas').classList.add('hide'); $('#cMsg').className = 'msg';
+  ['#cPrev', '#cOk', '#cArch', '#cHojas'].forEach(q => $(q).classList.add('hide')); ['#cS1', '#cDrop', '#cPlantilla', '#cHow'].forEach(q => $(q).classList.remove('hide'));
   $('#cBarra').hidden = true; $('#tab-cargar').classList.remove('conbarra'); cChips(); setPaso(1);
+}
+const cEspera = ms => new Promise(r => setTimeout(r, ms));
+const cReducir = () => matchMedia('(prefers-reduced-motion:reduce)').matches;
+function cContar(el, hasta, ms) {
+  if (cReducir() || hasta < 2) { el.textContent = fmtN(hasta); return; }
+  const t0 = performance.now(), paso = t => { const k = Math.min(1, (t - t0) / ms); el.textContent = fmtN(Math.round(hasta * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
+// lectura animada: cada hoja se revisa, se marca y muestra cuántas filas trajo; devuelve false si se canceló
+async function cLeer(seq) {
+  if (cReducir()) return true;
+  const n = { despacho: previa.filter(r => r.motivo === 'DESPACHO').length, recojos: previa.filter(r => r.motivo === 'RECOJO').length, detalle: hrnCarga ? hrnCarga.length : 0 };
+  const hojas = [['despacho', 'DESPACHO', 'Nodos despachados'], ['recojos', 'RECOJOS', 'Nodos recogidos'], ['detalle', 'DETALLE', 'Bultos con su fecha']];
+  $('#cDrop').classList.add('hide'); $('#cPlantilla').classList.add('hide'); $('#cHow').classList.add('hide'); $('#cArch').classList.remove('hide');
+  $('#cArchN').textContent = cArchivo.nombre; $('#cArchS').textContent = `${cArchivo.kb} KB, leyendo las hojas`;
+  $('#cHojas').innerHTML = hojas.map(([k, t, d]) => `<div class="chj" data-k="${k}"><span class="pt">${ICO.check}</span><div class="t"><b>${t}</b><span>${d}</span></div><div class="num"><b></b></div></div>`).join('');
+  $('#cHojas').classList.remove('hide'); await cEspera(120);
+  for (const [k] of hojas) {
+    const el = document.querySelector(`#cHojas [data-k=${k}]`); if (seq !== cSeq) return false;
+    if (!n[k]) { el.classList.add('sin'); el.querySelector('.num').textContent = 'Sin filas'; await cEspera(160); continue; }
+    el.classList.add('busca'); await cEspera(520); if (seq !== cSeq) return false;
+    el.classList.remove('busca'); el.classList.add('listo'); el.querySelector('.num').innerHTML = '<b></b><small>filas</small>'; cContar(el.querySelector('.num b'), n[k], 650); await cEspera(380);
+  }
+  if (seq !== cSeq) return false;
+  await cEspera(250); $('#cHojas').classList.add('hide'); return seq === cSeq;
 }
 async function leerArchivo(f) {
   try {
@@ -186,7 +218,8 @@ async function leerArchivo(f) {
       previa.forEach(r => { if (!r.zona && conocidas.has(norm(r.nodo))) { r.zona = conocidas.get(norm(r.nodo)); rellenas++; } });
     } catch (e) { /* sin conexión o sin la columna: la zona se escribe a mano */ }
     cArchivo = { nombre: f.name, kb: Math.max(1, Math.round(f.size / 1024)) }; cFiltro = ''; listaAgencias();
-    $('#cMsg').className = 'msg'; setPaso(2); pintarPrevia();
+    const seq = ++cSeq; if (!await cLeer(seq)) return;
+    $('#cMsg').className = 'msg'; setPaso(2); pintarPrevia(true);
     if (rellenas) toast(`Zona completada en ${rellenas} ${rellenas === 1 ? 'fila' : 'filas'} a partir de registros anteriores`);
   } catch (err) { flash($('#cMsg'), 'No se pudo leer el archivo: ' + err.message, 'err'); }
 }
@@ -210,16 +243,16 @@ function cAlertar() {
   const partes = [sinAg && `${sinAg} ${sinAg === 1 ? 'nodo sin agencia' : 'nodos sin agencia'}`, sinPg && `${sinPg} ${sinPg === 1 ? 'nodo sin pago' : 'nodos sin pago'}`].filter(Boolean).join(' y ');
   a.innerHTML = n ? `${ALERTA}<span><b>${partes}.</b> ${sinPg ? 'El pago es obligatorio: elígelo aquí. ' : ''}${sinAg ? 'La agencia se puede completar aquí o después en Registros.' : ''}</span>${cFiltro === 'falta' ? '<button type="button" data-f="">Ver todos</button>' : '<button type="button" data-f="falta">Ver solo esos</button>'}` : '';
 }
-function pintarPrevia() {
+function pintarPrevia(anim) {
   $('#cDrop').classList.add('hide'); $('#cArch').classList.remove('hide'); $('#cPlantilla').classList.add('hide'); $('#cHow').classList.add('hide');
   $('#cArchN').textContent = cArchivo.nombre; $('#cArchS').textContent = `${cArchivo.kb} KB`; cChips();
   const des = previa.filter(r => r.motivo === 'DESPACHO'), rec = previa.filter(r => r.motivo === 'RECOJO'), suma = (a, k) => a.reduce((x, r) => x + (r[k] || 0), 0);
   const cant = a => `${fmtN(suma(a, 'pedidos'))} pedidos, ${fmtN(suma(a, 'bultos'))} bultos, ${fmtN(suma(a, 'cajas'))} cajas`;
   const nodosDet = hrnCarga ? new Set(hrnCarga.map(r => r.nodo)).size : 0;
   $('#cTiles').innerHTML = `
-    <div class="ctile${des.length ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Despachos</span><b>${des.length}</b><small>${des.length ? cant(des) : 'Sin filas en este archivo'}</small></div>
-    <div class="ctile${rec.length ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Recojos</span><b>${rec.length}</b><small>${rec.length ? cant(rec) : 'Sin filas en este archivo'}</small></div>
-    <div class="ctile${hrnCarga ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Detalle</span><b>${hrnCarga ? fmtN(hrnCarga.length) : 0}</b><small>${hrnCarga ? `filas de ${nodosDet} ${nodosDet === 1 ? 'nodo' : 'nodos'}, se agregan a las ya existentes` : 'Sin filas en este archivo'}</small></div>`;
+    <div class="ctile${des.length ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Despachos</span><b data-n="${des.length}">${des.length}</b><small>${des.length ? cant(des) : 'Sin filas en este archivo'}</small></div>
+    <div class="ctile${rec.length ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Recojos</span><b data-n="${rec.length}">${rec.length}</b><small>${rec.length ? cant(rec) : 'Sin filas en este archivo'}</small></div>
+    <div class="ctile${hrnCarga ? '' : ' vacio'}"><span class="t"><i class="dot"></i>Detalle</span><b data-n="${hrnCarga ? hrnCarga.length : 0}">${hrnCarga ? fmtN(hrnCarga.length) : 0}</b><small>${hrnCarga ? `filas de ${nodosDet} ${nodosDet === 1 ? 'nodo' : 'nodos'}, se agregan a las ya existentes` : 'Sin filas en este archivo'}</small></div>`;
   cAlertar();
   $('#cTarjeta').classList.toggle('hide', !previa.length);
   const hayAmbos = des.length && rec.length;
@@ -243,6 +276,9 @@ function pintarPrevia() {
   $('#cBarT').textContent = [des.length && `${des.length} ${des.length === 1 ? 'despacho' : 'despachos'}`, rec.length && `${rec.length} ${rec.length === 1 ? 'recojo' : 'recojos'}`, hrnCarga && `${fmtN(hrnCarga.length)} filas de detalle`].filter(Boolean).join(', ');
   const fs = cFechasTodas(), sf = cSinFecha(); $('#cBarS').textContent = (fs.length > 1 ? `Se guardarán con ${fs.length} fechas: del ${fdmy(fs[0])} al ${fdmy(fs[fs.length - 1])}` : fs.length ? `Se guardarán con fecha ${fdmy(fs[0])}` : 'Sin fecha en el archivo') + (sf ? ` · ${sf} ${sf === 1 ? 'fila sin FECHA' : 'filas sin FECHA'}` : '');
   $('#cBarra').hidden = false; $('#tab-cargar').classList.add('conbarra');
+  if (anim && !cReducir()) {   // solo al llegar a la revisión: las tarjetas y las filas entran, las cifras suben
+    document.querySelectorAll('#cTiles b[data-n]').forEach(b => cContar(b, +b.dataset.n, 900)); [$('#cTiles'), $('#cTabla')].forEach(e => e.classList.add('ent')); setTimeout(() => [$('#cTiles'), $('#cTabla')].forEach(e => e.classList.remove('ent')), 1400);
+  }
 }
 $('#cSeg').onclick = e => { const b = e.target.closest('button'); if (b) { cFiltro = b.dataset.f; pintarPrevia(); } };
 $('#cAlerta').onclick = e => { const b = e.target.closest('button'); if (b) { cFiltro = b.dataset.f; pintarPrevia(); } };
