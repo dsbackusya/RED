@@ -956,3 +956,6 @@
   .ka-pill.g { background:var(--kokbg); color:var(--kok) } .ka-pill.a { background:var(--kambbg); color:var(--kamb) } .ka-pill.r { background:var(--kbadbg); color:var(--kbad) }
   @media (max-width:1000px) { .ka-mapa { grid-template-columns:minmax(0,1fr) } .ka-lienzo { height:min(560px, 75vh); touch-action:pan-y } }
   @media (max-width:640px) { .ka-seg { width:100% } .ka-seg button { flex:1; padding:6px 4px } }
+  .ka-lst { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:30px; margin-top:24px; padding-top:20px; border-top:1px solid var(--line) }
+  .ka-dos { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%,420px),1fr)); gap:18px; margin-top:18px } .ka-dos > .ka-full { margin-top:0 }
+  @media (max-width:760px) { .ka-lst { grid-template-columns:minmax(0,1fr); gap:6px } }

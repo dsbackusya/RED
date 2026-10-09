@@ -1029,13 +1029,13 @@ function kaSub(id, x) {
 function kaFilas(id, items, ref, S) {
   const pago = id !== 'cuenta', conSp = kA.act > 1 && id !== 'cuenta', cp = !!kA.prev.total, max = Math.max(...items.map(x => x.costo), 1), tot = kA.R.total || 1;
   let L = items; if (S.q) { const q = norm(S.q); L = L.filter(x => norm(kaNom(x.name)).includes(q)); }
-  const f = { costo: x => x.costo, r: x => x.r, u: x => x.u, d: x => x.prev ? (x.costo - x.prev) / x.prev : -9 }[S.ord];
+  const f = { costo: x => x.costo, r: x => x.r, u: x => x.u, p: x => x.pedidos, d: x => x.prev ? (x.costo - x.prev) / x.prev : -9 }[S.ord];
   L = [...L].sort((a, b) => S.ord === 'nombre' ? kaNom(a.name).localeCompare(kaNom(b.name)) : f(b) - f(a));
   return L.map((x, i) => { const cl = kaClase(x.r, ref), dv = ref && x.r ? (x.r / ref - 1) * 100 : 0;
     return `<tr data-n="${esc(x.name)}" class="${id !== 'zona' ? 'sel-ok' : ''} ${id !== 'zona' && S.sel === x.name ? 'sel' : ''}"><td class="ka-ix">${i + 1}</td>
       <td class="ka-nm"><b>${esc(kaNom(x.name))}</b><small>${esc(kaSub(id, x))}</small></td>
       <td class="ka-cc"><b>${kaF0(x.costo)}</b><div class="ka-mb">${pago ? `<i class="c" style="width:${x.contado / max * 100}%"></i><i class="r" style="width:${x.credito / max * 100}%"></i>` : `<i class="c" style="width:${x.costo / max * 100}%"></i>`}</div></td>
-      <td class="ka-num ka-oc">${(x.costo / tot * 100).toFixed(1)} %</td>${cp ? `<td class="ka-num ka-oc">${kaDl(x.costo, x.prev)}</td>` : ''}<td class="ka-num ka-oc">${fmtN(x.u)}</td>
+      <td class="ka-num ka-oc">${(x.costo / tot * 100).toFixed(1)} %</td>${cp ? `<td class="ka-num ka-oc">${kaDl(x.costo, x.prev)}</td>` : ''}${id !== 'cuenta' ? `<td class="ka-num ka-oc">${fmtN(x.pedidos)}</td>` : ''}<td class="ka-num ka-oc">${fmtN(x.u)}</td>
       <td class="ka-num">${x.u ? `<span class="ka-rp ${cl}">${fmt(x.r)}</span><small class="ka-vs">${kaSg(dv)} % vs ${KA[id].refName}</small>` : '-'}</td>${conSp ? `<td class="ka-oc">${kaSpark(x.b)}</td>` : ''}</tr>`; }).join('') || `<tr><td colspan="8" style="color:var(--mut);padding:24px 8px">Sin resultados.</td></tr>`;
 }
 function kaRanking(id, items, ref, buscar) {
@@ -1043,14 +1043,14 @@ function kaRanking(id, items, ref, buscar) {
   const th = (k, t, cls) => `<th data-s="${k}" class="${cls || ''} ${S.ord === k ? 'on' : ''}"${k === 'd' ? ' title="Variación frente al período anterior"' : ''}>${t}</th>`;
   return `<div class="ka-card"><div class="ka-cab"><div><h3>${c.titulo}</h3><p class="ka-hint">El color de la última columna compara cada fila con ${c.refName === 'promedio' ? 'el promedio' : 'la mediana'} del conjunto (${fmt(ref)}${id === 'cuenta' ? ' por pedido' : ' por caja'}).</p></div>
     ${buscar ? `<input class="ka-q" placeholder="Buscar…" value="${esc(S.q)}" aria-label="Buscar">` : ''}</div>
-    <div class="ka-tw"><table class="ka-rt"><thead><tr><th></th>${th('nombre', 'Nombre')}${th('costo', 'Costo')}<th class="ka-num ka-oc">% del total</th>${cp ? th('d', 'Variación', 'ka-num ka-oc') : ''}${th('u', c.uName, 'ka-num ka-oc')}${th('r', c.rName, 'ka-num')}${conSp ? '<th class="ka-oc">Tendencia</th>' : ''}</tr></thead>
+    <div class="ka-tw"><table class="ka-rt"><thead><tr><th></th>${th('nombre', 'Nombre')}${th('costo', 'Costo')}<th class="ka-num ka-oc">% del total</th>${cp ? th('d', 'Variación', 'ka-num ka-oc') : ''}${id !== 'cuenta' ? th('p', 'Pedidos', 'ka-num ka-oc') : ''}${th('u', c.uName, 'ka-num ka-oc')}${th('r', c.rName, 'ka-num')}${conSp ? '<th class="ka-oc">Tendencia</th>' : ''}</tr></thead>
     <tbody>${kaFilas(id, items, ref, S)}</tbody>
-    <tfoot><tr><td></td><td class="l">Total</td><td>${kaF0(T)}</td><td class="ka-num ka-oc">100 %</td>${cp ? `<td class="ka-num ka-oc">${kaDl(T, kA.prev.total)}</td>` : ''}<td class="ka-num ka-oc">${fmtN(uT)}</td><td class="ka-num">${uT ? fmt(T / uT) : '-'}</td>${conSp ? '<td class="ka-oc"></td>' : ''}</tr></tfoot></table></div>
+    <tfoot><tr><td></td><td class="l">Total</td><td>${kaF0(T)}</td><td class="ka-num ka-oc">100 %</td>${cp ? `<td class="ka-num ka-oc">${kaDl(T, kA.prev.total)}</td>` : ''}${id !== 'cuenta' ? `<td class="ka-num ka-oc">${fmtN(items.reduce((s, x) => s + x.pedidos, 0))}</td>` : ''}<td class="ka-num ka-oc">${fmtN(uT)}</td><td class="ka-num">${uT ? fmt(T / uT) : '-'}</td>${conSp ? '<td class="ka-oc"></td>' : ''}</tr></tfoot></table></div>
     <div class="ka-ley">${id !== 'cuenta' ? '<span class="c">Contado</span><span class="r">Crédito</span>' : ''}<span class="g">en rango</span><span class="a">alta (hasta el doble ${c.refName === 'promedio' ? 'del promedio' : 'de la mediana'})</span><span class="x">muy alta (más del doble)</span></div></div>`;
 }
 
 // ---------- ficha de lo seleccionado ----------
-function kaFicha(id, items, ref) {
+function kaFicha(id, items, ref, plano) {
   const c = KA[id], S = KS[id], it = items.find(x => x.name === S.sel) || items[0]; S.sel = it.name;
   const tot = kA.R.total || 1, dv = ref && it.r ? (it.r / ref - 1) * 100 : 0, pago = id !== 'cuenta';
   const L = kA.envios.filter(e => Number(e.importe) > 0 && c.dim && c.dim(e) === it.name);
@@ -1061,9 +1061,9 @@ function kaFicha(id, items, ref) {
   else if (id === 'nodo') det = blq('Cuentas principales', [...kA.R.cuentaNodos].map(([cu, m]) => [cu, m.get(it.name) || 0]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 4)) + blq('Transporte', top(e => e.transporte || '(SIN TRANSPORTE)')) + blq('Agencias', top(e => e.agencia || '(sin agencia)'));
   else det = blq('Nodos que atiende', top(e => e.nodo)) + blq('Transporte', top(e => e.transporte || '(SIN TRANSPORTE)'));
   const dias = c.dim && kA.act > 1;
-  return `<div class="ka-card ka-ficha" id="kaFicha"><span class="ka-eye">Detalle de la selección</span><div class="ka-cab" style="margin-bottom:0"><div><h3>${esc(kaNom(it.name))}</h3><p class="ka-hint">N.º ${items.indexOf(it) + 1} de ${items.length} por costo${it.n ? ` · ${it.n} ${it.n === 1 ? 'registro' : 'registros'}` : ''}</p></div>${kaDl(it.costo, it.prev)}</div>
+  return `<div class="${plano ? '' : 'ka-card '}ka-ficha" id="kaFicha"><span class="ka-eye">Detalle de la selección</span><div class="ka-cab" style="margin-bottom:0"><div><h3>${esc(kaNom(it.name))}</h3><p class="ka-hint">${it.p ? `Provincia de ${esc(it.p[0])}, departamento de ${esc(it.p[1])} · ` : ''}N.º ${items.indexOf(it) + 1} de ${items.length} por costo${it.n ? ` · ${it.n} ${it.n === 1 ? 'registro' : 'registros'}` : ''}</p></div>${kaDl(it.costo, it.prev)}</div>
     <div class="ka-fk"><div><small>Costo del período</small><b>${kaF0(it.costo)}</b></div><div><small>% del total</small><b>${(it.costo / tot * 100).toFixed(1)} %</b></div>
-    <div><small>${c.uName}</small><b>${fmtN(it.u)}</b></div><div><small>${c.rName}</small><b>${it.u ? fmt(it.r) : '-'}</b>${it.u ? `<em>${kaSg(dv)} % vs ${c.refName}</em>` : ''}</div></div>
+    ${id !== 'cuenta' ? `<div><small>Pedidos</small><b>${fmtN(it.pedidos)}</b></div><div><small>Costo por pedido</small><b>${it.pedidos ? fmt(it.costo / it.pedidos) : '-'}</b></div>` : ''}<div><small>${c.uName}</small><b>${fmtN(it.u)}</b></div><div><small>${c.rName}</small><b>${it.u ? fmt(it.r) : '-'}</b>${it.u ? `<em>${kaSg(dv)} % vs ${c.refName}</em>` : ''}</div></div>
     ${dias ? `<div class="ka-sec">Costo por ${kA.tr.sem ? 'semana' : 'día'}</div><div class="ka-ch" id="kaDias"></div>${pago ? `<div class="ka-ley" style="margin-top:4px"><span class="c">Contado ${kaF0(it.contado)}</span><span class="r">Crédito ${kaF0(it.credito)}</span></div>` : ''}` : ''}${det}</div>`;
 }
 function kaDiasDibujar(id) {
@@ -1171,6 +1171,7 @@ function kaVistaRanking(id) {
     if (items.filter(x => x.u).length >= 2 && ref) side = kaDesvio(items, ref, c, 'Tarifa por caja frente a la mediana', 'Compara la tarifa por caja de cada agencia con la mediana. Una diferencia significativa puede indicar una negociación pendiente o una ruta de mayor complejidad.');
     if (cr > 0) bottom = kaMix(items);
   }
+  if (id === 'nodo' && mapa.includes('id="kaLz"')) return `${hall}${kaKpis(kp)}${mapa}${kaRanking(id, items, ref, true)}${side || bottom ? `<div class="ka-dos">${side}${bottom}</div>` : ''}`;
   return `${hall}${kaKpis(kp)}${mapa}<div class="ka-grid"><div class="ka-stack">${kaRanking(id, items, ref, true)}${side}</div><div class="ka-fix">${kaFicha(id, items, ref)}</div></div>${bottom}`;
 }
 const KA_MIN = 30;   // cajas mínimas para comparar una ruta
@@ -1214,14 +1215,14 @@ let kaGeo = null, kaGeoEstado = '';
 const kaProv = new Map(), kaM = { met: 'costo', vis: 'relleno', vb: null, ar: null, mov: false };
 function kaCargarGeo() {
   if (kaGeoEstado === 'cargando' || kaGeoEstado === 'ok') return; kaGeoEstado = 'cargando';
-  fetch('mapa_peru.json?v=20261008d').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  fetch('mapa_peru.json?v=20261008f').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(g => { kaGeo = g; g.p.forEach(p => kaProv.set(norm(p[0]), p)); kaGeoEstado = 'ok'; })
     .catch(() => { kaGeoEstado = 'error'; })
     .then(() => { if (document.querySelector('#kpTabs .on')?.dataset.v === 'nodo') kaPintar('nodo'); });
 }
 function kaUbicar(items) { items.forEach(x => { x.p = kaProv.get(norm(KA_ALIAS[norm(x.name)] || x.name)) || null; }); }
-const kaMVal = x => kaM.met === 'costo' ? x.costo : kaM.met === 'tarifa' ? (x.u ? x.r : null) : x.u;
-const kaMTxt = x => kaM.met === 'costo' ? kaF0(x.costo) : kaM.met === 'tarifa' ? fmt(x.r) : fmtN(x.u) + ' cajas';
+const kaMVal = x => kaM.met === 'costo' ? x.costo : kaM.met === 'pedidos' ? x.pedidos : kaM.met === 'tarifa' ? (x.u ? x.r : null) : x.u;
+const kaMTxt = x => kaM.met === 'costo' ? kaF0(x.costo) : kaM.met === 'pedidos' ? fmtN(x.pedidos) + ' pedidos' : kaM.met === 'tarifa' ? fmt(x.r) : fmtN(x.u) + ' cajas';
 function kaMapaHTML(items) {
   if (kaGeoEstado === 'error') return `<div class="ka-card" style="margin-bottom:18px"><div class="ka-cab" style="margin:0"><div><h3>Mapa de costos por provincia</h3><p class="ka-hint">No se pudo cargar el mapa. Actualizar la página para intentarlo de nuevo.</p></div></div></div>`;
   const cab = `<div class="ka-cab"><div><h3>Mapa de costos por provincia</h3><p class="ka-hint">Cada nodo se ubica en su provincia. Los números identifican a los nodos de mayor valor y coinciden con la lista de la derecha.</p></div>`;
@@ -1231,11 +1232,11 @@ function kaMapaHTML(items) {
   const T = kA.R.total || 1, sinC = sin.reduce((s, x) => s + x.costo, 0);
   return `<div class="ka-card" style="margin-bottom:18px">${cab}<div style="display:flex;gap:10px;flex-wrap:wrap">
       <div class="ka-seg" id="kaVis"><button data-v="relleno" class="${kaM.vis === 'relleno' ? 'on' : ''}">Provincias</button><button data-v="burbujas" class="${kaM.vis === 'burbujas' ? 'on' : ''}">Burbujas</button></div>
-      <div class="ka-seg" id="kaMet"><button data-m="costo" class="${kaM.met === 'costo' ? 'on' : ''}">Costo</button><button data-m="tarifa" class="${kaM.met === 'tarifa' ? 'on' : ''}">Tarifa por caja</button><button data-m="cajas" class="${kaM.met === 'cajas' ? 'on' : ''}">Cajas</button></div></div></div>
+      <div class="ka-seg" id="kaMet"><button data-m="costo" class="${kaM.met === 'costo' ? 'on' : ''}">Costo</button><button data-m="pedidos" class="${kaM.met === 'pedidos' ? 'on' : ''}">Pedidos</button><button data-m="tarifa" class="${kaM.met === 'tarifa' ? 'on' : ''}">Tarifa por caja</button><button data-m="cajas" class="${kaM.met === 'cajas' ? 'on' : ''}">Cajas</button></div></div></div>
     <div class="ka-mapa"><div><div class="ka-lienzo" id="kaLz"><svg id="kaSvg" role="img" aria-label="Mapa del Perú por provincias"></svg>
         <div class="ka-zoom"><button id="kaZi" aria-label="Acercar">+</button><button id="kaZo" aria-label="Alejar">&minus;</button><button id="kaZr" aria-label="Restablecer vista" style="font-size:13px">&#8634;</button></div><div class="ka-leyenda" id="kaLey"></div></div>
       <p class="ka-fuente">Límites provinciales: INEI (2007), publicados en el repositorio peru-geojson.${sin.length ? ` ${sin.length} ${sin.length === 1 ? 'nodo no está ubicado' : 'nodos no están ubicados'} en el mapa (${esc(sin.map(x => kaNom(x.name)).join(', '))}; ${(sinC / T * 100).toFixed(1)} % del costo).` : ''}</p></div>
-      <div id="kaMapaPanel"></div></div></div>`;
+      <div id="kaMapaPanel"></div></div><div class="ka-lst" id="kaMapaListas"></div></div>`;
 }
 function kaMapaDibujar() {
   const lz = $('#kaLz'); if (!lz || !kaGeo || !lz.clientWidth) return;
@@ -1243,7 +1244,7 @@ function kaMapaDibujar() {
   if (!svg.querySelector('.ka-prov')) {
     const { items } = kaDatosVista('nodo'), por = new Map(items.filter(x => x.p).map(x => [x.p[0], x]));
     svg.innerHTML = `<g id="kaGp">${kaGeo.p.map(p => { const x = por.get(p[0]);
-      const tip = x ? `<b>${esc(kaNom(x.name))}</b><small>${esc(p[0])} · ${esc(p[1])}</small>${kaTf('Costo', fmt(x.costo))}${kaTf('Cajas', fmtN(x.u))}${kaTf('Tarifa por caja', x.u ? fmt(x.r) : '-')}` : `<b>${esc(p[0])}</b><small>Sin envíos en el período</small>`;
+      const tip = x ? `<b>${esc(kaNom(x.name))}</b><small>${esc(p[0])} · ${esc(p[1])}</small>${kaTf('Costo', fmt(x.costo))}${kaTf('Pedidos', fmtN(x.pedidos))}${kaTf('Cajas', fmtN(x.u))}${kaTf('Tarifa por caja', x.u ? fmt(x.r) : '-')}` : `<b>${esc(p[0])}</b><small>Sin envíos en el período</small>`;
       return `<path class="ka-prov ${x ? 'd' : ''}" data-p="${esc(p[0])}" ${x ? `data-n="${esc(x.name)}"` : ''} ${kaTipA(tip)} d="${p[4]}"/>`; }).join('')}</g><g id="kaGm"></g>`;
   }
   kaMapaActualizar('todo');
@@ -1258,7 +1259,7 @@ function kaMapaActualizar(modo = 'sel') {   // modo: 'todo' (vista completa), 's
   if (modo !== 'zoom') svg.querySelectorAll('.ka-prov').forEach(el => { const x = por.get(el.dataset.p); el.setAttribute('fill', kaM.vis === 'relleno' ? color(x) : x ? '#d9e0ea' : '#e6eaf0'); el.classList.toggle('sel', !!x && x.name === sel); if (x && x.name === sel) el.parentNode.appendChild(el); });
   // marcadores: numerados (provincias) o burbujas proporcionales
   const K = kaM.vb.w / kaGeo.w, ord = ub.filter(x => kaMVal(x) != null).sort((a, b) => kaMVal(b) - kaMVal(a)), top = new Map(ord.slice(0, 8).map((x, i) => [x.name, i + 1]));
-  const tr = x => `translate(${x.p[2]},${x.p[3]}) scale(${K.toFixed(3)})`, tip = x => kaTipA(`<b>${esc(kaNom(x.name))}</b><small>${esc(x.p[0])} · ${esc(x.p[1])}</small>${kaTf('Costo', fmt(x.costo))}${kaTf('Cajas', fmtN(x.u))}${kaTf('Tarifa por caja', x.u ? fmt(x.r) : '-')}`);
+  const tr = x => `translate(${x.p[2]},${x.p[3]}) scale(${K.toFixed(3)})`, tip = x => kaTipA(`<b>${esc(kaNom(x.name))}</b><small>${esc(x.p[0])} · ${esc(x.p[1])}</small>${kaTf('Costo', fmt(x.costo))}${kaTf('Pedidos', fmtN(x.pedidos))}${kaTf('Cajas', fmtN(x.u))}${kaTf('Tarifa por caja', x.u ? fmt(x.r) : '-')}`);
   $('#kaGm').innerHTML = kaM.vis === 'burbujas'
     ? ord.map(x => { const r = 5 + Math.sqrt(kaMVal(x) / hi) * 19, n = top.get(x.name); return `<g class="ka-bb ${x.name === sel ? 'sel' : ''}" data-n="${esc(x.name)}" ${tip(x)} transform="${tr(x)}"><circle r="${r.toFixed(1)}" fill="${color(x)}" fill-opacity=".88"/>${n && r >= 11 ? `<text style="fill:${kaM.met === 'tarifa' && kaClase(x.r, ref) === 'a' ? '#1d1d1f' : '#fff'}">${n}</text>` : ''}</g>`; }).reverse().join('')
     : ord.slice(0, 8).map((x, i) => `<g class="ka-mk ${x.name === sel ? 'sel' : ''}" data-n="${esc(x.name)}" ${tip(x)} transform="${tr(x)}"><circle r="9.5"/><text>${i + 1}</text></g>`).join('');
@@ -1266,21 +1267,19 @@ function kaMapaActualizar(modo = 'sel') {   // modo: 'todo' (vista completa), 's
   if (modo === 'todo') svg.setAttribute('viewBox', `${kaM.vb.x} ${kaM.vb.y} ${kaM.vb.w} ${kaM.vb.h}`);
   if (modo === 'todo') $('#kaLey').innerHTML = kaM.met === 'tarifa'
     ? `<b>Tarifa por caja frente a la mediana (${fmt(ref)})</b><div class="ka-cls"><span style="--c:#7cc593">en rango</span><span style="--c:#f2c35c">alta (hasta el doble)</span><span style="--c:#e2616e">muy alta</span><span style="--c:#e6eaf0">sin envíos</span></div>`
-    : `<b>${kaM.met === 'costo' ? 'Costo del período' : 'Cajas transportadas'}${kaM.vis === 'burbujas' ? ' (tamaño y color)' : ''}</b><div class="ka-grad"></div><div class="ka-gl"><span>${kaM.met === 'costo' ? kaF0(lo) : fmtN(lo)}</span><span>${kaM.met === 'costo' ? kaF0(hi) : fmtN(hi)}</span></div>`;
+    : `<b>${{ costo: 'Costo del período', pedidos: 'Pedidos', cajas: 'Cajas transportadas' }[kaM.met]}${kaM.vis === 'burbujas' ? ' (tamaño y color)' : ''}</b><div class="ka-grad"></div><div class="ka-gl"><span>${kaM.met === 'costo' ? kaF0(lo) : fmtN(lo)}</span><span>${kaM.met === 'costo' ? kaF0(hi) : fmtN(hi)}</span></div>`;
   kaMapaPanel(items, ub, ref, ord);
 }
 function kaMapaPanel(items, ub, ref, ord) {
-  const S = KS.nodo, x = items.find(n => n.name === S.sel) || items[0], T = kA.R.total || 1, pos = items.indexOf(x) + 1, cl = kaClase(x.r, ref), dv = ref && x.r ? (x.r / ref - 1) * 100 : 0;
-  const top = ord.slice(0, 8), mx = top.length ? kaMVal(top[0]) : 1, dep = new Map(); ub.forEach(n => dep.set(n.p[1], (dep.get(n.p[1]) || 0) + n.costo)); const dl = [...dep].sort((a, b) => b[1] - a[1]).slice(0, 5);
-  $('#kaMapaPanel').innerHTML = `<span class="ka-eye">Detalle de la selección</span><h3 style="font-size:21px">${esc(kaNom(x.name))}</h3><p class="ka-hint">${x.p ? `Provincia de ${esc(x.p[0])}, departamento de ${esc(x.p[1])}` : 'Sin ubicación en el mapa'} · n.º ${pos} de ${items.length} por costo</p>
-    <div class="ka-fk"><div><small>Costo del período</small><b>${kaF0(x.costo)}</b></div><div><small>% del total</small><b>${(x.costo / T * 100).toFixed(1)} %</b></div>
-    <div><small>Cajas</small><b>${fmtN(x.u)}</b></div><div><small>Tarifa por caja</small><b>${x.u ? fmt(x.r) : '-'}</b>${x.u ? `<span class="ka-pill ${cl}">${kaSg(dv)} %</span>` : ''}</div></div>
-    <div class="ka-sec">Nodos de mayor ${kaM.met === 'costo' ? 'costo' : kaM.met === 'tarifa' ? 'tarifa por caja' : 'volumen'}</div>
-    <div class="ka-top">${top.map((n, i) => `<button data-n="${esc(n.name)}" class="${n.name === S.sel ? 'sel' : ''}"><span class="n">${i + 1}</span><span class="nm"><b>${esc(kaNom(n.name))}</b><i style="width:${kaMVal(n) / mx * 100}%"></i></span><span class="v">${kaMTxt(n)}</span></button>`).join('')}</div>
-    <div class="ka-sec">Costo por departamento</div>
-    <div class="ka-dep">${dl.map(([d, v]) => `<div><span>${esc(d)}</span><em>${kaF0(v)} · ${(v / T * 100).toFixed(0)} %</em><i style="--w:${v / dl[0][1] * 100}%"></i></div>`).join('')}</div>`;
+  const S = KS.nodo, T = kA.R.total || 1, top = ord.slice(0, 8), mx = top.length ? kaMVal(top[0]) : 1, dep = new Map();
+  ub.forEach(n => dep.set(n.p[1], (dep.get(n.p[1]) || 0) + n.costo)); const dl = [...dep].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  $('#kaMapaPanel').innerHTML = kaFicha('nodo', items, ref, true); kaDiasDibujar('nodo');
+  $('#kaMapaListas').innerHTML = `<div><div class="ka-sec" style="margin-top:0">${{ costo: 'Nodos de mayor costo', pedidos: 'Nodos con más pedidos', tarifa: 'Nodos de mayor tarifa por caja', cajas: 'Nodos con más cajas' }[kaM.met]}</div>
+    <div class="ka-top">${top.map((n, i) => `<button data-n="${esc(n.name)}" class="${n.name === S.sel ? 'sel' : ''}"><span class="n">${i + 1}</span><span class="nm"><b>${esc(kaNom(n.name))}</b><i style="width:${kaMVal(n) / mx * 100}%"></i></span><span class="v">${kaMTxt(n)}</span></button>`).join('')}</div></div>
+    <div><div class="ka-sec" style="margin-top:0">Costo por departamento</div>
+    <div class="ka-dep">${dl.map(([d, v]) => `<div><span>${esc(d)}</span><em>${kaF0(v)} · ${(v / T * 100).toFixed(0)} %</em><i style="--w:${v / dl[0][1] * 100}%"></i></div>`).join('')}</div></div>`;
 }
-function kaElegirNodo(n) { KS.nodo.sel = n; kaTabla('nodo'); kaFichaRefrescar('nodo'); kaMapaActualizar('sel'); }
+function kaElegirNodo(n) { KS.nodo.sel = n; kaTabla('nodo'); kaMapaActualizar('sel'); }
 function kaAjustar() {
   const v = kaM.vb, w0 = kaGeo.w, h0 = kaGeo.h;
   v.x = Math.min(-10 + w0 - v.w * .25, Math.max(-10 - v.w * .75, v.x)); v.y = Math.min(-10 + h0 - v.h * .25, Math.max(-10 - v.h * .75, v.y));
@@ -1298,7 +1297,7 @@ function kaMapaEnlazar() {
   $('#kaZi').onclick = () => kaZoom(.7); $('#kaZo').onclick = () => kaZoom(1.4); $('#kaZr').onclick = () => { kaM.vb = { x: -10, y: -10, w: kaGeo.w, h: kaGeo.h }; kaAjustar(); };
   $('#kaVis').onclick = e => { const b = e.target.closest('button'); if (!b) return; kaM.vis = b.dataset.v; document.querySelectorAll('#kaVis button').forEach(x => x.classList.toggle('on', x === b)); kaMapaActualizar('todo'); };
   $('#kaMet').onclick = e => { const b = e.target.closest('button'); if (!b) return; kaM.met = b.dataset.m; document.querySelectorAll('#kaMet button').forEach(x => x.classList.toggle('on', x === b)); kaMapaActualizar('todo'); };
-  $('#kaMapaPanel').onclick = e => { const b = e.target.closest('button[data-n]'); if (b) kaElegirNodo(b.dataset.n); };
+  $('#kaMapaListas').onclick = e => { const b = e.target.closest('button[data-n]'); if (b) kaElegirNodo(b.dataset.n); };
 }
 document.addEventListener('pointermove', e => {
   const a = kaM.ar; if (!a || !kaM.vb) return; const dx = e.clientX - a.x, dy = e.clientY - a.y;
@@ -1321,7 +1320,7 @@ function kaEnlazar(id) {
   const el = $('#kp-' + id), rt = el.querySelector('.ka-rt'); if (!rt) return;
   rt.onclick = e => {
     const th = e.target.closest('th[data-s]'); if (th) { KS[id].ord = th.dataset.s; return kaTabla(id); }
-    if (id === 'zona') return; const tr = e.target.closest('tbody tr[data-n]'); if (tr) { KS[id].sel = tr.dataset.n; kaTabla(id); kaFichaRefrescar(id); if (id === 'nodo') kaMapaActualizar('sel'); }
+    if (id === 'zona') return; const tr = e.target.closest('tbody tr[data-n]'); if (tr) { KS[id].sel = tr.dataset.n; kaTabla(id); if (id === 'nodo' && $('#kaLz')) kaMapaActualizar('sel'); else kaFichaRefrescar(id); }
   };
   if (id === 'nodo') kaMapaEnlazar();
   const q = el.querySelector('.ka-q'); if (q) q.oninput = () => { KS[id].q = q.value; kaTabla(id); };
@@ -1333,7 +1332,7 @@ function kaTabla(id) {
 }
 function kaFichaRefrescar(id) {
   const { items, ref } = kaDatosVista(id), f = $('#kaFicha'); if (!f) return;
-  f.outerHTML = kaFicha(id, items, ref); kaDiasDibujar(id);
+  f.outerHTML = kaFicha(id, items, ref, id === 'nodo' && !!$('#kaLz')); kaDiasDibujar(id);
 }
 document.addEventListener('mousemove', e => {
   const tip = $('#kaTip'), t = e.target.closest && e.target.closest('#tab-kpis [data-tip]');
