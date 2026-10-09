@@ -977,7 +977,7 @@ const KA_INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const kaF0 = n => 'S/ ' + Math.round(n || 0).toLocaleString('es-PE');
 const kaSin = k => k.startsWith('(');
 const kaNom = k => k === RECOJO_CTA ? 'Recojos' : kaSin(k) ? k.charAt(1).toUpperCase() + k.slice(2, -1).toLowerCase() : k;
-const kaSg = d => (d > 0 ? '+' : d < 0 ? '−' : '') + (Math.abs(d) > 999 ? '999+' : Math.abs(d).toFixed(0));
+const kaSg = d => d > 999 ? '>999' : (d > 0 ? '+' : d < 0 ? '−' : '') + Math.abs(d).toFixed(0);
 const kaVeces = (r, ref) => r >= ref * 3 ? `${(r / ref).toFixed(0)} veces la mediana` : `${((r / ref - 1) * 100).toFixed(0)} % sobre la mediana`;
 const kaClase = (r, ref) => !r || !ref || r <= ref * 1.3 ? 'g' : r <= ref * 2 ? 'a' : 'r';
 const kaTf = (a, b) => `<div class="f"><span>${a}</span><span>${b}</span></div>`;
@@ -1141,7 +1141,7 @@ function kaMix(items) {
 // ---------- vistas ----------
 function kaVistaRanking(id) {
   const c = KA[id], { items, ref } = kaDatosVista(id), R = kA.R, T = R.total, nom = items.filter(x => !kaSin(x.name)), P = kA.prev.R, hayP = !!kA.prev.total;
-  let hall, kp, side = '', bottom = '';
+  let hall, kp, side = '', bottom = '', mapa = '';
   kaPaint = [() => kaDiasDibujar(id)];
   if (id === 'cuenta') {
     const t3 = nom.slice(0, 3), p3 = nom.length ? t3.reduce((s, x) => s + x.costo, 0) / T * 100 : 0, peor = [...nom.filter(x => x.u)].sort((a, b) => b.r - a.r)[0], sinD = items.filter(x => kaSin(x.name)).reduce((s, x) => s + x.costo, 0);
@@ -1160,6 +1160,7 @@ function kaVistaRanking(id) {
     hall = kaHall(cj.length >= 3 && caro.r > ref * 1.3 ? `<b>${esc(kaNom(caro.name))}</b> registra una tarifa de <b>${fmt(caro.r)}</b> por caja, <b>${kaVeces(caro.r, ref)}</b>. Los nodos por encima de la mediana acumulan <b>${kaF0(sob)}</b> de sobrecosto (${(sob / T * 100).toFixed(0)} % del costo).` : cj.length ? `La tarifa mediana por caja es <b>${fmt(ref)}</b>; ningún nodo la supera en más de 30 %.` : 'No hay cajas registradas para calcular la tarifa por caja.');
     kp = [['Costo del período', fmt(T), kaDl(T, kA.prev.total) + (hayP ? ' frente al período anterior' : '')], ['Nodos con envíos', items.length, zN ? `${zN} ${zN === 1 ? 'zona' : 'zonas'}` : 'sin zona asignada'], ['Tarifa mediana por caja', ref ? fmt(ref) : '-', (medP && ref ? kaDl(ref, medP) + ' frente al período anterior' : '')], ['Sobrecosto sobre la mediana', kaF0(sob), `${(sob / T * 100).toFixed(0)} % del costo del período`]];
     if (cj.length >= 2 && ref) side = kaDesvio(items, ref, c, 'Desviación frente a la mediana', 'Diferencia porcentual entre la tarifa por caja de cada nodo y la mediana. Al pasar el cursor se muestra el sobrecosto estimado.');
+    mapa = kaMapaHTML(items); kaPaint.push(() => kaMapaDibujar());
     if (kA.act > 2 && items.length >= 2) bottom = `<div class="ka-card ka-full"><div class="ka-cab"><div><h3>Evolución de los ${Math.min(5, items.length)} nodos de mayor costo</h3><p class="ka-hint">Costo por ${kA.tr.sem ? 'semana' : 'día'}. Permite distinguir un nivel de costo sostenido de un pico puntual.</p></div></div>
       <div class="ka-lg">${items.slice(0, 5).map((x, k) => `<span style="--c:${KA_PAL[k]}">${esc(kaNom(x.name))}</span>`).join('')}</div><div class="ka-ch" id="kaLin"></div></div>`;
     kaPaint.push(() => kaLineas(items));
@@ -1170,7 +1171,7 @@ function kaVistaRanking(id) {
     if (items.filter(x => x.u).length >= 2 && ref) side = kaDesvio(items, ref, c, 'Tarifa por caja frente a la mediana', 'Compara la tarifa por caja de cada agencia con la mediana. Una diferencia significativa puede indicar una negociación pendiente o una ruta de mayor complejidad.');
     if (cr > 0) bottom = kaMix(items);
   }
-  return `${hall}${kaKpis(kp)}<div class="ka-grid"><div class="ka-stack">${kaRanking(id, items, ref, true)}${side}</div><div class="ka-fix">${kaFicha(id, items, ref)}</div></div>${bottom}`;
+  return `${hall}${kaKpis(kp)}${mapa}<div class="ka-grid"><div class="ka-stack">${kaRanking(id, items, ref, true)}${side}</div><div class="ka-fix">${kaFicha(id, items, ref)}</div></div>${bottom}`;
 }
 const KA_MIN = 30;   // cajas mínimas para comparar una ruta
 function kaAhorro() {
@@ -1206,6 +1207,108 @@ function kaVistaZona() {
   return `${hall}${kp}<div class="ka-tg">${cards}</div><div class="ka-grid"${ah ? '' : ' style="grid-template-columns:minmax(0,1fr)"'}><div>${kaRanking('zona', zi, zref, false)}</div>${ah ? `<div class="ka-stack">${ah}</div>` : ''}</div>${mx}`;
 }
 
+// ---------- mapa de nodos por provincia ----------
+// nodos cuyo nombre no coincide con el de su provincia (clave sin tildes y en mayúsculas)
+const KA_ALIAS = { AYACUCHO: 'HUAMANGA', CHIMBOTE: 'SANTA', HUACHO: 'HUAURA', MOQUEGUA: 'MARISCAL NIETO', PUCALLPA: 'CORONEL PORTILLO', TARAPOTO: 'SAN MARTIN', 'TINGO MARIA': 'LEONCIO PRADO' };
+let kaGeo = null, kaGeoEstado = '';
+const kaProv = new Map(), kaM = { met: 'costo', vis: 'relleno', vb: null, ar: null, mov: false };
+function kaCargarGeo() {
+  if (kaGeoEstado === 'cargando' || kaGeoEstado === 'ok') return; kaGeoEstado = 'cargando';
+  fetch('mapa_peru.json?v=20261008d').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(g => { kaGeo = g; g.p.forEach(p => kaProv.set(norm(p[0]), p)); kaGeoEstado = 'ok'; })
+    .catch(() => { kaGeoEstado = 'error'; })
+    .then(() => { if (document.querySelector('#kpTabs .on')?.dataset.v === 'nodo') kaPintar('nodo'); });
+}
+function kaUbicar(items) { items.forEach(x => { x.p = kaProv.get(norm(KA_ALIAS[norm(x.name)] || x.name)) || null; }); }
+const kaMVal = x => kaM.met === 'costo' ? x.costo : kaM.met === 'tarifa' ? (x.u ? x.r : null) : x.u;
+const kaMTxt = x => kaM.met === 'costo' ? kaF0(x.costo) : kaM.met === 'tarifa' ? fmt(x.r) : fmtN(x.u) + ' cajas';
+function kaMapaHTML(items) {
+  if (kaGeoEstado === 'error') return `<div class="ka-card" style="margin-bottom:18px"><div class="ka-cab" style="margin:0"><div><h3>Mapa de costos por provincia</h3><p class="ka-hint">No se pudo cargar el mapa. Actualizar la página para intentarlo de nuevo.</p></div></div></div>`;
+  const cab = `<div class="ka-cab"><div><h3>Mapa de costos por provincia</h3><p class="ka-hint">Cada nodo se ubica en su provincia. Los números identifican a los nodos de mayor valor y coinciden con la lista de la derecha.</p></div>`;
+  if (!kaGeo) { kaCargarGeo(); return `<div class="ka-card" style="margin-bottom:18px">${cab}</div><div class="ka-lienzo" style="cursor:default"><div class="cargando">Cargando el mapa…</div></div></div>`; }
+  kaUbicar(items); const ub = items.filter(x => x.p), sin = items.filter(x => !x.p);
+  if (!ub.length) return '';
+  const T = kA.R.total || 1, sinC = sin.reduce((s, x) => s + x.costo, 0);
+  return `<div class="ka-card" style="margin-bottom:18px">${cab}<div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div class="ka-seg" id="kaVis"><button data-v="relleno" class="${kaM.vis === 'relleno' ? 'on' : ''}">Provincias</button><button data-v="burbujas" class="${kaM.vis === 'burbujas' ? 'on' : ''}">Burbujas</button></div>
+      <div class="ka-seg" id="kaMet"><button data-m="costo" class="${kaM.met === 'costo' ? 'on' : ''}">Costo</button><button data-m="tarifa" class="${kaM.met === 'tarifa' ? 'on' : ''}">Tarifa por caja</button><button data-m="cajas" class="${kaM.met === 'cajas' ? 'on' : ''}">Cajas</button></div></div></div>
+    <div class="ka-mapa"><div><div class="ka-lienzo" id="kaLz"><svg id="kaSvg" role="img" aria-label="Mapa del Perú por provincias"></svg>
+        <div class="ka-zoom"><button id="kaZi" aria-label="Acercar">+</button><button id="kaZo" aria-label="Alejar">&minus;</button><button id="kaZr" aria-label="Restablecer vista" style="font-size:13px">&#8634;</button></div><div class="ka-leyenda" id="kaLey"></div></div>
+      <p class="ka-fuente">Límites provinciales: INEI (2007), publicados en el repositorio peru-geojson.${sin.length ? ` ${sin.length} ${sin.length === 1 ? 'nodo no está ubicado' : 'nodos no están ubicados'} en el mapa (${esc(sin.map(x => kaNom(x.name)).join(', '))}; ${(sinC / T * 100).toFixed(1)} % del costo).` : ''}</p></div>
+      <div id="kaMapaPanel"></div></div></div>`;
+}
+function kaMapaDibujar() {
+  const lz = $('#kaLz'); if (!lz || !kaGeo || !lz.clientWidth) return;
+  const svg = $('#kaSvg'); if (!kaM.vb) kaM.vb = { x: -10, y: -10, w: kaGeo.w, h: kaGeo.h };
+  if (!svg.querySelector('.ka-prov')) {
+    const { items } = kaDatosVista('nodo'), por = new Map(items.filter(x => x.p).map(x => [x.p[0], x]));
+    svg.innerHTML = `<g id="kaGp">${kaGeo.p.map(p => { const x = por.get(p[0]);
+      const tip = x ? `<b>${esc(kaNom(x.name))}</b><small>${esc(p[0])} · ${esc(p[1])}</small>${kaTf('Costo', fmt(x.costo))}${kaTf('Cajas', fmtN(x.u))}${kaTf('Tarifa por caja', x.u ? fmt(x.r) : '-')}` : `<b>${esc(p[0])}</b><small>Sin envíos en el período</small>`;
+      return `<path class="ka-prov ${x ? 'd' : ''}" data-p="${esc(p[0])}" ${x ? `data-n="${esc(x.name)}"` : ''} ${kaTipA(tip)} d="${p[4]}"/>`; }).join('')}</g><g id="kaGm"></g>`;
+  }
+  kaMapaActualizar('todo');
+}
+function kaMapaActualizar(modo = 'sel') {   // modo: 'todo' (vista completa), 'sel' (selección) o 'zoom' (solo marcadores)
+  const svg = $('#kaSvg'); if (!svg || !kaGeo) return;
+  const { items, ref } = kaDatosVista('nodo'), ub = items.filter(x => x.p), sel = KS.nodo.sel, por = new Map(ub.map(x => [x.p[0], x]));
+  const vals = ub.map(kaMVal).filter(v => v != null), lo = Math.min(...vals), hi = Math.max(...vals);
+  const color = x => { const v = x && kaMVal(x); if (v == null) return '#e6eaf0';
+    if (kaM.met === 'tarifa') return { g: '#7cc593', a: '#f2c35c', r: '#e2616e' }[kaClase(x.r, ref)];
+    const t = Math.sqrt((v - lo) / (hi - lo || 1)), a = [214, 228, 250], b = [11, 61, 130]; return 'rgb(' + a.map((c, i) => Math.round(c + (b[i] - c) * t)).join(',') + ')'; };
+  if (modo !== 'zoom') svg.querySelectorAll('.ka-prov').forEach(el => { const x = por.get(el.dataset.p); el.setAttribute('fill', kaM.vis === 'relleno' ? color(x) : x ? '#d9e0ea' : '#e6eaf0'); el.classList.toggle('sel', !!x && x.name === sel); if (x && x.name === sel) el.parentNode.appendChild(el); });
+  // marcadores: numerados (provincias) o burbujas proporcionales
+  const K = kaM.vb.w / kaGeo.w, ord = ub.filter(x => kaMVal(x) != null).sort((a, b) => kaMVal(b) - kaMVal(a)), top = new Map(ord.slice(0, 8).map((x, i) => [x.name, i + 1]));
+  const tr = x => `translate(${x.p[2]},${x.p[3]}) scale(${K.toFixed(3)})`, tip = x => kaTipA(`<b>${esc(kaNom(x.name))}</b><small>${esc(x.p[0])} · ${esc(x.p[1])}</small>${kaTf('Costo', fmt(x.costo))}${kaTf('Cajas', fmtN(x.u))}${kaTf('Tarifa por caja', x.u ? fmt(x.r) : '-')}`);
+  $('#kaGm').innerHTML = kaM.vis === 'burbujas'
+    ? ord.map(x => { const r = 5 + Math.sqrt(kaMVal(x) / hi) * 19, n = top.get(x.name); return `<g class="ka-bb ${x.name === sel ? 'sel' : ''}" data-n="${esc(x.name)}" ${tip(x)} transform="${tr(x)}"><circle r="${r.toFixed(1)}" fill="${color(x)}" fill-opacity=".88"/>${n && r >= 11 ? `<text style="fill:${kaM.met === 'tarifa' && kaClase(x.r, ref) === 'a' ? '#1d1d1f' : '#fff'}">${n}</text>` : ''}</g>`; }).reverse().join('')
+    : ord.slice(0, 8).map((x, i) => `<g class="ka-mk ${x.name === sel ? 'sel' : ''}" data-n="${esc(x.name)}" ${tip(x)} transform="${tr(x)}"><circle r="9.5"/><text>${i + 1}</text></g>`).join('');
+  if (modo === 'zoom') return;
+  if (modo === 'todo') svg.setAttribute('viewBox', `${kaM.vb.x} ${kaM.vb.y} ${kaM.vb.w} ${kaM.vb.h}`);
+  if (modo === 'todo') $('#kaLey').innerHTML = kaM.met === 'tarifa'
+    ? `<b>Tarifa por caja frente a la mediana (${fmt(ref)})</b><div class="ka-cls"><span style="--c:#7cc593">en rango</span><span style="--c:#f2c35c">alta (hasta el doble)</span><span style="--c:#e2616e">muy alta</span><span style="--c:#e6eaf0">sin envíos</span></div>`
+    : `<b>${kaM.met === 'costo' ? 'Costo del período' : 'Cajas transportadas'}${kaM.vis === 'burbujas' ? ' (tamaño y color)' : ''}</b><div class="ka-grad"></div><div class="ka-gl"><span>${kaM.met === 'costo' ? kaF0(lo) : fmtN(lo)}</span><span>${kaM.met === 'costo' ? kaF0(hi) : fmtN(hi)}</span></div>`;
+  kaMapaPanel(items, ub, ref, ord);
+}
+function kaMapaPanel(items, ub, ref, ord) {
+  const S = KS.nodo, x = items.find(n => n.name === S.sel) || items[0], T = kA.R.total || 1, pos = items.indexOf(x) + 1, cl = kaClase(x.r, ref), dv = ref && x.r ? (x.r / ref - 1) * 100 : 0;
+  const top = ord.slice(0, 8), mx = top.length ? kaMVal(top[0]) : 1, dep = new Map(); ub.forEach(n => dep.set(n.p[1], (dep.get(n.p[1]) || 0) + n.costo)); const dl = [...dep].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  $('#kaMapaPanel').innerHTML = `<span class="ka-eye">Detalle de la selección</span><h3 style="font-size:21px">${esc(kaNom(x.name))}</h3><p class="ka-hint">${x.p ? `Provincia de ${esc(x.p[0])}, departamento de ${esc(x.p[1])}` : 'Sin ubicación en el mapa'} · n.º ${pos} de ${items.length} por costo</p>
+    <div class="ka-fk"><div><small>Costo del período</small><b>${kaF0(x.costo)}</b></div><div><small>% del total</small><b>${(x.costo / T * 100).toFixed(1)} %</b></div>
+    <div><small>Cajas</small><b>${fmtN(x.u)}</b></div><div><small>Tarifa por caja</small><b>${x.u ? fmt(x.r) : '-'}</b>${x.u ? `<span class="ka-pill ${cl}">${kaSg(dv)} %</span>` : ''}</div></div>
+    <div class="ka-sec">Nodos de mayor ${kaM.met === 'costo' ? 'costo' : kaM.met === 'tarifa' ? 'tarifa por caja' : 'volumen'}</div>
+    <div class="ka-top">${top.map((n, i) => `<button data-n="${esc(n.name)}" class="${n.name === S.sel ? 'sel' : ''}"><span class="n">${i + 1}</span><span class="nm"><b>${esc(kaNom(n.name))}</b><i style="width:${kaMVal(n) / mx * 100}%"></i></span><span class="v">${kaMTxt(n)}</span></button>`).join('')}</div>
+    <div class="ka-sec">Costo por departamento</div>
+    <div class="ka-dep">${dl.map(([d, v]) => `<div><span>${esc(d)}</span><em>${kaF0(v)} · ${(v / T * 100).toFixed(0)} %</em><i style="--w:${v / dl[0][1] * 100}%"></i></div>`).join('')}</div>`;
+}
+function kaElegirNodo(n) { KS.nodo.sel = n; kaTabla('nodo'); kaFichaRefrescar('nodo'); kaMapaActualizar('sel'); }
+function kaAjustar() {
+  const v = kaM.vb, w0 = kaGeo.w, h0 = kaGeo.h;
+  v.x = Math.min(-10 + w0 - v.w * .25, Math.max(-10 - v.w * .75, v.x)); v.y = Math.min(-10 + h0 - v.h * .25, Math.max(-10 - v.h * .75, v.y));
+  $('#kaSvg').setAttribute('viewBox', `${v.x} ${v.y} ${v.w} ${v.h}`); kaMapaActualizar('zoom');
+}
+function kaZoom(f, cx, cy) {
+  const r = $('#kaSvg').getBoundingClientRect(), v = kaM.vb, s = Math.max(v.w / r.width, v.h / r.height), px = cx ?? r.left + r.width / 2, py = cy ?? r.top + r.height / 2;
+  const mx = v.x + v.w / 2 + (px - (r.left + r.width / 2)) * s, my = v.y + v.h / 2 + (py - (r.top + r.height / 2)) * s, w = Math.min(kaGeo.w, Math.max(kaGeo.w / 14, v.w * f)), k = w / v.w;
+  v.x = mx - (mx - v.x) * k; v.y = my - (my - v.y) * k; v.h *= k; v.w = w; kaAjustar();
+}
+function kaMapaEnlazar() {
+  const lz = $('#kaLz'); if (!lz) return;
+  lz.addEventListener('pointerdown', e => { if (e.target.closest('.ka-zoom')) return; kaM.ar = { x: e.clientX, y: e.clientY, vx: kaM.vb.x, vy: kaM.vb.y, t: e.target.closest('.ka-prov.d, .ka-mk, .ka-bb') }; kaM.mov = false; });
+  lz.addEventListener('wheel', e => { e.preventDefault(); kaZoom(e.deltaY < 0 ? .8 : 1.25, e.clientX, e.clientY); }, { passive: false });
+  $('#kaZi').onclick = () => kaZoom(.7); $('#kaZo').onclick = () => kaZoom(1.4); $('#kaZr').onclick = () => { kaM.vb = { x: -10, y: -10, w: kaGeo.w, h: kaGeo.h }; kaAjustar(); };
+  $('#kaVis').onclick = e => { const b = e.target.closest('button'); if (!b) return; kaM.vis = b.dataset.v; document.querySelectorAll('#kaVis button').forEach(x => x.classList.toggle('on', x === b)); kaMapaActualizar('todo'); };
+  $('#kaMet').onclick = e => { const b = e.target.closest('button'); if (!b) return; kaM.met = b.dataset.m; document.querySelectorAll('#kaMet button').forEach(x => x.classList.toggle('on', x === b)); kaMapaActualizar('todo'); };
+  $('#kaMapaPanel').onclick = e => { const b = e.target.closest('button[data-n]'); if (b) kaElegirNodo(b.dataset.n); };
+}
+document.addEventListener('pointermove', e => {
+  const a = kaM.ar; if (!a || !kaM.vb) return; const dx = e.clientX - a.x, dy = e.clientY - a.y;
+  if (!kaM.mov && Math.abs(dx) + Math.abs(dy) > 4) { kaM.mov = true; $('#kaLz')?.classList.add('mov'); $('#kaTip').classList.remove('on'); }
+  if (kaM.mov) { const r = $('#kaSvg').getBoundingClientRect(), s = Math.max(kaM.vb.w / r.width, kaM.vb.h / r.height); kaM.vb.x = a.vx - dx * s; kaM.vb.y = a.vy - dy * s; kaAjustar(); }
+});
+document.addEventListener('pointerup', () => {
+  const a = kaM.ar; if (!a) return; const fue = kaM.mov; kaM.ar = null; kaM.mov = false; $('#kaLz')?.classList.remove('mov'); if (!fue && a.t) kaElegirNodo(a.t.dataset.n);
+});
+
 // ---------- control ----------
 function kaPintar(id) {
   const el = $('#kp-' + id); if (!el) return;
@@ -1218,8 +1321,9 @@ function kaEnlazar(id) {
   const el = $('#kp-' + id), rt = el.querySelector('.ka-rt'); if (!rt) return;
   rt.onclick = e => {
     const th = e.target.closest('th[data-s]'); if (th) { KS[id].ord = th.dataset.s; return kaTabla(id); }
-    if (id === 'zona') return; const tr = e.target.closest('tbody tr[data-n]'); if (tr) { KS[id].sel = tr.dataset.n; kaTabla(id); kaFichaRefrescar(id); }
+    if (id === 'zona') return; const tr = e.target.closest('tbody tr[data-n]'); if (tr) { KS[id].sel = tr.dataset.n; kaTabla(id); kaFichaRefrescar(id); if (id === 'nodo') kaMapaActualizar('sel'); }
   };
+  if (id === 'nodo') kaMapaEnlazar();
   const q = el.querySelector('.ka-q'); if (q) q.oninput = () => { KS[id].q = q.value; kaTabla(id); };
 }
 function kaTabla(id) {
@@ -1233,7 +1337,7 @@ function kaFichaRefrescar(id) {
 }
 document.addEventListener('mousemove', e => {
   const tip = $('#kaTip'), t = e.target.closest && e.target.closest('#tab-kpis [data-tip]');
-  if (!t) { tip.classList.remove('on'); return; }
+  if (!t || kaM.mov) { tip.classList.remove('on'); return; }
   tip.innerHTML = t.dataset.tip; tip.classList.add('on'); const w = tip.offsetWidth, h = tip.offsetHeight;
   tip.style.left = Math.min(e.clientX + 14, innerWidth - w - 8) + 'px'; tip.style.top = (e.clientY + h + 24 > innerHeight ? e.clientY - h - 12 : e.clientY + 16) + 'px';
 });
