@@ -54,9 +54,6 @@
   .msg.ok { display:block; background:var(--okbg); color:var(--ok) }
   .msg.err { display:block; background:#fee2e2; color:var(--bad) }
   .hint { color:var(--mut); font-size:11px; margin:8px 0 0 }
-  #login { max-width:340px; margin:12vh auto }
-  #login .lg-t { margin:0 0 4px; font-size:19px; letter-spacing:-.02em } #login .lg-s { margin:0 0 16px; color:var(--mut); font-size:13px }
-  #login .brand { background:none; padding:0; height:auto; margin-bottom:14px; border:0 } #login .brand b { color:var(--ink) } #login .brand .lg { border:1px solid var(--line) }
   .step { flex:1; min-width:170px; display:flex; gap:10px; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 14px }
   .step i { width:26px; height:26px; border-radius:50%; display:grid; place-items:center; font-style:normal; font-weight:700; background:var(--line); color:var(--mut); font-size:13px; flex:none }
   .step.on i { background:var(--pri); color:#fff }  .step b { display:block } .step small { color:var(--mut) }
@@ -303,7 +300,6 @@
   .msg { border-radius:12px; font-size:14px } .msg.err { background:var(--badbg) }
   .empty { padding:48px 16px; font-size:14px } .empty b { font-size:17px }
   ::-webkit-scrollbar-thumb { background:#c7c7cc; background-clip:content-box } ::-webkit-scrollbar-thumb:hover { background:#a1a1a6; background-clip:content-box }
-  #login { max-width:340px; margin:12vh auto; padding:28px } #login .brand { display:flex; gap:10px; align-items:center } #login .brand b { font-size:20px } #login .brand .lg img { height:34px }
   #metaDlg .in { padding:24px }
 
   @media (max-width:900px) {
@@ -901,3 +897,67 @@
   .kg-apil { display:flex; height:14px; border-radius:99px; overflow:hidden; gap:3px; margin-top:12px } .kg-apil i { display:block; height:100%; border-radius:99px }
   .kg-tr .t b { display:flex; align-items:center; gap:8px } .kg-trn { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0 }
   .kg-best { flex:none; font-size:10.5px; font-weight:600; color:#248a3d; background:rgba(36,138,61,.11); padding:1px 8px; border-radius:99px; letter-spacing:0 }
+
+/* ===== Acceso y pantalla de carga: red de distribución sobre el mapa ===== */
+#acceso { position:fixed; inset:0; z-index:200; overflow:hidden; background:radial-gradient(1100px 700px at 80% 50%,#e4eefc 0,transparent 62%),radial-gradient(800px 500px at 0 0,#eef3fb 0,transparent 60%),#f5f5f7; transition:opacity .5s }
+#acceso.sale { opacity:0; pointer-events:none }
+#lMapa { position:fixed; top:4vh; height:92vh; right:6vw; aspect-ratio:620/899; transition:all .9s cubic-bezier(.3,.7,.2,1) }
+#acceso.carga #lMapa { right:50%; transform:translateX(50%); top:3vh; height:68vh }
+#lSvg { width:100%; height:100%; overflow:visible }
+.ac-prov { fill:#dfe9f8; stroke:#fff; stroke-width:.6 }
+.ac-ruta { fill:none; stroke:rgba(26,93,184,.35); stroke-width:1.6; stroke-dasharray:3 5; opacity:0; transition:opacity .6s }
+.ac-ruta.on { opacity:1; animation:acDash 3s linear infinite }
+@keyframes acDash { to { stroke-dashoffset:-32 } }
+.ac-n .c { fill:#fff; stroke:#1a5db8; stroke-width:2.4; transition:fill .4s }
+.ac-n.on .c { fill:#1a5db8 }
+.ac-n text { font-size:13px; font-weight:600; fill:#0b3d82; paint-order:stroke; stroke:#f5f8fd; stroke-width:3.5px; opacity:0; transition:opacity .5s }
+.ac-n.on text { opacity:1 }
+.ac-n .p, .ac-o .p { fill:none; stroke:#1a5db8; stroke-width:1.6; opacity:0; transform-box:fill-box; transform-origin:center }
+.ac-n.on .p { animation:acPulso 2.6s ease-out infinite }
+.ac-o .p { stroke:#0066cc; stroke-width:1.8; animation:acPulso 2.2s ease-out infinite }
+@keyframes acPulso { 0% { opacity:.7; transform:scale(1) } 100% { opacity:0; transform:scale(4.2) } }
+.ac-o .o { fill:#0066cc }
+.ac-o text { font-size:14px; font-weight:700; fill:#0066cc; paint-order:stroke; stroke:#f5f8fd; stroke-width:4px }
+.ac-cam circle { fill:#0066cc; stroke:#fff; stroke-width:2.4; filter:drop-shadow(0 2px 3px rgba(0,60,140,.45)) }
+.ac-cam path { fill:none; stroke:#0066cc; stroke-width:2.6; stroke-linecap:round; opacity:.35 }
+
+.ac-pant { position:fixed; inset:0; display:grid; align-items:center; padding:20px 6vw; z-index:2 }
+#acceso .ac-card { width:100%; max-width:390px; margin:0 0 0 6vw; background:rgba(255,255,255,.88); -webkit-backdrop-filter:saturate(180%) blur(22px); backdrop-filter:saturate(180%) blur(22px); border:1px solid rgba(255,255,255,.9); border-radius:22px; padding:34px 30px 26px; box-shadow:0 20px 60px rgba(11,61,130,.14),0 2px 6px rgba(0,0,0,.04); animation:acSube .7s cubic-bezier(.2,.8,.2,1) both }
+@keyframes acSube { from { opacity:0; transform:translateY(18px) scale(.98) } }
+#acceso .ac-card.tiembla { animation:acTiembla .4s }
+@keyframes acTiembla { 20%,60% { transform:translateX(-5px) } 40%,80% { transform:translateX(5px) } }
+.ac-marca { display:flex; align-items:center; gap:14px; margin-bottom:24px }
+.ac-lg { width:56px; height:56px; border-radius:14px; background:#fff; border:1px solid #d2d2d7; display:grid; place-items:center; box-shadow:0 4px 14px rgba(0,0,0,.06); flex:none }
+.ac-lg img { height:34px; max-width:42px; object-fit:contain }
+.ac-marca b { display:block; font-size:21px; letter-spacing:-.02em; color:#1d1d1f }
+.ac-marca small { color:#6e6e73; font-size:13px }
+#acceso .ac-campo { position:relative; margin:0 0 12px; display:block }
+#acceso .ac-campo input { width:100%; height:50px; padding:20px 44px 6px 14px; font:16px inherit; font-family:inherit; color:#1d1d1f; border:1px solid #d2d2d7; border-radius:12px; background:#fff; outline:0; box-sizing:border-box; margin:0; transition:border-color .2s,box-shadow .2s }
+#acceso .ac-campo label { position:absolute; left:14px; top:15px; margin:0; font-size:15px; font-weight:400; color:#6e6e73; pointer-events:none; transition:all .18s; display:block }
+#acceso .ac-campo input:focus + label, #acceso .ac-campo input:not(:placeholder-shown) + label { top:7px; font-size:11px; font-weight:600; color:#0066cc }
+#acceso .ac-campo input:focus { border-color:#0066cc; box-shadow:0 0 0 4px rgba(0,102,204,.14) }
+.ac-ojo { position:absolute; right:8px; top:9px; width:32px; height:32px; border:0; background:none; border-radius:8px; color:#6e6e73; cursor:pointer; display:grid; place-items:center; padding:0 }
+.ac-ojo:hover { background:#f5f5f7 }
+#acceso .ac-btn { width:100%; height:50px; border:0; border-radius:12px; background:linear-gradient(180deg,#1a73d6,#0066cc); color:#fff; font:600 16px inherit; font-family:inherit; cursor:pointer; margin-top:6px; box-shadow:0 6px 16px rgba(0,102,204,.28); transition:transform .15s,box-shadow .15s }
+#acceso .ac-btn:hover { transform:translateY(-1px); box-shadow:0 10px 22px rgba(0,102,204,.32) }
+#acceso .ac-btn:disabled { opacity:.7; cursor:default; transform:none }
+#acceso .msg { text-align:center; font-size:13px; margin:12px 0 0 }
+#acceso .msg.err { background:rgba(215,0,21,.07); color:#b00012 }
+.ac-pie { text-align:center; color:#6e6e73; font-size:12px; margin-top:18px; line-height:1.5 }
+.ac-pie i { display:inline-block; width:6px; height:6px; border-radius:50%; background:#248a3d; margin-right:6px }
+
+.ac-carga { align-items:end; justify-items:center; padding-bottom:5vh }
+.ac-centro { width:100%; max-width:440px; text-align:center; background:rgba(255,255,255,.86); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); border:1px solid #fff; border-radius:20px; padding:20px 24px 16px; box-shadow:0 14px 40px rgba(11,61,130,.12) }
+.ac-centro h2 { margin:0 0 2px; font-size:18px; letter-spacing:-.02em; color:#1d1d1f }
+.ac-centro p { margin:0; color:#6e6e73; font-size:13px; min-height:19px }
+.ac-centro p b { color:#0b3d82; font-weight:600; font-variant-numeric:tabular-nums }
+.ac-barra { height:6px; border-radius:99px; background:#e3e8f0; overflow:hidden; margin:14px 0 10px }
+.ac-barra i { display:block; height:100%; width:0; border-radius:99px; background:linear-gradient(90deg,#1a5db8,#0066cc); transition:width .5s ease }
+.ac-pasos { display:flex; justify-content:space-between; font-size:12px; color:#a0a0a8 }
+.ac-pasos span { display:flex; align-items:center; gap:6px; transition:color .3s }
+.ac-pasos span::before { content:""; width:8px; height:8px; border-radius:50%; background:#d2d2d7; transition:background .3s }
+.ac-pasos span.on { color:#1d1d1f } .ac-pasos span.on::before { background:#0066cc; animation:acLat 1s ease-in-out infinite }
+.ac-pasos span.ok { color:#6e6e73 } .ac-pasos span.ok::before { background:#248a3d }
+@keyframes acLat { 50% { transform:scale(1.5); opacity:.6 } }
+@media (max-width:760px) { #lMapa { right:50%; transform:translateX(50%); opacity:.5 } .ac-pant { padding:20px } #acceso .ac-card { margin:0 auto } }
+@media (prefers-reduced-motion:reduce) { #acceso *, #acceso *::before { animation:none !important } }

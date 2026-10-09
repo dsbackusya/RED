@@ -8,7 +8,7 @@
 <link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilos.css?v=20261010p">
+<link rel="stylesheet" href="estilos.css?v=20261010q">
 </head>
 <body>
 
@@ -36,15 +36,26 @@
   <p>Completar <code>SUPABASE_URL</code> y <code>SUPABASE_ANON_KEY</code> en <code>config.js</code> y recargar la página.</p>
 </div>
 
-<div id="login" class="card hide">
-  <div class="brand"><span class="lg"><img src="logo.png" alt="Dinet"></span><div><b>Red Troncal</b></div></div>
-  <h2 class="lg-t">Acceso al sistema</h2>
-  <p class="lg-s">Acceso restringido a usuarios autorizados.</p>
-  <div class="row" style="flex-direction:column;align-items:stretch">
-    <label>Correo<input id="lEmail" type="email" autocomplete="username"></label>
-    <label>Contraseña<input id="lPass" type="password" autocomplete="current-password"></label>
-    <button class="b" id="lBtn">Ingresar</button>
-    <div id="lMsg" class="msg"></div>
+<div id="acceso" class="hide">
+  <div id="lMapa" aria-hidden="true"><svg id="lSvg" viewBox="0 0 620 899"></svg></div>
+  <div class="ac-pant" id="login">
+    <form class="ac-card" id="lCard" autocomplete="on">
+      <div class="ac-marca"><span class="ac-lg"><img src="logo.png" alt="Dinet"></span><div><b>Red Troncal</b><small>Gestión de transporte y distribución</small></div></div>
+      <div class="ac-campo"><input id="lEmail" type="email" placeholder=" " autocomplete="username"><label for="lEmail">Correo corporativo</label></div>
+      <div class="ac-campo"><input id="lPass" type="password" placeholder=" " autocomplete="current-password"><label for="lPass">Contraseña</label>
+        <button type="button" class="ac-ojo" id="lOjo" aria-label="Mostrar u ocultar la contraseña"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+      <button type="button" class="ac-btn" id="lBtn">Ingresar</button>
+      <div id="lMsg" class="msg" role="alert"></div>
+      <div class="ac-pie"><i></i>Conexión segura. Acceso restringido a usuarios autorizados.</div>
+    </form>
+  </div>
+  <div class="ac-pant ac-carga hide" id="cargaIni">
+    <div class="ac-centro" role="status" aria-live="polite">
+      <h2>Preparando su espacio de trabajo</h2>
+      <p><span id="acMsg">Verificando sesión</span><span id="acCont" class="hide"> · <b><span id="acNn">0</span> de <span id="acNt">0</span> nodos conectados</b></span></p>
+      <div class="ac-barra"><i id="acBar"></i></div>
+      <div class="ac-pasos"><span id="acS1">Sesión</span><span id="acS2">Registros</span><span id="acS3">Indicadores</span></div>
+    </div>
   </div>
 </div>
 
@@ -315,6 +326,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 <script src="config.js?v=20261010p"></script>
 <script src="ocr.js?v=5"></script>
-<script src="app.js?v=20261010r"></script>
+<script src="app.js?v=20261010s"></script>
 </body>
 </html>

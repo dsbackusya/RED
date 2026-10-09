@@ -67,37 +67,110 @@ let registros = [];
 const rtMios = new Map();   // registros que acabo de modificar yo (el eco en tiempo real se ignora)
 const marcarMio = id => rtMios.set(id, Date.now()), esMio = id => Date.now() - (rtMios.get(id) || 0) < 4000;
 
+// ---------- acceso y pantalla de carga: red de distribución sobre el mapa real ----------
+const AC_DEST = ['PIURA', 'CHICLAYO', 'TRUJILLO', 'CAJAMARCA', 'MAYNAS', 'CORONEL PORTILLO', 'HUANCAYO', 'HUAMANGA', 'CUSCO', 'AREQUIPA', 'PUNO', 'TACNA', 'ICA', 'SAN MARTIN', 'SANTA'];
+const AC_NOM = { MAYNAS: 'Iquitos', 'CORONEL PORTILLO': 'Pucallpa', HUAMANGA: 'Ayacucho', 'SAN MARTIN': 'Tarapoto', SANTA: 'Chimbote' };
+const AC = { rutas: [], cams: [], vel: .7, dib: false, on: false, w: 0 };
+const acQuieto = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const acSvg = (t, a, p) => { const e = document.createElementNS('http://www.w3.org/2000/svg', t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+function acDibujar() {
+  if (AC.dib || !kaGeo) return;
+  const svg = $('#lSvg'); AC.dib = true;
+  const gP = acSvg('g', {}, svg), gR = acSvg('g', {}, svg), gN = acSvg('g', {}, svg), gT = acSvg('g', {}, svg);
+  kaGeo.p.forEach(p => acSvg('path', { d: p[4], class: 'ac-prov' }, gP));
+  const pos = n => { const p = kaProv.get(norm(n)); return p ? [p[2], p[3]] : null; };
+  const O = pos('LIMA') || [300, 600];
+  AC_DEST.forEach((n, i) => {
+    const d = pos(n); if (!d) return;
+    const mx = (O[0] + d[0]) / 2, my = (O[1] + d[1]) / 2, dx = d[0] - O[0], dy = d[1] - O[1], k = .18 * (i % 2 ? 1 : -1);
+    const path = acSvg('path', { d: `M${O[0]} ${O[1]} Q${mx - dy * k} ${my + dx * k} ${d[0]} ${d[1]}`, class: 'ac-ruta' }, gR);
+    const g = acSvg('g', { class: 'ac-n' }, gN);
+    acSvg('circle', { class: 'p', cx: d[0], cy: d[1], r: 6 }, g); acSvg('circle', { class: 'c', cx: d[0], cy: d[1], r: 5 }, g);
+    acSvg('text', { x: d[0] + 9, y: d[1] + 4 }, g).textContent = AC_NOM[n] || n.charAt(0) + n.slice(1).toLowerCase();
+    const e = acSvg('g', { class: 'ac-cam' }, gT), est = acSvg('path', {}, e), pt = acSvg('circle', { r: 4.6 }, e);
+    AC.rutas.push({ path, g });
+    AC.cams.push({ path, e, est, pt, len: path.getTotalLength(), t: (i * .137) % 1, v: .0016 + (i % 5) * .0003 });
+  });
+  const o = acSvg('g', { class: 'ac-o' }, gN);
+  acSvg('circle', { class: 'p', cx: O[0], cy: O[1], r: 7 }, o); acSvg('circle', { class: 'o', cx: O[0], cy: O[1], r: 7 }, o);
+  acSvg('text', { x: O[0] - 12, y: O[1] - 14, 'text-anchor': 'end' }, o).textContent = 'CTD Lima';
+  $('#acNt').textContent = AC.rutas.length; $('#acCont').classList.toggle('hide', !AC.rutas.length || !$('#acceso').classList.contains('carga'));
+  acConectar(AC.w);
+}
+function acConectar(w) {   // w: avance de 0 a 1; enciende ese porcentaje de nodos y rutas
+  const n = Math.round(AC.rutas.length * w);
+  AC.rutas.forEach((r, i) => { r.path.classList.toggle('on', i < n); r.g.classList.toggle('on', i < n); });
+  $('#acNn').textContent = n;
+}
+function acLoop() {
+  if (!AC.on) return;
+  AC.cams.forEach(c => {
+    c.t += c.v * AC.vel; if (c.t > 1) c.t -= 1;
+    const p = c.path.getPointAtLength(c.len * c.t); c.pt.setAttribute('cx', p.x); c.pt.setAttribute('cy', p.y);
+    const a = Math.max(0, c.t - .07); let d = '';
+    for (let k = 0; k <= 4; k++) { const q = c.path.getPointAtLength(c.len * (a + (c.t - a) * k / 4)); d += (k ? 'L' : 'M') + q.x + ' ' + q.y; }
+    c.est.setAttribute('d', d);
+  });
+  requestAnimationFrame(acLoop);
+}
+function acMostrar(modo) {
+  const ac = $('#acceso'), carga = modo === 'carga';
+  ac.classList.remove('hide', 'sale'); ac.classList.toggle('carga', carga);
+  $('#login').classList.toggle('hide', carga); $('#cargaIni').classList.toggle('hide', !carga);
+  AC.vel = acQuieto ? 0 : carga ? 2.2 : .7; AC.w = carga ? 0 : .55;
+  acDibujar(); acConectar(AC.w); $('#acCont').classList.toggle('hide', !carga || !AC.rutas.length);
+  if (carga) { $('#acBar').style.width = '0'; ['acS1', 'acS2', 'acS3'].forEach(i => { $('#' + i).className = ''; }); }
+  if (!AC.on) { AC.on = true; acLoop(); }
+}
+function acCarga(w, txt, paso) {   // avance real de la carga inicial
+  AC.w = w; $('#acBar').style.width = w * 100 + '%'; $('#acMsg').textContent = txt; acConectar(w);
+  ['acS1', 'acS2', 'acS3'].forEach((id, k) => { $('#' + id).className = !paso ? 'ok' : k + 1 < paso ? 'ok' : k + 1 === paso ? 'on' : ''; });
+}
+function acOcultar() {
+  const ac = $('#acceso'); ac.classList.add('sale');
+  setTimeout(() => { ac.classList.add('hide'); ac.classList.remove('sale'); AC.on = false; }, 520);
+}
+let kpisPend = null;   // consulta del Dashboard en curso (la pantalla de carga espera a que termine)
+
 // ---------- sesión ----------
 async function iniciar() {
   // con REQUIRE_LOGIN en false la app abre sin sesión; agregar ?login a la dirección permite probar el ingreso
   if (cfg.REQUIRE_LOGIN === false && !/[?&]login\b/.test(location.search)) { $('#logout').classList.add('hide'); return mostrarApp({ email: '' }); }
+  kaCargarGeo();   // el mapa del acceso es el mismo del Dashboard
   const { data } = await sb.auth.getSession();
-  if (data.session) mostrarApp(data.session.user); else $('#login').classList.remove('hide');
+  if (data.session) mostrarApp(data.session.user); else acMostrar('login');
 }
 // ingreso con correo y contraseña; los usuarios los crea el administrador en Supabase
 $('#lBtn').onclick = async () => {
   const email = $('#lEmail').value.trim().toLowerCase(), password = $('#lPass').value;
   if (!email || !password) return flash($('#lMsg'), 'Ingresar el correo y la contraseña.', 'err');
-  $('#lBtn').disabled = true;
+  $('#lBtn').disabled = true; $('#lBtn').textContent = 'Verificando…';
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  $('#lBtn').disabled = false;
-  if (error) return flash($('#lMsg'), 'Correo o contraseña incorrectos.', 'err');
-  $('#login').classList.add('hide'); mostrarApp(data.user);
+  $('#lBtn').disabled = false; $('#lBtn').textContent = 'Ingresar';
+  if (error) { const t = $('#lCard'); t.classList.remove('tiembla'); void t.offsetWidth; t.classList.add('tiembla'); return flash($('#lMsg'), 'Correo o contraseña incorrectos.', 'err'); }
+  mostrarApp(data.user);
 };
 $('#lEmail').addEventListener('keydown', e => { if (e.key === 'Enter') $('#lPass').focus(); });
 $('#lPass').addEventListener('keydown', e => { if (e.key === 'Enter') $('#lBtn').click(); });
+$('#lCard').addEventListener('submit', e => e.preventDefault());
+$('#lOjo').onclick = () => { const p = $('#lPass'); p.type = p.type === 'password' ? 'text' : 'password'; };
 $('#logout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
 
 async function mostrarApp(user) {
+  const tIni = Date.now(); acMostrar('carga'); acCarga(.1, 'Verificando sesión', 1);
   $('#who').textContent = user.email;
   $('#app').classList.remove('hide');
   $('#kHasta').value = today(); $('#kMes').value = today().slice(0, 7); rangoDeMes();
   $('#rDesde').value = today().slice(0, 8) + '01'; $('#rHasta').value = today();
   sb.from('lista_agencias').select('agencia').then(({ data }) => { agBase = (data || []).map(x => x.agencia); listaAgencias(); });
-  buscarRegistros(); iniciarTiempoReal();
+  const pReg = buscarRegistros(); iniciarTiempoReal(); acCarga(.3, 'Cargando registros', 2);
   const h0 = (location.hash || '').slice(1); let t0 = h0.split('?')[0]; if (t0 === 'hrn') t0 = 'detalle'; if (!TITULOS[t0]) t0 = 'kpis';   // sin enlace, se abre el Dashboard
   if (t0 === 'kpis' && h0.includes('?')) { poblarFiltros(); kAplicar(h0.split('?')[1]); }
   irA(t0);
+  try { await pReg; acCarga(.7, 'Calculando indicadores', 3); if (kpisPend) await Promise.race([kpisPend, new Promise(r => setTimeout(r, 10000))]); } catch (e) {}
+  acCarga(1, 'Listo', 0);
+  await new Promise(r => setTimeout(r, Math.max(350, 1700 - (Date.now() - tIni))));
+  acOcultar();
 }
 window.addEventListener('hashchange', () => { const t = location.hash.slice(1).split('?')[0].replace(/^hrn$/, 'detalle'); if (TITULOS[t]) irA(t); });
 
@@ -112,7 +185,7 @@ document.querySelectorAll(NAVB).forEach(b => b.onclick = () => {
   scrollTo(0, 0);
   if (b.dataset.tab === 'liquidaciones') lqAbrir();
   if (b.dataset.tab === 'detalle' && !hrnCargado) buscarHrn();
-  if (b.dataset.tab === 'kpis') calcularKpis();
+  if (b.dataset.tab === 'kpis') kpisPend = calcularKpis().catch(() => {});
 });
 function conexion(ok) { $('#estado').className = 'estado' + (ok ? '' : ' mal'); $('#estado span').textContent = ok ? '' : 'Sin conexión con la base de datos'; }
 
@@ -1317,7 +1390,7 @@ const kaProv = new Map(), kaM = { met: 'costo', vis: 'relleno', vb: null, ar: nu
 function kaCargarGeo() {
   if (kaGeoEstado === 'cargando' || kaGeoEstado === 'ok') return; kaGeoEstado = 'cargando';
   fetch('mapa_peru.json?v=20261008g').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-    .then(g => { kaGeo = g; g.p.forEach(p => kaProv.set(norm(p[0]), p)); kaGeoEstado = 'ok'; })
+    .then(g => { kaGeo = g; g.p.forEach(p => kaProv.set(norm(p[0]), p)); kaGeoEstado = 'ok'; acDibujar(); })
     .catch(() => { kaGeoEstado = 'error'; })
     .then(() => { if (kst.modo === 'r') { if (kRecR) pintarRecojos(); } else if (document.querySelector('#kpTabs .on')?.dataset.v === 'nodo') kaPintar('nodo'); });
 }
