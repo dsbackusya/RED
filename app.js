@@ -1491,7 +1491,7 @@ function kgTransportes(R) {
 function kgFlota(R, envios, prev) {
   const U = kgUnidad(envios, prev, kgTipo), v = x => x ? fmt(x) : '-', cred = kgTipo === 'CREDITO', rg = n => `${n} ${n === 1 ? 'registro' : 'registros'}`;
   const tile = (ic, t, val, tag) => `<div class="kg-tile"><span class="t">${KG_IC[ic]}${t}</span><b>${val}</b>${tag}</div>`, pct = U.base ? Math.min(100, U.sumLiq / U.base * 100) : 0;
-  return `<section class="kg-c kg-flota"><div class="kg-truck kg-stage" aria-hidden="true"><div class="kg-refl"></div><div class="kg-cuerpo"><img src="camion.webp" alt=""><div class="kg-brillo"></div></div></div>
+  return `<section class="kg-c kg-flota"><div class="kg-truck kg-stage" aria-hidden="true"><div class="kg-refl"></div><video muted playsinline preload="auto"><source src="camion.webm" type="video/webm"></video></div>
     <div class="kg-tit"><div><h3 class="kg-t">Costo por unidad</h3><p class="kg-h">Costo unitario del transporte</p></div>
       <div class="kg-seg" role="tablist" aria-label="Tipo de pago">${[['todo', 'Todo'], ['CONTADO', 'Contado'], ['CREDITO', 'Crédito']].map(([k, t]) => `<button type="button" data-ut="${k}" class="${kgTipo === k ? 'on' : ''}">${t}</button>`).join('')}</div></div>
     <div class="kg-uh"><div class="kg-un"><small>S/</small><span>${U.cpp ? kgNum(U.cpp) : '-'}</span><em>por pedido</em></div>${U.dpp}</div>
@@ -1531,18 +1531,32 @@ function pintarResumen(R, dias, prev, envios) {
     </section>`;
   const alertas = kHall.length ? `<section class="kg-c kg-al"><h3 class="kg-t">Alertas y hallazgos</h3><p class="kg-h">Puntos que requieren revisión en el período</p>
     <div class="kg-alg">${kHall.slice(0, 6).map(h => `<div class="kg-hl"${h.kt ? ` data-kt="${h.kt}"` : h.go ? ` data-go="${h.go}"` : ''}><i class="${h.c}"></i><div><b>${esc(h.t)}</b><small>${esc(h.d)}</small></div></div>`).join('')}</div></section>` : '';
-  $('#kgrid').innerHTML = hero + evo + kgFlota(R, envios, prev) + kgRanking(R, envios); $('#kgAl').innerHTML = alertas;
+  $('#kgrid').innerHTML = hero + evo + kgFlota(R, envios, prev) + kgRanking(R, envios); $('#kgAl').innerHTML = alertas; kgCamion();
 }
 $('#kgAl').addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) irA(g.dataset.go); });
-// el camión sigue al cursor: se inclina, y el brillo recorre la carrocería
-const kgSoltar = st => { st.classList.remove('act'); ['--kg-ry', '--kg-rx', '--kg-p'].forEach(p => st.style.removeProperty(p)); };
-$('#kgrid').addEventListener('pointermove', e => {
-  if (e.pointerType !== 'mouse') return;
-  const st = e.target.closest('.kg-stage'), act = e.currentTarget.querySelector('.kg-stage.act'); if (act && act !== st) kgSoltar(act); if (!st) return;
-  const r = st.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
-  st.classList.add('act'); st.style.setProperty('--kg-ry', (x * 14).toFixed(1) + 'deg'); st.style.setProperty('--kg-rx', (-y * 6).toFixed(1) + 'deg'); st.style.setProperty('--kg-p', (50 + x * 70).toFixed(0) + '%');
-});
-$('#kgrid').addEventListener('pointerleave', e => { const act = e.currentTarget.querySelector('.kg-stage.act'); if (act) kgSoltar(act); });
+// camión en video con fondo transparente: va y vuelve sobre los cuadros buenos (el 40 trae un parche de fondo y se descarta)
+const KG_CAM = { fps: 12, buenos: [...Array(60).keys()].filter(i => i !== 40), raf: 0, io: null };
+function kgCamion() {
+  cancelAnimationFrame(KG_CAM.raf); if (KG_CAM.io) KG_CAM.io.disconnect();
+  const st = document.querySelector('#kgrid .kg-stage'), v = st && st.querySelector('video'); if (!v) return;
+  const B = KG_CAM.buenos, N = B.length, reducir = matchMedia('(prefers-reduced-motion:reduce)').matches; let visible = true, ult = -1;
+  const foto = () => { cancelAnimationFrame(KG_CAM.raf); if (KG_CAM.io) KG_CAM.io.disconnect(); st.innerHTML = '<div class="kg-refl"></div><img class="kg-foto" src="camion.webp" alt="">'; };   // sin video con transparencia (p. ej. Safari) se usa la foto
+  if (!v.canPlayType('video/webm; codecs="vp9"') && !v.canPlayType('video/webm; codecs="vp8"')) return foto();
+  const mostrar = k => { if (k === ult) return; ult = k; v.currentTime = (B[k] + .5) / KG_CAM.fps; };
+  const alfaOk = () => { try { const c = document.createElement('canvas'); c.width = c.height = 8; const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(v, 0, 0, 8, 8); return x.getImageData(0, 0, 1, 1).data[3] < 250; } catch (e) { return false; } };
+  v.addEventListener('error', foto); v.querySelector('source').addEventListener('error', foto);
+  v.addEventListener('loadeddata', () => { v.currentTime = .04; }, { once: true });
+  v.addEventListener('seeked', function una() {
+    v.removeEventListener('seeked', una); if (!alfaOk()) return foto(); v.classList.add('lista');
+    if (reducir) return mostrar(14);
+    const t0 = performance.now();
+    const paso = ahora => { KG_CAM.raf = requestAnimationFrame(paso); if (!visible || document.hidden) return;
+      const s = (ahora - t0) / 1000 * KG_CAM.fps, ciclo = 2 * (N - 1), f = (s % ciclo) / ciclo, tri = f < .5 ? f * 2 : 2 - f * 2;
+      mostrar(Math.round((1 - Math.cos(Math.PI * tri)) / 2 * (N - 1))); };   // frena suavemente en los extremos
+    KG_CAM.raf = requestAnimationFrame(paso);
+  });
+  KG_CAM.io = new IntersectionObserver(es => { visible = es[0].isIntersecting; }); KG_CAM.io.observe(st);
+}
 $('#kgrid').addEventListener('click', e => {
   const u = e.target.closest('[data-ut]'); if (u) { kgTipo = u.dataset.ut; if (kRes) pintarResumen(kRes.R, kRes.dias, kRes.prev, kRes.envios); return; }
   const r = e.target.closest('[data-rk]'); if (r) { kgRank = r.dataset.rk; if (kRes) pintarResumen(kRes.R, kRes.dias, kRes.prev, kRes.envios); return; }
