@@ -563,9 +563,6 @@
   .cps .pn .ico { width:13px; height:13px; stroke-width:3 }
   .cps .ps.on { color:var(--ink); font-weight:600 } .cps .ps.on .pn { background:var(--pri); color:#fff } .cps .ps.hecho { color:var(--ink) } .cps .ps.hecho .pn { background:var(--ok); color:#fff }
   .cps .ln { width:28px; height:2px; background:#d2d2d7; border-radius:2px } .cps .ln.hecho { background:var(--ok) }
-  .csube { display:grid; grid-template-columns:230px 1fr; gap:20px; align-items:stretch }
-  .csube label { display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--mut); font-weight:500 }
-  .csube input[type=date] { font-size:16px; padding:12px 14px; border:0; border-radius:12px; background:var(--head) }
   .cdrop { border:1.5px dashed #c7c7cc; border-radius:16px; background:#fafafc; display:flex; align-items:center; gap:18px; padding:22px 24px; cursor:pointer; transition:.15s; min-height:104px; height:100% }
   .cdrop:hover, .cdrop.on { border-color:var(--pri); background:#f0f6fd } .cdrop:focus-visible { outline:2px solid rgba(0,102,204,.45) }
   .cdrop .ic, .carch .ic { width:52px; height:52px; border-radius:14px; background:#e8f1fc; color:var(--pri); display:grid; place-items:center; flex:none } .cdrop .ic .ico, .carch .ic .ico { width:26px; height:26px }
@@ -593,7 +590,7 @@
   .cbarra .res { flex:1; min-width:0 } .cbarra .res b { font-size:15px } .cbarra .res span { display:block; color:var(--mut); font-size:13px }
   .cok { text-align:center; padding:44px 20px } .cok .big { width:64px; height:64px; border-radius:50%; background:var(--okbg); color:var(--ok); display:grid; place-items:center; margin:0 auto 16px } .cok .big .ico { width:30px; height:30px; stroke-width:2.6 }
   .cok h2 { margin:0 0 6px; font-size:24px; letter-spacing:-.02em } .cok p { margin:0 auto 20px; color:var(--mut); max-width:460px } .cok .acc { display:flex; gap:10px; justify-content:center; flex-wrap:wrap }
-  @media (max-width:900px) { .csube { grid-template-columns:1fr } .ctiles { grid-template-columns:1fr } .cps .pt { display:none } .cdrop { flex-wrap:wrap } .cdrop .b { margin-left:0; width:100%; justify-content:center } }
+  @media (max-width:900px) { .ctiles { grid-template-columns:1fr } .cps .pt { display:none } .cdrop { flex-wrap:wrap } .cdrop .b { margin-left:0; width:100%; justify-content:center } }
   @media (max-width:760px) {
     .tw:has(#cTabla) { max-height:none !important; overflow:visible } .tcard:has(#cTabla) { overflow:hidden }
     #cTabla, #cTabla tbody { display:block; min-width:0 } #cTabla tr:has(th) { display:none }

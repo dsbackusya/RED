@@ -8,7 +8,7 @@
 <link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilos.css?v=20261009d">
+<link rel="stylesheet" href="estilos.css?v=20261009e">
 </head>
 <body>
 
@@ -67,19 +67,14 @@
   <div class="top"><div><h1>Cargar despacho</h1><div class="sub">Sube el Excel del día y revisa antes de guardar</div></div><div class="cps" id="cPasos"></div></div>
   <div id="cS1">
     <div class="card">
-      <div class="csube">
-        <label>Fecha por defecto<input type="date" id="cFecha"></label>
-        <div>
-          <div class="cdrop" id="cDrop" role="button" tabindex="0" aria-label="Elegir el Excel del día"><div class="ic" id="cIcSube"></div><div><b>Arrastra el Excel aquí</b><span>o elige un archivo de tu equipo</span></div><button type="button" class="b" id="cElegir">Elegir archivo</button></div>
-          <div class="carch hide" id="cArch"><div class="ic" id="cIcDoc"></div><div><b id="cArchN"></b><span id="cArchS"></span></div><button type="button" class="b sec" id="cCambiar">Cambiar</button></div>
-        </div>
-      </div>
+      <div class="cdrop" id="cDrop" role="button" tabindex="0" aria-label="Elegir el Excel del día"><div class="ic" id="cIcSube"></div><div><b>Arrastra el Excel aquí</b><span>o elige un archivo de tu equipo</span></div><button type="button" class="b" id="cElegir">Elegir archivo</button></div>
+      <div class="carch hide" id="cArch"><div class="ic" id="cIcDoc"></div><div><b id="cArchN"></b><span id="cArchS"></span></div><button type="button" class="b sec" id="cCambiar">Cambiar</button></div>
       <div class="cayuda"><span>El Excel puede traer</span><span class="chip" data-h="despacho">Despacho</span><span class="chip" data-h="recojos">Recojos</span><span class="chip" data-h="detalle">Detalle</span><span class="sp"></span><button type="button" class="lnk" id="cPlantilla">Descargar plantilla</button></div>
       <details class="how" id="cHow"><summary>¿Cómo debe ser el Excel?</summary>
         <ul>
           <li>Hojas <b>DESPACHO</b> y <b>RECOJOS</b>: columnas FECHA, NODO, PEDIDOS, BULTO, CAJAS, TRANSPORTE, PLACA, AGENCIA, MODO DE PAGO (CONTADO o CREDITO) y ZONA.</li>
           <li>Hoja <b>DETALLE</b>: una fila por bulto, con su FECHA en la primera columna.</li>
-          <li>Puedes subir solo las hojas que necesites. En las tres hojas, la FECHA de cada fila define con qué fecha se guarda; si va vacía, se usa la fecha por defecto de arriba. Si la ZONA va vacía, se completa con la última zona que tuvo ese nodo. Lo que falte lo completas en la pantalla de revisión.</li>
+          <li>Puedes subir solo las hojas que necesites. En las tres hojas, la FECHA de cada fila define con qué fecha se guarda; no puede ir vacía. Si la ZONA va vacía, se completa con la última zona que tuvo ese nodo. Lo que falte lo completas en la pantalla de revisión.</li>
         </ul>
       </details>
       <div id="cMsg" class="msg"></div>
@@ -314,6 +309,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 <script src="config.js"></script>
 <script src="ocr.js?v=4"></script>
-<script src="app.js?v=20261009c"></script>
+<script src="app.js?v=20261009e"></script>
 </body>
 </html>

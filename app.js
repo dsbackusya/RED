@@ -77,7 +77,7 @@ $('#logout').onclick = async () => { await sb.auth.signOut(); location.reload();
 async function mostrarApp(user) {
   $('#who').textContent = user.email;
   $('#app').classList.remove('hide');
-  $('#cFecha').value = today(); $('#kHasta').value = today(); $('#kMes').value = today().slice(0, 7); rangoDeMes();
+  $('#kHasta').value = today(); $('#kMes').value = today().slice(0, 7); rangoDeMes();
   $('#rDesde').value = today().slice(0, 8) + '01'; $('#rHasta').value = today();
   sb.from('lista_agencias').select('agencia').then(({ data }) => { agBase = (data || []).map(x => x.agencia); listaAgencias(); });
   buscarRegistros(); iniciarTiempoReal();
@@ -159,9 +159,8 @@ function leerTabla(wb) {
 const detalleGasto = r => (r.motivo === 'RECOJO' ? 'RECOJO' : 'ENVIO') + ' DE PEDIDOS ' + r.nodo;
 
 let cArchivo = null, cFiltro = '';
-const cFechaDe = r => r.fecha || $('#cFecha').value;
-const cFechas = () => [...new Set(previa.map(cFechaDe).filter(Boolean))].sort();
-const cFechasTodas = () => [...new Set([...previa.map(cFechaDe), ...(hrnCarga || []).map(r => r.fecha_reporte || $('#cFecha').value)].filter(Boolean))].sort();
+const cFechas = () => [...new Set(previa.map(r => r.fecha).filter(Boolean))].sort();
+const cFechasTodas = () => [...new Set([...previa.map(r => r.fecha), ...(hrnCarga || []).map(r => r.fecha_reporte)].filter(Boolean))].sort();
 const cSinFecha = () => previa.filter(r => !r.fecha).length + (hrnCarga || []).filter(r => !r.fecha_reporte).length;
 const cHojas = () => ({ despacho: previa.some(r => r.motivo === 'DESPACHO'), recojos: previa.some(r => r.motivo === 'RECOJO'), detalle: !!hrnCarga });
 function cChips() {
@@ -186,8 +185,6 @@ async function leerArchivo(f) {
       (await traerTodo(() => sb.from('envios').select('nodo,zona').not('zona', 'is', null).order('fecha', { ascending: false }).order('id'))).forEach(x => { const k = norm(x.nodo); if (!conocidas.has(k)) conocidas.set(k, x.zona); });
       previa.forEach(r => { if (!r.zona && conocidas.has(norm(r.nodo))) { r.zona = conocidas.get(norm(r.nodo)); rellenas++; } });
     } catch (e) { /* sin conexión o sin la columna: la zona se escribe a mano */ }
-    const cuenta = {}; [...previa.map(r => r.fecha), ...(hrnCarga || []).map(r => r.fecha_reporte)].forEach(f => { if (f) cuenta[f] = (cuenta[f] || 0) + 1; });
-    const masUsada = Object.keys(cuenta).sort((a, b) => cuenta[b] - cuenta[a] || (a < b ? -1 : 1))[0]; if (masUsada) $('#cFecha').value = masUsada;   // el Detalle y las filas sin FECHA usan la más repetida
     cArchivo = { nombre: f.name, kb: Math.max(1, Math.round(f.size / 1024)) }; cFiltro = ''; listaAgencias();
     $('#cMsg').className = 'msg'; setPaso(2); pintarPrevia();
     if (rellenas) toast(`Zona completada en ${rellenas} ${rellenas === 1 ? 'fila' : 'filas'} a partir de registros anteriores`);
@@ -231,7 +228,7 @@ function pintarPrevia() {
   const vis = previa.map((r, i) => [r, i]).filter(([r]) => cFiltro === 'falta' ? !!cFalta(r) : !cFiltro || r.motivo === cFiltro);
   $('#cTabla').innerHTML = '<tr><th>Fecha</th><th>Nodo</th><th>Motivo</th><th>Transporte</th><th class="c">Pedidos</th><th class="c">Bultos</th><th class="c">Cajas</th><th>Placa</th><th>Agencia</th><th>Pago</th><th>Zona</th></tr>' +
     vis.map(([r, i]) => `<tr data-i="${i}">
-      <td data-c="fecha" data-l="Fecha"><input data-f="fecha" type="date" class="${r.fecha ? '' : 'vacia'}" value="${cFechaDe(r)}"></td>
+      <td data-c="fecha" data-l="Fecha"><input data-f="fecha" type="date" class="${r.fecha ? '' : 'vacia'}" value="${r.fecha || ''}"></td>
       <td data-c="nodo"><span class="nodo">${esc(r.nodo)}</span>${cFalta(r) ? `<br><span class="cfalta">${mayus(cFalta(r))}</span>` : ''}</td>
       <td data-c="motivo">${motTag(r.motivo)}</td>
       <td data-c="trans" data-l="Transporte"><input data-f="transporte" value="${esc(r.transporte)}"></td>
@@ -244,10 +241,9 @@ function pintarPrevia() {
       <td data-c="zona" data-l="Zona"><input data-f="zona" value="${esc(r.zona)}" placeholder="SUR, CENTRO…"></td></tr>`).join('');
   $('#cPrev').classList.remove('hide');
   $('#cBarT').textContent = [des.length && `${des.length} ${des.length === 1 ? 'despacho' : 'despachos'}`, rec.length && `${rec.length} ${rec.length === 1 ? 'recojo' : 'recojos'}`, hrnCarga && `${fmtN(hrnCarga.length)} filas de detalle`].filter(Boolean).join(', ');
-  const fs = cFechasTodas(), sf = cSinFecha(); $('#cBarS').textContent = (fs.length > 1 ? `Se guardarán con ${fs.length} fechas: del ${fdmy(fs[0])} al ${fdmy(fs[fs.length - 1])}` : `Se guardarán con fecha ${fdmy(fs[0] || $('#cFecha').value)}`) + (sf ? ` · ${sf} ${sf === 1 ? 'fila sin FECHA usa' : 'filas sin FECHA usan'} la fecha por defecto (${fdmy($('#cFecha').value)})` : '');
+  const fs = cFechasTodas(), sf = cSinFecha(); $('#cBarS').textContent = (fs.length > 1 ? `Se guardarán con ${fs.length} fechas: del ${fdmy(fs[0])} al ${fdmy(fs[fs.length - 1])}` : fs.length ? `Se guardarán con fecha ${fdmy(fs[0])}` : 'Sin fecha en el archivo') + (sf ? ` · ${sf} ${sf === 1 ? 'fila sin FECHA' : 'filas sin FECHA'}` : '');
   $('#cBarra').hidden = false; $('#tab-cargar').classList.add('conbarra');
 }
-$('#cFecha').addEventListener('change', () => { if (cArchivo) pintarPrevia(); });
 $('#cSeg').onclick = e => { const b = e.target.closest('button'); if (b) { cFiltro = b.dataset.f; pintarPrevia(); } };
 $('#cAlerta').onclick = e => { const b = e.target.closest('button'); if (b) { cFiltro = b.dataset.f; pintarPrevia(); } };
 $('#cTabla').addEventListener('change', e => {
@@ -271,17 +267,15 @@ function cMostrarOk(titulo, texto, soloDetalle) {
 const mayus = t => t.charAt(0).toUpperCase() + t.slice(1);
 
 $('#cGuardar').onclick = async () => {
-  const fecha = $('#cFecha').value;
-  if (!fecha) return flash($('#cMsg'), 'Elige la fecha por defecto: se usa en las filas que no traen FECHA.', 'err');
+  if (cSinFecha()) return flash($('#cMsg'), (previa.some(r => !r.fecha) ? 'Hay filas sin fecha. Complétalas en la tabla.' : 'Hay filas del Detalle sin FECHA. Agrégala en el Excel y vuelve a subirlo.'), 'err');
   if (!previa.length) {   // solo detalle
     $('#cGuardar').disabled = true;
-    try { cMostrarOk('Detalle guardado', mayus(hrnTexto(fecha, await guardarHrn(fecha, hrnCarga))) + '.', true); previa = []; hrnCarga = null; $('#cFile').value = ''; }
+    try { cMostrarOk('Detalle guardado', mayus(hrnTexto(await guardarHrn(hrnCarga))) + '.', true); previa = []; hrnCarga = null; $('#cFile').value = ''; }
     catch (err) { flash($('#cMsg'), 'No se pudo guardar el detalle: ' + err.message + '. Vuelve a subir el archivo: las filas ya cargadas no se duplicarán.', 'err'); }
     $('#cGuardar').disabled = false; return;
   }
-  if (previa.some(r => !cFechaDe(r))) return flash($('#cMsg'), 'Hay filas sin fecha. Elige la fecha del despacho o complétala en la tabla.', 'err');
   const fechas = cFechas();
-  const repetidos = new Set(), vistos = new Set(); previa.forEach(r => { const k = cFechaDe(r) + '|' + norm(r.nodo) + '|' + r.motivo; if (vistos.has(k)) repetidos.add(r.nodo + (r.motivo === 'RECOJO' ? ' (recojo)' : '')); vistos.add(k); });
+  const repetidos = new Set(), vistos = new Set(); previa.forEach(r => { const k = r.fecha + '|' + norm(r.nodo) + '|' + r.motivo; if (vistos.has(k)) repetidos.add(r.nodo + (r.motivo === 'RECOJO' ? ' (recojo)' : '')); vistos.add(k); });
   if (repetidos.size) return flash($('#cMsg'), `Hay nodos repetidos con el mismo motivo y fecha: ${[...repetidos].join(', ')}. Deja una sola fila por nodo, motivo y fecha.`, 'err');
   const sinPago = previa.filter(r => !r.modo_pago);
   if (sinPago.length) { cFiltro = 'falta'; pintarPrevia(); return flash($('#cMsg'), `Falta el modo de pago en ${sinPago.length} ${sinPago.length === 1 ? 'nodo' : 'nodos'}: ${sinPago.slice(0, 4).map(r => r.nodo).join(', ')}${sinPago.length > 4 ? '…' : ''}. Elígelo en la tabla.`, 'err'); }
@@ -289,11 +283,11 @@ $('#cGuardar').onclick = async () => {
   $('#cGuardar').disabled = true;
   const { data: ya, error: eYa } = await sb.from('envios').select('fecha,nodo,motivo,liquidacion_id').in('fecha', fechas);
   if (eYa) { $('#cGuardar').disabled = false; return flash($('#cMsg'), /motivo/.test(eYa.message) ? 'Falta ejecutar supabase_motivo.sql en Supabase.' : eYa.message, 'err'); }
-  const clave = (f, n, m) => f + '|' + norm(n) + '|' + m, enviados = new Set((ya || []).filter(x => x.liquidacion_id).map(x => clave(String(x.fecha).slice(0, 10), x.nodo, x.motivo))), nuevosN = previa.filter(r => !enviados.has(clave(cFechaDe(r), r.nodo, r.motivo)));
+  const clave = (f, n, m) => f + '|' + norm(n) + '|' + m, enviados = new Set((ya || []).filter(x => x.liquidacion_id).map(x => clave(String(x.fecha).slice(0, 10), x.nodo, x.motivo))), nuevosN = previa.filter(r => !enviados.has(clave(r.fecha, r.nodo, r.motivo)));
   const txtFecha = fechas.length > 1 ? `de ${fechas.length} fechas (${fdmy(fechas[0])} al ${fdmy(fechas[fechas.length - 1])})` : 'del ' + fdmy(fechas[0]);
   if ((ya || []).length && !await confirmar(`Ya hay ${ya.length} ${ya.length === 1 ? 'registro' : 'registros'} ${txtFecha}`, `Se actualizarán nodo, transporte, cantidades, placa, agencia, pago y zona con lo de este archivo; el importe y la factura se conservan.` + (enviados.size ? ` ${enviados.size} ${enviados.size === 1 ? 'registro ya está enviado y no se tocará' : 'registros ya están enviados y no se tocarán'}.` : ''), 'Actualizar')) { $('#cGuardar').disabled = false; return; }
   if (!nuevosN.length) { $('#cGuardar').disabled = false; return flash($('#cMsg'), 'Todos los nodos de este archivo ya están enviados en una liquidación.', 'err'); }
-  const filas = nuevosN.map(r => ({ fecha: cFechaDe(r), origen: 'LIMA', transporte: r.transporte, nodo: r.nodo, bultos: r.bultos, pedidos: r.pedidos, cajas: r.cajas,
+  const filas = nuevosN.map(r => ({ fecha: r.fecha, origen: 'LIMA', transporte: r.transporte, nodo: r.nodo, bultos: r.bultos, pedidos: r.pedidos, cajas: r.cajas,
     placa: r.placa || null, agencia: r.agencia || null, zona: r.zona || null, detalle_gasto: r.detalle_gasto, modo_pago: r.modo_pago, motivo: r.motivo }));
   const { error } = await sb.from('envios').upsert(filas, { onConflict: 'fecha,nodo,motivo' });
   $('#cGuardar').disabled = false;
@@ -301,7 +295,7 @@ $('#cGuardar').onclick = async () => {
   $('#rDesde').value = fechas[0]; $('#rHasta').value = fechas[fechas.length - 1]; buscarRegistros();
   let detalle = '';
   if (hrnCarga) {
-    try { detalle = ` Detalle: ${hrnTexto($('#cFecha').value, await guardarHrn($('#cFecha').value, hrnCarga))}.`; }
+    try { detalle = ` Detalle: ${hrnTexto(await guardarHrn(hrnCarga))}.`; }
     catch (err) { cReiniciar(); return flash($('#cMsg'), `El despacho se guardó, pero el detalle no: ${err.message}. Vuelve a subir el mismo archivo: las filas del detalle ya cargadas no se duplicarán.`, 'err'); }
   }
   const hayD = filas.some(r => r.motivo === 'DESPACHO'), hayR = filas.some(r => r.motivo === 'RECOJO');
@@ -816,20 +810,20 @@ function leerHrn(wb) {
 }
 
 // acumulable: nunca se borra lo anterior; solo se agregan las filas que aún no están en esa fecha
-async function guardarHrn(fecha, filas) {
-  const clave = r => (r.fecha_reporte || fecha) + '|' + (r.lpn ? 'L|' + r.lpn : 'P|' + [r.pedido_cliente, r.nodo, r.roll_contenedor, r.bultos].join('|'));
-  const fechas = [...new Set(filas.map(r => r.fecha_reporte || fecha))].sort();
+async function guardarHrn(filas) {
+  const clave = r => r.fecha_reporte + '|' + (r.lpn ? 'L|' + r.lpn : 'P|' + [r.pedido_cliente, r.nodo, r.roll_contenedor, r.bultos].join('|'));
+  const fechas = [...new Set(filas.map(r => r.fecha_reporte))].sort();
   let ya = []; for (let i = 0; i < fechas.length; i += 30) ya = ya.concat(await traerTodo(() => sb.from('hrn_detalle').select('fecha_reporte,lpn,pedido_cliente,nodo,roll_contenedor,bultos').in('fecha_reporte', fechas.slice(i, i + 30)).order('id')));
   const existentes = new Set(ya.map(r => clave({ ...r, fecha_reporte: String(r.fecha_reporte).slice(0, 10) }))), nuevas = filas.filter(r => !existentes.has(clave(r)));
   for (let i = 0; i < nuevas.length; i += 400) {
-    const lote = nuevas.slice(i, i + 400).map(r => ({ ...r, fecha_reporte: r.fecha_reporte || fecha }));
+    const lote = nuevas.slice(i, i + 400);
     const { error } = await sb.from('hrn_detalle').insert(lote); if (error) throw error;
   }
   hrnCargado = false;
   return { nuevas: nuevas.length, repetidas: filas.length - nuevas.length, fechas };
 }
-const hrnTexto = (f, x) => {
-  const donde = x.fechas && x.fechas.length > 1 ? `en ${x.fechas.length} fechas (${fdmy(x.fechas[0])} al ${fdmy(x.fechas[x.fechas.length - 1])})` : `al ${fdmy(x.fechas && x.fechas[0] || f)}`;
+const hrnTexto = x => {
+  const donde = x.fechas && x.fechas.length > 1 ? `en ${x.fechas.length} fechas (${fdmy(x.fechas[0])} al ${fdmy(x.fechas[x.fechas.length - 1])})` : `al ${fdmy(x.fechas[0])}`;
   return x.nuevas ? `${x.nuevas === 1 ? 'se agregó 1 fila' : 'se agregaron ' + x.nuevas + ' filas'} ${donde}` + (x.repetidas ? `; ${x.repetidas} ya ${x.repetidas === 1 ? 'estaba cargada' : 'estaban cargadas'}` : '') : `no hay filas nuevas: las ${x.repetidas} ya estaban cargadas ${donde.replace(/^al /, 'en el ')}`;
 };
 let hrnCargado = false, hrnVista = [], hrnMostrar = 100;
