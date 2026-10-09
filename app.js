@@ -69,6 +69,11 @@ const marcarMio = id => rtMios.set(id, Date.now()), esMio = id => Date.now() - (
 
 // ---------- acceso y pantalla de carga: red de distribución sobre el mapa real ----------
 const AC_DEST = ['PIURA', 'CHICLAYO', 'TRUJILLO', 'CAJAMARCA', 'MAYNAS', 'CORONEL PORTILLO', 'HUANCAYO', 'HUAMANGA', 'CUSCO', 'AREQUIPA', 'PUNO', 'TACNA', 'ICA', 'SAN MARTIN', 'SANTA'];
+const AC_AIRE = new Set(['MAYNAS', 'CORONEL PORTILLO', 'SAN MARTIN', 'CUSCO', 'AREQUIPA', 'PUNO', 'TACNA', 'PIURA']);   // destinos lejanos: avión; el resto: camión
+const AC_FORMA = {
+  camion: 'M-8 -3.6h9.6v7.2h-9.6zM2.2 -3.6h3.4l2.6 3.2v4h-6z',
+  avion: 'M9.5 0L3.5 -1.4L-.5 -7.6L-3 -7.6L-1 -1.4L-6 -1.4L-7.6 -4.2L-9.5 -4.2L-8.2 0L-9.5 4.2L-7.6 4.2L-6 1.4L-1 1.4L-3 7.6L-.5 7.6L3.5 1.4Z'
+};
 const AC_NOM = { MAYNAS: 'Iquitos', 'CORONEL PORTILLO': 'Pucallpa', HUAMANGA: 'Ayacucho', 'SAN MARTIN': 'Tarapoto', SANTA: 'Chimbote' };
 const AC = { rutas: [], cams: [], vel: .7, dib: false, on: false, w: 0 };
 const acQuieto = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -87,9 +92,11 @@ function acDibujar() {
     const g = acSvg('g', { class: 'ac-n' }, gN);
     acSvg('circle', { class: 'p', cx: d[0], cy: d[1], r: 6 }, g); acSvg('circle', { class: 'c', cx: d[0], cy: d[1], r: 5 }, g);
     acSvg('text', { x: d[0] + 9, y: d[1] + 4 }, g).textContent = AC_NOM[n] || n.charAt(0) + n.slice(1).toLowerCase();
-    const e = acSvg('g', { class: 'ac-cam' }, gT), est = acSvg('path', {}, e), pt = acSvg('circle', { r: 4.6 }, e);
+    const aire = AC_AIRE.has(n), e = acSvg('g', { class: 'ac-cam' }, gT), est = acSvg('path', {}, e), pt = acSvg('g', {}, e);
+    acSvg('path', { d: aire ? AC_FORMA.avion : AC_FORMA.camion, class: aire ? 'av' : 'cm' }, pt);
+    if (!aire) { acSvg('circle', { cx: -4.6, cy: 4, r: 1.5, class: 'rd' }, pt); acSvg('circle', { cx: 3.8, cy: 4, r: 1.5, class: 'rd' }, pt); }
     AC.rutas.push({ path, g });
-    AC.cams.push({ path, e, est, pt, len: path.getTotalLength(), t: (i * .137) % 1, v: .0016 + (i % 5) * .0003 });
+    AC.cams.push({ path, e, est, pt, len: path.getTotalLength(), t: (i * .137) % 1, v: (.0016 + (i % 5) * .0003) * (aire ? 1.6 : 1) });
   });
   const o = acSvg('g', { class: 'ac-o' }, gN);
   acSvg('circle', { class: 'p', cx: O[0], cy: O[1], r: 7 }, o); acSvg('circle', { class: 'o', cx: O[0], cy: O[1], r: 7 }, o);
@@ -106,7 +113,9 @@ function acLoop() {
   if (!AC.on) return;
   AC.cams.forEach(c => {
     c.t += c.v * AC.vel; if (c.t > 1) c.t -= 1;
-    const p = c.path.getPointAtLength(c.len * c.t); c.pt.setAttribute('cx', p.x); c.pt.setAttribute('cy', p.y);
+    const p = c.path.getPointAtLength(c.len * c.t), p2 = c.path.getPointAtLength(c.len * Math.min(1, c.t + .01));
+    const ang = Math.atan2(p2.y - p.y, p2.x - p.x) * 180 / Math.PI;   // el vehículo mira hacia donde avanza; si va hacia la izquierda se voltea para no quedar al revés
+    c.pt.setAttribute('transform', `translate(${p.x} ${p.y}) rotate(${ang}) scale(1.6 ${Math.abs(ang) > 90 ? -1.6 : 1.6})`);
     const a = Math.max(0, c.t - .07); let d = '';
     for (let k = 0; k <= 4; k++) { const q = c.path.getPointAtLength(c.len * (a + (c.t - a) * k / 4)); d += (k ? 'L' : 'M') + q.x + ' ' + q.y; }
     c.est.setAttribute('d', d);

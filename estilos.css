@@ -899,7 +899,9 @@
   .kg-best { flex:none; font-size:10.5px; font-weight:600; color:#248a3d; background:rgba(36,138,61,.11); padding:1px 8px; border-radius:99px; letter-spacing:0 }
 
 /* ===== Acceso y pantalla de carga: red de distribución sobre el mapa ===== */
-#acceso { position:fixed; inset:0; z-index:200; overflow:hidden; background:radial-gradient(1100px 700px at 80% 50%,#e4eefc 0,transparent 62%),radial-gradient(800px 500px at 0 0,#eef3fb 0,transparent 60%),#f5f5f7; transition:opacity .5s }
+#acceso { position:fixed; inset:0; z-index:200; overflow:hidden; background:radial-gradient(circle at 1px 1px,rgba(11,61,130,.10) 1px,transparent 1.6px) 0 0/30px 30px,radial-gradient(1100px 700px at 80% 50%,#e4eefc 0,transparent 62%),radial-gradient(800px 500px at 0 0,#eef3fb 0,transparent 60%),#f5f5f7; transition:opacity .5s }
+#acceso::before { content:""; position:absolute; inset:-25%; pointer-events:none; background:radial-gradient(520px 520px at 22% 38%,rgba(0,102,204,.13),transparent 70%),radial-gradient(640px 640px at 78% 72%,rgba(26,93,184,.11),transparent 70%),radial-gradient(420px 420px at 60% 12%,rgba(157,189,240,.22),transparent 70%); animation:acDeriva 24s ease-in-out infinite alternate }
+@keyframes acDeriva { from { transform:translate(-3%,-2%) scale(1) } to { transform:translate(4%,3%) scale(1.1) } }
 #acceso.sale { opacity:0; pointer-events:none }
 #acceso { --gx:max(20px, calc(50vw - (414px + 63.4vh) / 2)) }
 #lMapa { position:fixed; top:4vh; height:92vh; left:var(--gx); aspect-ratio:620/899; transition:all .9s cubic-bezier(.3,.7,.2,1) }
@@ -919,11 +921,12 @@
 @keyframes acPulso { 0% { opacity:.7; transform:scale(1) } 100% { opacity:0; transform:scale(4.2) } }
 .ac-o .o { fill:#0066cc }
 .ac-o text { font-size:14px; font-weight:700; fill:#0066cc; paint-order:stroke; stroke:#f5f8fd; stroke-width:4px }
-.ac-cam circle { fill:#0066cc; stroke:#fff; stroke-width:2.4; filter:drop-shadow(0 2px 3px rgba(0,60,140,.45)) }
-.ac-cam path { fill:none; stroke:#0066cc; stroke-width:2.6; stroke-linecap:round; opacity:.35 }
+.ac-cam .cm, .ac-cam .av { fill:#0066cc; stroke:#fff; stroke-width:.9; stroke-linejoin:round; filter:drop-shadow(0 1.5px 2px rgba(0,60,140,.4)) }
+.ac-cam .av { fill:#0b3d82 } .ac-cam .rd { fill:#1d1d1f; stroke:#fff; stroke-width:.6 }
+.ac-cam > path { fill:none; stroke:#0066cc; stroke-width:2; stroke-linecap:round; opacity:.3 }
 
 .ac-pant { position:fixed; inset:0; display:grid; align-items:center; padding:20px 0; z-index:2; pointer-events:none } .ac-pant > * { pointer-events:auto }
-#acceso .ac-card { width:100%; max-width:390px; margin:0 0 0 calc(var(--gx) + 63.4vh + 24px); background:rgba(255,255,255,.88); -webkit-backdrop-filter:saturate(180%) blur(22px); backdrop-filter:saturate(180%) blur(22px); border:1px solid rgba(255,255,255,.9); border-radius:22px; padding:34px 30px 26px; box-shadow:0 20px 60px rgba(11,61,130,.14),0 2px 6px rgba(0,0,0,.04); animation:acSube .7s cubic-bezier(.2,.8,.2,1) both }
+#acceso .ac-card { width:100%; max-width:390px; margin:0 0 0 calc(var(--gx) + 63.4vh + 24px); background:rgba(255,255,255,.88); -webkit-backdrop-filter:saturate(180%) blur(22px); backdrop-filter:saturate(180%) blur(22px); border:1px solid rgba(255,255,255,.9); border-radius:22px; padding:34px 30px 26px; box-shadow:none; animation:acSube .7s cubic-bezier(.2,.8,.2,1) both }
 @keyframes acSube { from { opacity:0; transform:translateY(18px) scale(.98) } }
 #acceso .ac-card.tiembla { animation:acTiembla .4s }
 @keyframes acTiembla { 20%,60% { transform:translateX(-5px) } 40%,80% { transform:translateX(5px) } }
@@ -944,8 +947,6 @@
 #acceso .ac-btn:disabled { opacity:.7; cursor:default; transform:none }
 #acceso .msg { text-align:center; font-size:13px; margin:12px 0 0 }
 #acceso .msg.err { background:rgba(215,0,21,.07); color:#b00012 }
-.ac-pie { text-align:center; color:#6e6e73; font-size:12px; margin-top:18px; line-height:1.5 }
-.ac-pie i { display:inline-block; width:6px; height:6px; border-radius:50%; background:#248a3d; margin-right:6px }
 
 .ac-carga { align-items:end; justify-items:center; padding-bottom:5vh }
 .ac-centro { width:100%; max-width:440px; text-align:center; background:rgba(255,255,255,.86); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); border:1px solid #fff; border-radius:20px; padding:20px 24px 16px; box-shadow:0 14px 40px rgba(11,61,130,.12) }
