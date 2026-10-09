@@ -69,15 +69,22 @@ const marcarMio = id => rtMios.set(id, Date.now()), esMio = id => Date.now() - (
 
 // ---------- sesión ----------
 async function iniciar() {
-  if (cfg.REQUIRE_LOGIN === false) { $('#logout').classList.add('hide'); return mostrarApp({ email: '' }); }
+  // con REQUIRE_LOGIN en false la app abre sin sesión; agregar ?login a la dirección permite probar el ingreso
+  if (cfg.REQUIRE_LOGIN === false && !/[?&]login\b/.test(location.search)) { $('#logout').classList.add('hide'); return mostrarApp({ email: '' }); }
   const { data } = await sb.auth.getSession();
   if (data.session) mostrarApp(data.session.user); else $('#login').classList.remove('hide');
 }
+// ingreso con correo y contraseña; los usuarios los crea el administrador en Supabase
 $('#lBtn').onclick = async () => {
-  const { data, error } = await sb.auth.signInWithPassword({ email: $('#lEmail').value.trim(), password: $('#lPass').value });
-  if (error) return flash($('#lMsg'), 'Correo o contraseña incorrectos', 'err');
+  const email = $('#lEmail').value.trim().toLowerCase(), password = $('#lPass').value;
+  if (!email || !password) return flash($('#lMsg'), 'Ingresar el correo y la contraseña.', 'err');
+  $('#lBtn').disabled = true;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  $('#lBtn').disabled = false;
+  if (error) return flash($('#lMsg'), 'Correo o contraseña incorrectos.', 'err');
   $('#login').classList.add('hide'); mostrarApp(data.user);
 };
+$('#lEmail').addEventListener('keydown', e => { if (e.key === 'Enter') $('#lPass').focus(); });
 $('#lPass').addEventListener('keydown', e => { if (e.key === 'Enter') $('#lBtn').click(); });
 $('#logout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
 

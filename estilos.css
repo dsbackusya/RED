@@ -55,6 +55,7 @@
   .msg.err { display:block; background:#fee2e2; color:var(--bad) }
   .hint { color:var(--mut); font-size:11px; margin:8px 0 0 }
   #login { max-width:340px; margin:12vh auto }
+  #login .lg-t { margin:0 0 4px; font-size:19px; letter-spacing:-.02em } #login .lg-s { margin:0 0 16px; color:var(--mut); font-size:13px }
   #login .brand { background:none; padding:0; height:auto; margin-bottom:14px; border:0 } #login .brand b { color:var(--ink) } #login .brand .lg { border:1px solid var(--line) }
   .step { flex:1; min-width:170px; display:flex; gap:10px; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 14px }
   .step i { width:26px; height:26px; border-radius:50%; display:grid; place-items:center; font-style:normal; font-weight:700; background:var(--line); color:var(--mut); font-size:13px; flex:none }
