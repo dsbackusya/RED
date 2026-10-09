@@ -874,12 +874,12 @@ const SIN_HRN = '(SIN DETALLE)', RECOJO_CTA = '(RECOJOS)';
 let kpiResultado = null;
 
 async function traerTodo(crear) {
-  let out = [];
-  for (let from = 0; ; from += 1000) {
-    const { data, error } = await crear().range(from, from + 999);
-    if (error) throw error;
-    out = out.concat(data);
-    if (data.length < 1000) return out;
+  const pag = async n => { const { data, error, status } = await crear().range(n * 1000, n * 1000 + 999); if (error && status !== 416) throw error; return data || []; };
+  const out = await pag(0);
+  if (out.length < 1000) return out;   // lo normal: una sola consulta
+  for (let n = 1; ; n += 4) {   // si hay más, las páginas siguientes salen de a cuatro a la vez
+    const bloque = await Promise.all([0, 1, 2, 3].map(i => pag(n + i)));
+    for (const d of bloque) { for (const x of d) out.push(x); if (d.length < 1000) return out; }
   }
 }
 
@@ -2137,7 +2137,7 @@ const rtCumple = r => { const d = $('#rDesde').value, h = $('#rHasta').value, t 
   return (!d || r.fecha >= d) && (!h || r.fecha <= h) && (!t || r.transporte === t) && (!p || r.modo_pago === p) && (!m || (r.motivo || 'DESPACHO') === m) && (!n || [r.nodo, r.agencia, r.placa, r.factura].some(v => norm(v).includes(norm(n)))); };
 function rtRefrescarVista() {
   const t = pestanaActual();
-  if (t === 'kpis') rtEspera('kpi', () => calcularKpis(true), 1500);
+  if (t === 'kpis') rtEspera('kpi', () => calcularKpis(true), 3000);
   if (t === 'liquidaciones' && !lqOcupado) rtEspera('lq', () => { lqBuscar({ conservar: true }); lqHistorial(); }, 800);
 }
 function rtEnvio(p) {
