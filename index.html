@@ -50,10 +50,10 @@
 <header class="topbar"><div class="in">
   <img class="tlogo" src="logo.png" alt="Dinet">
   <nav aria-label="Secciones">
-    <button data-tab="cargar" class="on">Cargar</button>
+    <button data-tab="kpis" class="on">Dashboard</button>
     <button data-tab="registros">Registros</button>
     <button data-tab="liquidaciones">Liquidaciones</button>
-    <button data-tab="kpis">Dashboard</button>
+    <button data-tab="cargar">Cargar</button>
     <button data-tab="detalle">Detalle</button>
   </nav>
   <span class="estado" id="estado"><span></span></span>
@@ -63,7 +63,7 @@
 <main>
 <div class="wrap">
 
-<section id="tab-cargar">
+<section id="tab-cargar" class="hide">
   <div class="top"><div><h1>Cargar despacho</h1><div class="sub">Cargar el Excel del día y revisar antes de guardar</div></div><div class="cps" id="cPasos"></div></div>
   <div id="cS1">
     <div class="card">
@@ -141,7 +141,7 @@
   </div>
 </section>
 
-<section id="tab-kpis" class="hide">
+<section id="tab-kpis">
   <div class="top">
     <div><h1>Dashboard</h1><div class="sub" id="kSub">Análisis del costo de transporte por cuenta, nodo, agencia, transporte y zona</div></div>
     <div class="acts"><span class="upd hide" id="kUpd"></span><button class="b sec mfil" id="kFiltros" aria-expanded="false">Filtros</button><button class="b sec" id="kRefrescar">Actualizar</button><button class="b sec" id="kLink">Copiar enlace</button><button class="b sec" id="kPdf">Informe PDF</button><button class="b sec" id="kExport">Exportar a Excel</button></div>
@@ -250,10 +250,10 @@
 </div></div>
 
 <div class="tabbar" id="tabbar">
-  <button data-tab="cargar" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg><span>Cargar</span></button>
+  <button data-tab="kpis" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg><span>Dashboard</span></button>
   <button data-tab="registros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Registros</span></button>
   <button data-tab="liquidaciones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/></svg><span>Liquidar</span></button>
-  <button data-tab="kpis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg><span>Dashboard</span></button>
+  <button data-tab="cargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg><span>Cargar</span></button>
   <button data-tab="detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M10 10v9"/></svg><span>Detalle</span></button>
 </div>
 <div class="rtip" id="rTip" hidden></div>
@@ -314,6 +314,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 <script src="config.js"></script>
 <script src="ocr.js?v=4"></script>
-<script src="app.js?v=20261010h"></script>
+<script src="app.js?v=20261010i"></script>
 </body>
 </html>

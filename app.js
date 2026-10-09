@@ -88,9 +88,9 @@ async function mostrarApp(user) {
   $('#rDesde').value = today().slice(0, 8) + '01'; $('#rHasta').value = today();
   sb.from('lista_agencias').select('agencia').then(({ data }) => { agBase = (data || []).map(x => x.agencia); listaAgencias(); });
   buscarRegistros(); iniciarTiempoReal();
-  const h0 = (location.hash || '').slice(1); let t0 = h0.split('?')[0]; if (t0 === 'hrn') t0 = 'detalle'; if (!TITULOS[t0]) { try { t0 = (localStorage.getItem('tab') || '').replace(/^hrn$/, 'detalle'); } catch (e) { t0 = ''; } }
+  const h0 = (location.hash || '').slice(1); let t0 = h0.split('?')[0]; if (t0 === 'hrn') t0 = 'detalle'; if (!TITULOS[t0]) t0 = 'kpis';   // sin enlace, se abre el Dashboard
   if (t0 === 'kpis' && h0.includes('?')) { poblarFiltros(); kAplicar(h0.split('?')[1]); }
-  if (TITULOS[t0] && t0 !== 'cargar') irA(t0);
+  irA(t0);
 }
 window.addEventListener('hashchange', () => { const t = location.hash.slice(1).split('?')[0].replace(/^hrn$/, 'detalle'); if (TITULOS[t]) irA(t); });
 
