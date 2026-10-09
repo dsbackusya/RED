@@ -957,8 +957,8 @@
   .kg-stage { filter:none; pointer-events:none; aspect-ratio:490 / 320 }
   .kg-foto { position:absolute; height:auto; pointer-events:none }
   .kg-foto { width:100%; left:0; top:-4%; filter:drop-shadow(0 22px 22px rgba(11,61,130,.25)) }
-  .kg-refl { position:absolute; left:10%; right:14%; bottom:2%; height:11%; border-radius:50%; background:radial-gradient(50% 50% at 50% 50%, rgba(11,61,130,.30), rgba(11,61,130,0) 70%); filter:blur(5px) }
-  .kg-cv { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; opacity:0; transition:opacity .35s; filter:drop-shadow(0 20px 18px rgba(11,61,130,.26)) } .kg-cv.lista { opacity:1 }
+  .kg-refl { position:absolute; left:8%; right:12%; bottom:1%; height:14%; border-radius:50%; background:radial-gradient(50% 50% at 50% 50%, rgba(11,61,130,.42), rgba(11,61,130,0) 72%); filter:blur(6px) }
+  .kg-cv { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; opacity:0; transition:opacity .35s } .kg-cv.lista { opacity:1 }
   @media (min-width:1181px) { .kg-cv { left:-4.8% } }
   .kg-ant { font-size:12.5px; color:var(--mut); margin:6px 0 0 }
   .kg-tiles { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px }

@@ -1542,7 +1542,8 @@ function kgHoja(st) {
   const arrancar = img => {
     if (!st.isConnected) return;
     const cv = document.createElement('canvas'); cv.width = H.w; cv.height = H.h; cv.className = 'kg-cv'; const x = cv.getContext('2d');
-    const cuadro = k => x.drawImage(img, (k % H.col) * H.w, Math.floor(k / H.col) * H.h, H.w, H.h, 0, 0, H.w, H.h);
+    if (!H.cuadros && window.createImageBitmap) { H.cuadros = []; Promise.all(Array.from({ length: H.n }, (_, k) => createImageBitmap(img, (k % H.col) * H.w, Math.floor(k / H.col) * H.h, H.w, H.h))).then(l => { H.cuadros = l; }).catch(() => { H.cuadros = null; }); }
+    const cuadro = k => H.cuadros && H.cuadros.length === H.n ? x.drawImage(H.cuadros[k], 0, 0) : x.drawImage(img, (k % H.col) * H.w, Math.floor(k / H.col) * H.h, H.w, H.h, 0, 0, H.w, H.h);
     const dibujar = p => { const a = Math.floor(p), b = Math.min(a + 1, H.n - 1), f = p - a; x.clearRect(0, 0, H.w, H.h); x.globalAlpha = 1; cuadro(a); if (f > .02 && b !== a) { x.globalAlpha = f; cuadro(b); } x.globalAlpha = 1; };
     const reducir = matchMedia('(prefers-reduced-motion:reduce)').matches; let visible = true, ult = -1;
     dibujar(reducir ? 7 : 0); st.innerHTML = '<div class="kg-refl"></div>'; st.appendChild(cv); requestAnimationFrame(() => cv.classList.add('lista'));
