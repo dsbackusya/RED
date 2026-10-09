@@ -164,6 +164,13 @@ $('#lPass').addEventListener('keydown', e => { if (e.key === 'Enter') $('#lBtn')
 $('#lCard').addEventListener('submit', e => e.preventDefault());
 $('#lOjo').onclick = () => { const p = $('#lPass'); p.type = p.type === 'password' ? 'text' : 'password'; };
 $('#logout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+// si la sesión se cierra desde otra pestaña, vence o el usuario es eliminado, la aplicación vuelve al acceso
+sb.auth.onAuthStateChange(ev => { if (ev === 'SIGNED_OUT' && !$('#app').classList.contains('hide')) location.reload(); });
+// una falla no prevista no debe pasar inadvertida: se avisa una sola vez cada 8 segundos
+let ultAviso = 0;
+const avisoGeneral = () => { if ($('#app').classList.contains('hide') || Date.now() - ultAviso < 8000) return; ultAviso = Date.now(); toast('No se pudo completar la operación. Actualizar la página e intentar nuevamente.', 'err'); };
+window.addEventListener('unhandledrejection', e => { if (e.reason && e.reason.name === 'AbortError') return; console.error(e.reason); avisoGeneral(); });
+window.addEventListener('error', e => { if (/ResizeObserver/.test(e.message || '')) return; console.error(e.error || e.message); avisoGeneral(); });
 
 async function mostrarApp(user) {
   const tIni = Date.now(); acMostrar('carga'); acCarga(.1, 'Verificando sesión', 1);
@@ -1740,7 +1747,7 @@ function kgHoja(st) {
     cancelAnimationFrame(KG_CAM.raf); KG_CAM.raf = requestAnimationFrame(paso);
   };
   if (H.img) return arrancar(H.img);
-  const im = new Image(); im.onload = () => { H.img = im; arrancar(im); }; im.src = 'camion_hoja.webp';   // si no carga, queda la foto fija
+  const im = new Image(); im.onload = () => { H.img = im; arrancar(im); }; im.src = 'camion_hoja2.webp';   // si no carga, queda la foto fija
 }
 function kgCamion() {
   cancelAnimationFrame(KG_CAM.raf);
