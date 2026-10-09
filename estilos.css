@@ -608,6 +608,27 @@
   .cbarra .res { flex:1; min-width:0 } .cbarra .res b { font-size:15px } .cbarra .res span { display:block; color:var(--mut); font-size:13px }
   .cok { text-align:center; padding:44px 20px } .cok .big { width:64px; height:64px; border-radius:50%; background:var(--okbg); color:var(--ok); display:grid; place-items:center; margin:0 auto 16px } .cok .big .ico { width:30px; height:30px; stroke-width:2.6 }
   .cok h2 { margin:0 0 6px; font-size:24px; letter-spacing:-.02em } .cok p { margin:0 auto 20px; color:var(--mut); max-width:460px } .cok .acc { display:flex; gap:10px; justify-content:center; flex-wrap:wrap }
+  /* Dashboard: conmutador Despacho / Recojo y dashboard de recojos */
+  #tab-kpis.modo-r .solo-d, #tab-kpis.modo-r #kpTabs, #tab-kpis.modo-r [id^="kp-"], #tab-kpis.modo-r #kaTip { display:none !important } #tab-kpis:not(.modo-r) .solo-r { display:none !important }
+  .kmodo { position:relative; display:inline-grid; grid-template-columns:1fr 1fr; background:#e4e4e9; border-radius:12px; padding:3px; margin-bottom:16px }
+  .kmodo button { position:relative; z-index:1; font:inherit; font-size:14px; font-weight:500; border:0; background:none; padding:8px 28px; border-radius:10px; cursor:pointer; color:var(--mut); transition:color .25s } .kmodo button.on { color:var(--ink); font-weight:600 }
+  .kmodo .pil { position:absolute; top:3px; bottom:3px; left:3px; width:calc(50% - 3px); border-radius:10px; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.14); transition:transform .4s var(--ease) } .kmodo.r .pil { transform:translateX(100%) }
+  #kRec { animation:centra .5s var(--ease) both }
+  .kr-c { background:var(--card); border-radius:20px; padding:22px 24px; margin-bottom:16px }
+  .kr-cab { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap } .kr-cab h3 { margin:0; font-size:19px; letter-spacing:-.02em } .kr-cab p { margin:2px 0 0; color:var(--mut); font-size:13px }
+  .kr-ver { font:inherit; font-size:13px; color:var(--pri); background:none; border:0; cursor:pointer; padding:0 }
+  .kr-cifras { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-top:16px }
+  .kr-cifra { background:var(--head); border-radius:16px; padding:16px 18px; animation:centra .6s var(--ease) both } .kr-cifra:nth-child(2) { animation-delay:.07s } .kr-cifra:nth-child(3) { animation-delay:.14s } .kr-cifra:nth-child(4) { animation-delay:.21s }
+  .kr-cifra > span { color:var(--mut); font-size:12.5px } .kr-cifra b { display:block; font-size:28px; letter-spacing:-.035em; line-height:1.15; margin:2px 0; font-variant-numeric:tabular-nums; color:#0b3d82 } .kr-cifra small { color:var(--mut); font-size:12.5px }
+  .kr-tag { display:inline-block; margin-left:6px; font-size:11px; font-weight:600; border-radius:99px; padding:1px 8px; background:var(--warnbg); color:var(--warn) }
+  .kr-tabs { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px } .kr-tabs b { font-size:15px }
+  .kr-tw { overflow-x:auto } .kr-t { width:100%; border-collapse:collapse } .kr-t th { text-align:left; font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--mut); font-weight:600; padding:8px; border-bottom:1px solid var(--line); white-space:nowrap }
+  .kr-t td { padding:11px 8px; border-bottom:1px solid #f0f0f3; font-size:13.5px; font-variant-numeric:tabular-nums } .kr-t tr:last-child td { border-bottom:0 } .kr-t .n { text-align:right } .kr-t td.nom b { font-weight:600 } .kr-t td.nom small { display:block; color:var(--mut); font-size:12px }
+  .kr-t tbody tr { animation:cfila .45s var(--ease) both }
+  .kr-bar { display:flex; align-items:center; gap:10px; min-width:130px } .kr-bar > span:first-child { flex:1; height:8px; border-radius:8px; background:var(--head); overflow:hidden } .kr-bar i { display:block; height:100%; width:0; border-radius:8px; background:linear-gradient(90deg,#1a5db8,#0b3d82); transition:width .8s var(--ease) } .kr-bar.l i { background:linear-gradient(90deg,#e8a24a,#b25000) } .kr-bar > b { min-width:34px; text-align:right; font-weight:500; font-size:13px }
+  .kr-av { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; padding-top:14px; border-top:1px solid var(--line) }
+  .kr-a { display:flex; align-items:center; gap:8px; font-size:12.5px; padding:6px 12px; border-radius:99px; background:var(--okbg); color:var(--ok) } .kr-a.w { background:var(--warnbg); color:var(--warn) } .kr-a .ico { width:14px; height:14px; flex:none }
+  .kr-vacio { text-align:center; padding:34px 20px; color:var(--mut) } .kr-vacio b { display:block; color:var(--ink); font-size:16px; margin-bottom:4px }
   @keyframes centra { from { opacity:0; transform:translateY(14px) } } @keyframes cfila { from { opacity:0; transform:translateX(-12px) } } @keyframes cpop { from { transform:scale(.3); opacity:0 } 60% { transform:scale(1.12) } } @keyframes ctrazo { to { stroke-dashoffset:0 } }
   .ctiles.ent .ctile { animation:centra .6s var(--ease) both } .ctiles.ent .ctile:nth-child(2) { animation-delay:.08s } .ctiles.ent .ctile:nth-child(3) { animation-delay:.16s }
   #cTabla.ent tr:nth-child(n+2) { animation:cfila .5s var(--ease) both } #cTabla.ent tr:nth-child(3) { animation-delay:.05s } #cTabla.ent tr:nth-child(4) { animation-delay:.1s } #cTabla.ent tr:nth-child(5) { animation-delay:.15s } #cTabla.ent tr:nth-child(6) { animation-delay:.2s } #cTabla.ent tr:nth-child(7) { animation-delay:.25s } #cTabla.ent tr:nth-child(n+8) { animation-delay:.3s }

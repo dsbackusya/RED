@@ -8,7 +8,7 @@
 <link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilos.css?v=20261010a">
+<link rel="stylesheet" href="estilos.css?v=20261010b">
 </head>
 <body>
 
@@ -53,7 +53,7 @@
     <button data-tab="cargar" class="on">Cargar</button>
     <button data-tab="registros">Registros</button>
     <button data-tab="liquidaciones">Liquidaciones</button>
-    <button data-tab="kpis">Costos</button>
+    <button data-tab="kpis">Dashboard</button>
     <button data-tab="detalle">Detalle</button>
   </nav>
   <span class="estado" id="estado"><span></span></span>
@@ -143,18 +143,20 @@
 
 <section id="tab-kpis" class="hide">
   <div class="top">
-    <div><h1>Costos</h1><div class="sub">Análisis del costo de transporte por cuenta, nodo, agencia, transporte y zona</div></div>
-    <div class="acts"><span class="upd hide" id="kUpd"></span><button class="b sec mfil" id="kFiltros" aria-expanded="false">Filtros</button><button class="b sec" id="kRefrescar">Actualizar</button><button class="b sec" id="kLink">Copiar enlace</button><button class="b sec" id="kPdf">Informe PDF</button><button class="b sec" id="kExport">Exportar a Excel</button></div>
+    <div><h1>Dashboard</h1><div class="sub" id="kSub">Análisis del costo de transporte por cuenta, nodo, agencia, transporte y zona</div></div>
+    <div class="acts"><span class="upd hide" id="kUpd"></span><button class="b sec mfil" id="kFiltros" aria-expanded="false">Filtros</button><button class="b sec" id="kRefrescar">Actualizar</button><button class="b sec" id="kLink">Copiar enlace</button><button class="b sec solo-d" id="kPdf">Informe PDF</button><button class="b sec solo-d" id="kExport">Exportar a Excel</button></div>
   </div>
+  <div class="kmodo" id="kModo" role="tablist" aria-label="Tipo de dashboard"><span class="pil"></span><button type="button" data-md="d" class="on">Despacho</button><button type="button" data-md="r">Recojo</button></div>
   <div class="card">
     <div class="fb">
       <div class="fg"><span>Período</span><div class="pseg" id="kPer"><button data-p="mes" class="on">Mes</button><button data-p="30">Últimos 30 días</button><button data-p="per">Personalizado</button></div></div>
       <div class="fg" id="kgMes"><span>Mes</span><input type="month" id="kMes" aria-label="Mes"></div>
       <div class="fg hide" id="kgRango"><span>Rango</span><div class="rg"><input type="date" id="kDesde" aria-label="Desde"><i>a</i><input type="date" id="kHasta" aria-label="Hasta"></div></div>
       <div class="fg"><span>Transporte</span><div class="pseg" id="kTransSeg"><button data-t="" class="on">Todos</button></div><select id="kTrans" aria-label="Transporte" class="hide"><option value="">Todos</option></select></div>
-      <div class="fg"><span>Motivo</span><div class="pseg" id="kMotSeg"><button data-m="" class="on">Todos</button><button data-m="DESPACHO">Despacho</button><button data-m="RECOJO">Recojo</button></div></div>
-      <div class="fg"><span>Agencia</span><select id="kAgencia" aria-label="Agencia"><option value="">Todas</option></select></div>
-      <div class="fg"><span>Zona</span><select id="kZona" aria-label="Zona"><option value="">Todas</option></select></div>
+      <div class="fg solo-d"><span>Agencia</span><select id="kAgencia" aria-label="Agencia"><option value="">Todas</option></select></div>
+      <div class="fg solo-d"><span>Zona</span><select id="kZona" aria-label="Zona"><option value="">Todas</option></select></div>
+      <div class="fg solo-r"><span>Cuenta</span><select id="kCuenta" aria-label="Cuenta"><option value="">Todas</option></select></div>
+      <div class="fg solo-r"><span>Nodo</span><select id="kNodoR" aria-label="Nodo"><option value="">Todos</option></select></div>
       <div class="active hide" id="kAct"></div>
     </div>
     <div id="kpMsg" class="msg"></div>
@@ -179,6 +181,7 @@
   <div id="kp-nodo" class="ka hide"></div>
   <div id="kp-age" class="ka hide"></div>
   <div id="kp-zona" class="ka hide"></div>
+  <div id="kRec" class="solo-r"></div>
   <div id="kaTip"></div>
   <div id="kp-cal" class="hide"><div class="card"><h3>Calidad de datos</h3><p class="hint">La confiabilidad de los indicadores depende de que los registros estén completos. Cada punto permite acceder a la pantalla donde se corrige.</p><div id="calList"></div></div></div>
 </section>
@@ -250,7 +253,7 @@
   <button data-tab="cargar" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg><span>Cargar</span></button>
   <button data-tab="registros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><span>Registros</span></button>
   <button data-tab="liquidaciones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/></svg><span>Liquidar</span></button>
-  <button data-tab="kpis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg><span>Costos</span></button>
+  <button data-tab="kpis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg><span>Dashboard</span></button>
   <button data-tab="detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M10 10v9"/></svg><span>Detalle</span></button>
 </div>
 <div class="rtip" id="rTip" hidden></div>
@@ -311,6 +314,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 <script src="config.js"></script>
 <script src="ocr.js?v=4"></script>
-<script src="app.js?v=20261010a"></script>
+<script src="app.js?v=20261010b"></script>
 </body>
 </html>

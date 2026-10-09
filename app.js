@@ -94,7 +94,7 @@ async function mostrarApp(user) {
 }
 window.addEventListener('hashchange', () => { const t = location.hash.slice(1).split('?')[0].replace(/^hrn$/, 'detalle'); if (TITULOS[t]) irA(t); });
 
-const TITULOS = { cargar: 'Cargar despacho', registros: 'Registros', kpis: 'Costos', liquidaciones: 'Liquidaciones', detalle: 'Detalle' };
+const TITULOS = { cargar: 'Cargar despacho', registros: 'Registros', kpis: 'Dashboard', liquidaciones: 'Liquidaciones', detalle: 'Detalle' };
 const irA = tab => document.querySelector(`nav button[data-tab="${tab}"]`).click();
 const NAVB = 'nav button, .tabbar button[data-tab]';
 document.querySelectorAll(NAVB).forEach(b => b.onclick = () => {
@@ -1435,7 +1435,7 @@ function kaDatos(R, envios, prev) {
   const v = document.querySelector('#kpTabs .on')?.dataset.v; if (KA_TABS.includes(v)) kaPintar(v);
 }
 // ---------- cabecera de KPIs: filtros que se aplican solos ----------
-const kst = { p: 'mes', m: '' };
+const kst = { p: 'mes', m: 'DESPACHO', modo: 'd' };   // modo d = despacho, r = recojo; el motivo sigue al modo
 const isoLocal = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const ym = d => isoLocal(d).slice(0, 7);
 function rangoDeMes() {
@@ -1447,7 +1447,8 @@ function kSync() {
   document.querySelectorAll('#kPer button').forEach(b => b.classList.toggle('on', b.dataset.p === kst.p || (b.dataset.p === 'mes' && ['ant', 'sel'].includes(kst.p))));
   $('#kgMes').classList.toggle('hide', !['mes', 'ant', 'sel'].includes(kst.p)); $('#kgRango').classList.toggle('hide', kst.p !== 'per');
   document.querySelectorAll('#kTransSeg button').forEach(b => b.classList.toggle('on', b.dataset.t === $('#kTrans').value));
-  document.querySelectorAll('#kMotSeg button').forEach(b => b.classList.toggle('on', b.dataset.m === kst.m));
+  const r = kst.modo === 'r'; $('#tab-kpis').classList.toggle('modo-r', r); $('#kModo').classList.toggle('r', r); document.querySelectorAll('#kModo button').forEach(b => b.classList.toggle('on', (b.dataset.md === 'r') === r));
+  $('#kSub').textContent = r ? 'Devoluciones: costo, pedidos recogidos y tiempo de retorno por nodo' : 'Análisis del costo de transporte por cuenta, nodo, agencia, transporte y zona';
 }
 function kPeriodo(p) {
   kst.p = p; const hoy = new Date();
@@ -1461,11 +1462,12 @@ const kAuto = () => { clearTimeout(kTimer); kTimer = setTimeout(calcularKpis, 22
 $('#kPer').onclick = e => { const b = e.target.closest('button'); if (b) kPeriodo(b.dataset.p); };
 $('#kMes').onchange = () => { kst.p = 'sel'; rangoDeMes(); kSync(); kAuto(); };
 $('#kDesde').onchange = $('#kHasta').onchange = () => { kst.p = 'per'; $('#kMes').value = ''; kSync(); kAuto(); };
-$('#kMotSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; kst.m = b.dataset.m; kSync(); kAuto(); };
+$('#kModo').onclick = e => { const b = e.target.closest('button'); if (!b || b.dataset.md === kst.modo) return; kst.modo = b.dataset.md; kst.m = kst.modo === 'r' ? 'RECOJO' : 'DESPACHO'; kSync(); kHash(); kAuto(); };
+$('#kCuenta').onchange = $('#kNodoR').onchange = () => { kHash(); kAuto(); };
 $('#kTransSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#kTrans').value = b.dataset.t; kSync(); kAuto(); };
 $('#kFiltros').onclick = () => { const o = $('#tab-kpis').classList.toggle('fopen'); $('#kFiltros').setAttribute('aria-expanded', o); $('#kFiltros').textContent = o ? 'Ocultar filtros' : 'Filtros'; };
 $('#kRefrescar').onclick = () => calcularKpis();
-function kRestablecer() { kst.m = ''; $('#kTrans').value = ''; $('#kAgencia').value = ''; $('#kZona').value = ''; kPeriodo('mes'); }
+function kRestablecer() { $('#kTrans').value = ''; $('#kAgencia').value = ''; $('#kZona').value = ''; $('#kCuenta').value = ''; $('#kNodoR').value = ''; kPeriodo('mes'); }
 function pintarUpd() {
   if (!kUpdTs) { $('#kUpd').textContent = ''; return; }
   const s = Math.round((Date.now() - kUpdTs) / 1000), m = Math.round(s / 60);
@@ -1476,9 +1478,9 @@ function pintarActivos() {
   const mes = $('#kMes').value; let per;
   if (mes && ['mes', 'ant', 'sel'].includes(kst.p)) { const [y, m] = mes.split('-').map(Number), t = new Date(y, m - 1, 1).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' }); per = t.charAt(0).toUpperCase() + t.slice(1); }
   else per = `${kst.p === '30' ? 'Últimos 30 días, ' : ''}del ${fdmy($('#kDesde').value)} al ${fdmy($('#kHasta').value)}`;
-  const hay = $('#kTrans').value || $('#kAgencia').value || $('#kZona').value || kst.m;
+  const hay = $('#kTrans').value || (kst.modo === 'r' ? $('#kCuenta').value || $('#kNodoR').value : $('#kAgencia').value || $('#kZona').value);
   $('#kAct').classList.toggle('hide', !hay);
-  $('#kAct').innerHTML = `<span class="hide"><span class="pill">${esc(per)}</span><span class="pill">${esc($('#kTrans').value || 'Todos los transportes')}</span>${kst.m ? `<span class="pill">${kst.m === 'RECOJO' ? 'Recojos' : 'Despachos'}</span>` : ''}${$('#kAgencia').value ? `<span class="pill">${esc($('#kAgencia').value)}</span>` : ''}${$('#kZona').value ? `<span class="pill">Zona ${esc($('#kZona').value)}</span>` : ''}</span><button class="link" id="kLimpiar">Restablecer filtros</button>`;
+  $('#kAct').innerHTML = `<span class="hide"><span class="pill">${esc(per)}</span><span class="pill">${esc($('#kTrans').value || 'Todos los transportes')}</span>${$('#kCuenta').value && kst.modo === 'r' ? `<span class="pill">${esc($('#kCuenta').value)}</span>` : ''}${$('#kNodoR').value && kst.modo === 'r' ? `<span class="pill">Nodo ${esc($('#kNodoR').value)}</span>` : ''}${$('#kAgencia').value ? `<span class="pill">${esc($('#kAgencia').value)}</span>` : ''}${$('#kZona').value ? `<span class="pill">Zona ${esc($('#kZona').value)}</span>` : ''}</span><button class="link" id="kLimpiar">Restablecer filtros</button>`;
   $('#kLimpiar').onclick = kRestablecer;
 }
 function pintarTransSeg(lista) {
@@ -1715,7 +1717,7 @@ async function traerHrn(desde, hasta) {
 // ---------- meta mensual ----------
 const mesNombre = m => { const [y, n] = m.split('-').map(Number), t = new Date(y, n - 1, 1).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' }); return t.charAt(0).toUpperCase() + t.slice(1); };
 async function cargarMeta() {
-  const mes = $('#kMes').value, sinFiltros = !$('#kTrans').value && !$('#kAgencia').value && !$('#kZona').value && !kst.m;
+  const mes = $('#kMes').value, sinFiltros = !$('#kTrans').value && !$('#kAgencia').value && !$('#kZona').value;
   if (!mes || !['mes', 'ant', 'sel'].includes(kst.p)) return { aplica: false, motivo: 'rango' };
   if (!sinFiltros) return { aplica: false, motivo: 'filtros', mes };
   const { data, error } = await sb.from('metas').select('monto').eq('mes', mes).maybeSingle();
@@ -1753,9 +1755,9 @@ document.addEventListener('click', e => { if (e.target.closest('#metaBtn')) abri
 function kParams() {
   const p = new URLSearchParams(), porMes = ['mes', 'ant', 'sel'].includes(kst.p) && $('#kMes').value;
   if (porMes) p.set('mes', $('#kMes').value); else { p.set('d', $('#kDesde').value); p.set('h', $('#kHasta').value); }
-  [['t', '#kTrans'], ['ag', '#kAgencia'], ['zo', '#kZona']].forEach(([k, id]) => { if ($(id).value) p.set(k, $(id).value); });
-  if (kst.m) p.set('mo', kst.m);
-  const v = document.querySelector('#kpTabs .on')?.dataset.v; if (v && v !== 'res') p.set('v', v);
+  [['t', '#kTrans'], ...(kst.modo === 'r' ? [['cu', '#kCuenta'], ['no', '#kNodoR']] : [['ag', '#kAgencia'], ['zo', '#kZona']])].forEach(([k, id]) => { if ($(id).value) p.set(k, $(id).value); });
+  if (kst.modo === 'r') p.set('md', 'r');
+  const v = kst.modo === 'r' ? '' : document.querySelector('#kpTabs .on')?.dataset.v; if (v && v !== 'res') p.set('v', v);
   return p.toString();
 }
 function kHash() { if ((location.hash || '').startsWith('#kpis')) history.replaceState(null, '', '#kpis?' + kParams()); }
@@ -1764,7 +1766,8 @@ function kAplicar(qs) {
   if (p.get('mes')) { kst.p = 'sel'; $('#kMes').value = p.get('mes'); rangoDeMes(); }
   else if (p.get('d')) { kst.p = 'per'; $('#kMes').value = ''; $('#kDesde').value = p.get('d'); $('#kHasta').value = p.get('h') || p.get('d'); }
   const t = p.get('t'); $('#kTrans').innerHTML = '<option value="">Todos</option>' + (t ? `<option>${esc(t)}</option>` : ''); $('#kTrans').value = t || '';
-  $('#kAgencia').value = p.get('ag') || ''; $('#kZona').value = p.get('zo') || ''; kst.m = MOTIVOS.includes(p.get('mo')) ? p.get('mo') : '';
+  $('#kAgencia').value = p.get('ag') || ''; $('#kZona').value = p.get('zo') || ''; kst.modo = p.get('md') === 'r' || p.get('mo') === 'RECOJO' ? 'r' : 'd'; kst.m = kst.modo === 'r' ? 'RECOJO' : 'DESPACHO';
+  [['#kCuenta', p.get('cu'), 'Todas'], ['#kNodoR', p.get('no'), 'Todos']].forEach(([id, v, t]) => { $(id).innerHTML = `<option value="">${t}</option>` + (v ? `<option>${esc(v)}</option>` : ''); $(id).value = v || ''; });
   kSync(); if (KT.includes(p.get('v'))) kTab(p.get('v'));
 }
 $('#kLink').onclick = () => { history.replaceState(null, '', '#kpis?' + kParams()); (navigator.clipboard ? navigator.clipboard.writeText(location.href) : Promise.reject()).then(() => toast('Enlace copiado, con los filtros aplicados', 'ok'), () => toast('No se pudo copiar el enlace', 'err')); };
@@ -1893,6 +1896,7 @@ function informePDF() {
 $('#kPdf').onclick = informePDF;
 
 async function calcularKpis(silencioso) {
+  if (kst.modo === 'r') return calcularRecojos(silencioso);
   const desde = $('#kDesde').value, hasta = $('#kHasta').value, trans = $('#kTrans').value, mi = ++kSeq;
   if (desde && hasta && desde > hasta) { $('#kgrid').innerHTML = '<div class="kg-c kg-vacio"><b>La fecha inicial es posterior a la fecha final</b><span>Corregir el rango para visualizar los costos.</span></div>'; $('#kgAl').innerHTML = ''; $('#tab-kpis').classList.remove('kload'); return; }
   $('#kRefrescar').disabled = true;
@@ -1929,6 +1933,100 @@ async function calcularKpis(silencioso) {
   }
   if (mi === kSeq) { $('#kRefrescar').disabled = false; $('#tab-kpis').classList.remove('kload'); }
 }
+// ---------- dashboard de recojos: costo del recojo repartido entre los pedidos de su detalle (fecha + nodo) ----------
+let kRecTab = 'nodo', kRecR = null, kRecCpp = 0, kRecDet = true;
+const recDias = (a, b) => a && b ? Math.round((new Date(b) - new Date(a)) / 864e5) : null;
+const recClave = (f, n) => String(f).slice(0, 10) + '|' + norm(n);
+function recCalcular(envios, det, cuentaSel, nodoSel) {
+  const eMap = new Map(), dMap = new Map(), cta = r => r.nombre_cuenta || r.cuenta || '(sin cuenta)';
+  envios.forEach(e => {
+    const k = recClave(e.fecha, e.nodo), g = eMap.get(k) || { k, nodo: norm(e.nodo), fecha: String(e.fecha).slice(0, 10), importe: 0, pedidos: 0, bultos: 0, sinImporte: 0 }, i = Number(e.importe) || 0;
+    if (i > 0) g.importe += i; else g.sinImporte++;
+    g.pedidos += Number(e.pedidos) || 0; g.bultos += Number(e.bultos) || 0; eMap.set(k, g);
+  });
+  det.forEach(r => { const k = recClave(r.fecha_reporte, r.nodo); if (!dMap.has(k)) dMap.set(k, []); dMap.get(k).push(r); });
+  const todos = [];
+  dMap.forEach((rows, k) => {
+    const g = eMap.get(k), tot = rows.reduce((x, r) => x + (Number(r.bultos) || 1), 0);
+    rows.forEach(r => todos.push({ k, nodo: norm(r.nodo), cuenta: cta(r), motivo: r.motivo_devolucion || '(sin motivo)', costo: g && g.importe > 0 ? g.importe * (Number(r.bultos) || 1) / tot : 0, n: 1, bultos: Number(r.bultos) || 0, dias: recDias(r.fecha_solicitud_cx, r.fecha_llegada_ctd), guia: r.guia }));
+  });
+  const sinDet = [...eMap.values()].filter(g => g.importe > 0 && !dMap.has(g.k));
+  sinDet.forEach(g => todos.push({ k: g.k, nodo: g.nodo, cuenta: '(sin detalle)', motivo: '(sin detalle)', costo: g.importe, n: g.pedidos, bultos: g.bultos, dias: null, guia: null }));
+  const it = todos.filter(x => (!cuentaSel || x.cuenta === cuentaSel) && (!nodoSel || x.nodo === nodoSel));
+  const grupo = f => { const m = new Map(); it.forEach(x => { const k = f(x), a = m.get(k) || { costo: 0, n: 0, dsum: 0, dn: 0 }; a.costo += x.costo; a.n += x.n; if (x.dias != null) { a.dsum += x.dias; a.dn++; } m.set(k, a); }); return m; };
+  const conDias = it.filter(x => x.dias != null), g = { nodo: grupo(x => x.nodo), cuenta: grupo(x => x.cuenta), motivo: grupo(x => x.motivo) };
+  const total = [...eMap.values()].filter(x => x.importe > 0);
+  return {
+    costo: it.reduce((x, y) => x + y.costo, 0), pedidos: it.reduce((x, y) => x + y.n, 0), bultos: it.reduce((x, y) => x + y.bultos, 0), guias: new Set(it.filter(x => x.guia).map(x => x.guia)).size,
+    registros: new Set(it.filter(x => x.costo > 0).map(x => x.k)).size, nodos: new Set(it.filter(x => x.costo > 0).map(x => x.nodo)).size,
+    dias: conDias.length ? conDias.reduce((x, y) => x + y.dias, 0) / conDias.length : null, grupos: g,
+    totalEnv: total.length, conDetalle: total.filter(x => dMap.has(x.k)).length, sinDetalle: sinDet, sinRecojo: [...dMap].filter(([k]) => !eMap.has(k)).map(([k, rows]) => ({ k, nodo: norm(rows[0].nodo), fecha: String(rows[0].fecha_reporte).slice(0, 10), n: rows.length })),
+    sinImporte: [...eMap.values()].reduce((x, y) => x + y.sinImporte, 0)
+  };
+}
+function recOpciones(id, lista, vacio) {
+  const sel = $(id), v = sel.value; sel.innerHTML = `<option value="">${vacio}</option>` + [...new Set([...lista, v].filter(Boolean))].sort().map(x => `<option>${esc(x)}</option>`).join(''); sel.value = v;
+}
+async function calcularRecojos(silencioso) {
+  const desde = $('#kDesde').value, hasta = $('#kHasta').value, trans = $('#kTrans').value, mi = ++kSeq;
+  if (desde && hasta && desde > hasta) { $('#kRec').innerHTML = '<div class="kr-c kr-vacio"><b>La fecha inicial es posterior a la fecha final</b>Corregir el rango para visualizar los recojos.</div>'; $('#tab-kpis').classList.remove('kload'); return; }
+  $('#kRefrescar').disabled = true; pintarActivos(); $('#tab-kpis').classList.add('kload');
+  try {
+    const rango = (q, col) => { if (desde) q = q.gte(col, desde); if (hasta) q = q.lte(col, hasta); return q; };
+    const [envios, det, desp] = await Promise.all([
+      traerTodo(() => { let q = rango(sb.from('envios').select('id,fecha,nodo,motivo,transporte,pedidos,bultos,importe').eq('motivo', 'RECOJO'), 'fecha').order('id'); if (trans) q = q.eq('transporte', trans); return q; }),
+      traerTodo(() => rango(sb.from('recojo_detalle').select('fecha_reporte,nombre_cuenta,cuenta,nodo,bultos,motivo_devolucion,fecha_solicitud_cx,fecha_llegada_ctd,guia').order('id'), 'fecha_reporte')).catch(e => { if (/recojo_detalle/.test(e.message)) return null; throw e; }),
+      traerTodo(() => { let q = rango(sb.from('envios').select('importe,pedidos,motivo'), 'fecha').order('id'); if (trans) q = q.eq('transporte', trans); return q; }).catch(() => [])]);
+    if (mi !== kSeq) return;
+    if (!trans) pintarTransSeg([...new Set(envios.map(e => e.transporte).filter(Boolean))].sort());
+    const d = det || [], enlazadas = trans ? new Set(envios.map(e => recClave(e.fecha, e.nodo))) : null;
+    const detF = enlazadas ? d.filter(r => enlazadas.has(recClave(r.fecha_reporte, r.nodo))) : d;
+    recOpciones('#kCuenta', detF.map(r => r.nombre_cuenta || r.cuenta || '(sin cuenta)'), 'Todas'); recOpciones('#kNodoR', [...envios.map(e => norm(e.nodo)), ...detF.map(r => norm(r.nodo))], 'Todos');
+    const dp = desp.filter(e => e.motivo !== 'RECOJO' && Number(e.importe) > 0), dped = dp.reduce((x, e) => x + (Number(e.pedidos) || 0), 0);
+    kRecCpp = dped ? dp.reduce((x, e) => x + Number(e.importe), 0) / dped : 0; kRecDet = !!det;
+    kRecR = recCalcular(envios, detF, $('#kCuenta').value, $('#kNodoR').value);
+    pintarRecojos();
+    $('#kpMsg').className = 'msg'; kUpdTs = Date.now(); pintarUpd(); kHash();
+  } catch (err) { flash($('#kpMsg'), 'No se pudo calcular: ' + err.message, 'err'); }
+  if (mi === kSeq) { $('#kRefrescar').disabled = false; $('#tab-kpis').classList.remove('kload'); }
+}
+function pintarRecojos() {
+  const R = kRecR, el = $('#kRec'); if (!R) return;
+  const hay = R.pedidos || R.costo || R.sinRecojo.length || R.sinImporte;
+  if (!hay) { el.innerHTML = '<div class="kr-c kr-vacio"><b>Sin recojos en el período seleccionado</b>Cargar la hoja RECOJOS y la hoja DETALLE RECOJOS en Cargar despacho.</div>'; return; }
+  const cpp = R.pedidos && R.costo ? R.costo / R.pedidos : 0;
+  const lentos = [...R.grupos.nodo].filter(([, v]) => v.dn).map(([k, v]) => [k, v.dsum / v.dn]).sort((a, b) => b[1] - a[1]);
+  const tag = lentos.length > 1 ? `<span class="kr-tag">${esc(lentos[0][0])} ${lentos[0][1].toFixed(1)}</span>` : '';
+  const cifra = (t, v, s) => `<div class="kr-cifra"><span>${t}</span><b>${v}</b><small>${s}</small></div>`;
+  const cifras = cifra('Costo de recojos', R.costo ? fmt(R.costo) : '-', R.costo ? `${R.registros} ${R.registros === 1 ? 'recojo' : 'recojos'}, ${R.nodos} ${R.nodos === 1 ? 'nodo' : 'nodos'}` : 'Falta el importe de los recojos') +
+    cifra('Pedidos recogidos', fmtN(R.pedidos), `${fmtN(R.bultos)} ${R.bultos === 1 ? 'bulto' : 'bultos'}${R.guias ? `, ${R.guias} ${R.guias === 1 ? 'guía' : 'guías'}` : ''}`) +
+    cifra('Costo por pedido', cpp ? fmt(cpp) : '-', kRecCpp ? (cpp ? `frente a ${fmt(kRecCpp)} en despacho` : `en despacho: ${fmt(kRecCpp)}`) : 'Sin despachos para comparar') +
+    `<div class="kr-cifra"><span>Días de retorno${tag}</span><b>${R.dias != null ? R.dias.toFixed(1) : '-'}</b><small>${R.dias != null ? 'de la solicitud CX a la llegada a CTD' : 'Sin fechas de retorno en el detalle'}</small></div>`;
+  const tipo = kRecTab, G = [...R.grupos[tipo]].sort((a, b) => b[1].costo - a[1].costo), mx = Math.max(...G.map(([, v]) => tipo === 'nodo' ? (v.dn ? v.dsum / v.dn : 0) : v.costo), 1);
+  const nombre = { nodo: 'Nodo', cuenta: 'Cuenta', motivo: 'Motivo' }[tipo];
+  const filas = G.map(([k, v], i) => {
+    const dp = v.dn ? v.dsum / v.dn : null, w = tipo === 'nodo' ? (dp || 0) / mx * 100 : v.costo / mx * 100, lento = tipo === 'nodo' && dp != null && lentos.length > 1 && dp >= lentos[0][1] && dp > R.dias * 1.25;
+    return `<tr style="animation-delay:${Math.min(i, 10) * .05}s"><td class="nom"><b>${esc(k)}</b></td><td class="n">${fmtN(v.n)}</td><td class="n">${v.costo ? fmt(v.costo) : '-'}</td><td class="n">${v.costo && v.n ? fmt(v.costo / v.n) : '-'}</td>
+      <td><div class="kr-bar${lento ? ' l' : ''}"><span><i data-w="${w.toFixed(1)}"></i></span>${tipo === 'nodo' ? `<b>${dp != null ? dp.toFixed(1) : '-'}</b>` : ''}</div></td></tr>`; }).join('');
+  const ok = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>', ale = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>';
+  const lista = (a, f) => a.slice(0, 3).map(f).join(', ') + (a.length > 3 ? '…' : '');
+  const avisos = [];
+  if (!kRecDet) avisos.push(['w', 'Falta ejecutar supabase_recojo_detalle.sql en Supabase']);
+  if (R.totalEnv) avisos.push(R.conDetalle === R.totalEnv ? ['', `${R.conDetalle} de ${R.totalEnv} ${R.totalEnv === 1 ? 'recojo' : 'recojos'} con su detalle`] : ['w', `${R.totalEnv - R.conDetalle} ${R.totalEnv - R.conDetalle === 1 ? 'recojo con importe y sin detalle' : 'recojos con importe y sin detalle'}: ${lista(R.sinDetalle, g => `${g.nodo} ${fdmy(g.fecha).slice(0, 5)}`)}`]);
+  if (R.sinRecojo.length) avisos.push(['w', `Detalle sin recojo registrado: ${lista(R.sinRecojo, g => `${g.nodo} ${fdmy(g.fecha).slice(0, 5)} (${g.n})`)}`]);
+  if (R.sinImporte) avisos.push(['w', `${R.sinImporte} ${R.sinImporte === 1 ? 'recojo sin importe' : 'recojos sin importe'}: completar en Registros`]);
+  el.innerHTML = `<section class="kr-c"><div class="kr-cab"><div><h3>Recojos</h3><p>Devoluciones recogidas en el período. El costo de cada recojo se reparte entre los pedidos de su detalle, por fecha y nodo.</p></div><button type="button" class="kr-ver" id="krVer">Ver el detalle de recojos</button></div><div class="kr-cifras">${cifras}</div></section>
+    <section class="kr-c"><div class="kr-tabs"><b>${{ nodo: 'Costo y tiempo de retorno por nodo', cuenta: 'Costo repartido por cuenta', motivo: 'Costo repartido por motivo de devolución' }[tipo]}</b>
+      <div class="pseg" id="krSeg">${[['nodo', 'Por nodo'], ['cuenta', 'Por cuenta'], ['motivo', 'Por motivo']].map(([k, t]) => `<button type="button" data-rt="${k}" class="${tipo === k ? 'on' : ''}">${t}</button>`).join('')}</div></div>
+      <div class="kr-tw"><table class="kr-t"><thead><tr><th>${nombre}</th><th class="n">Pedidos</th><th class="n">Costo</th><th class="n">Por pedido</th><th style="width:28%">${tipo === 'nodo' ? 'Días de retorno' : 'Participación'}</th></tr></thead><tbody>${filas}</tbody></table></div>
+      ${avisos.length ? `<div class="kr-av">${avisos.map(([c, t]) => `<span class="kr-a ${c}">${c ? ale : ok}${esc(t)}</span>`).join('')}</div>` : ''}</section>`;
+  requestAnimationFrame(() => requestAnimationFrame(() => el.querySelectorAll('.kr-bar i').forEach(i => i.style.width = i.dataset.w + '%')));
+}
+$('#kRec').addEventListener('click', e => {
+  const t = e.target.closest('[data-rt]'); if (t) { kRecTab = t.dataset.rt; pintarRecojos(); return; }
+  if (e.target.closest('#krVer')) { $('#qDesde').value = $('#kDesde').value; $('#qHasta').value = $('#kHasta').value; $('#qNodo').value = ''; $('#qPed').value = ''; $('#qTipo [data-t=rec]').click(); irA('detalle'); }
+});
+
 $('#kExport').onclick = async () => {
   if (!kpiResultado) return; await xlsxLib();
   const wb = XLSX.utils.book_new(), r2 = n => Math.round(n * 100) / 100;
