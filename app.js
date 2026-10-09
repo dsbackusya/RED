@@ -1858,6 +1858,7 @@ $('#kpVista').onclick = e => { const b = e.target.closest('button'); if (!b || b
 
 // ---------- informe PDF (se imprime / guarda como PDF desde el navegador) ----------
 function informePDF() {
+  if (kst.modo === 'r') return informeRecojosPDF();
   const R = kpiResultado; if (!R) return toast('Esperar a que finalice el cálculo de los indicadores', 'err');
   const w = window.open('', '_blank'); if (!w) return toast('El navegador bloqueó la ventana del informe. Habilitar las ventanas emergentes para este sitio.', 'err');
   const T = R.total, dias = diasResultado, env = kpEnvios, nF = env.filter(e => e.factura).length, conta = dias.reduce((x, d) => x + d.contado, 0), cred = dias.reduce((x, d) => x + d.credito, 0);
@@ -1948,16 +1949,16 @@ function recCalcular(envios, det, cuentaSel, nodoSel) {
   const todos = [];
   dMap.forEach((rows, k) => {
     const g = eMap.get(k), tot = rows.reduce((x, r) => x + (Number(r.bultos) || 1), 0);
-    rows.forEach(r => todos.push({ k, nodo: norm(r.nodo), cuenta: cta(r), motivo: r.motivo_devolucion || '(sin motivo)', costo: g && g.importe > 0 ? g.importe * (Number(r.bultos) || 1) / tot : 0, n: 1, bultos: Number(r.bultos) || 0, dias: recDias(r.fecha_solicitud_cx, r.fecha_llegada_ctd), guia: r.guia }));
+    rows.forEach(r => todos.push({ k, nodo: norm(r.nodo), cuenta: cta(r), motivo: r.motivo_devolucion || '(sin motivo)', costo: g && g.importe > 0 ? g.importe * (Number(r.bultos) || 1) / tot : 0, n: 1, bultos: Number(r.bultos) || 0, dias: recDias(r.fecha_solicitud_cx, r.fecha_llegada_ctd), guia: r.guia, fecha: String(r.fecha_reporte).slice(0, 10), pedido: r.nro_pedido, prov: r.proveedor, sol: r.fecha_solicitud_cx, lleg: r.fecha_llegada_ctd }));
   });
   const sinDet = [...eMap.values()].filter(g => g.importe > 0 && !dMap.has(g.k));
-  sinDet.forEach(g => todos.push({ k: g.k, nodo: g.nodo, cuenta: '(sin detalle)', motivo: '(sin detalle)', costo: g.importe, n: g.pedidos, bultos: g.bultos, dias: null, guia: null }));
+  sinDet.forEach(g => todos.push({ k: g.k, nodo: g.nodo, cuenta: '(sin detalle)', motivo: '(sin detalle)', costo: g.importe, n: g.pedidos, bultos: g.bultos, dias: null, guia: null, fecha: g.fecha }));
   const it = todos.filter(x => (!cuentaSel || x.cuenta === cuentaSel) && (!nodoSel || x.nodo === nodoSel));
   const grupo = f => { const m = new Map(); it.forEach(x => { const k = f(x), a = m.get(k) || { costo: 0, n: 0, dsum: 0, dn: 0 }; a.costo += x.costo; a.n += x.n; if (x.dias != null) { a.dsum += x.dias; a.dn++; } m.set(k, a); }); return m; };
   const conDias = it.filter(x => x.dias != null), g = { nodo: grupo(x => x.nodo), cuenta: grupo(x => x.cuenta), motivo: grupo(x => x.motivo) };
   const total = [...eMap.values()].filter(x => x.importe > 0);
   return {
-    costo: it.reduce((x, y) => x + y.costo, 0), pedidos: it.reduce((x, y) => x + y.n, 0), bultos: it.reduce((x, y) => x + y.bultos, 0), guias: new Set(it.filter(x => x.guia).map(x => x.guia)).size,
+    items: it, costo: it.reduce((x, y) => x + y.costo, 0), pedidos: it.reduce((x, y) => x + y.n, 0), bultos: it.reduce((x, y) => x + y.bultos, 0), guias: new Set(it.filter(x => x.guia).map(x => x.guia)).size,
     registros: new Set(it.filter(x => x.costo > 0).map(x => x.k)).size, nodos: new Set(it.filter(x => x.costo > 0).map(x => x.nodo)).size,
     dias: conDias.length ? conDias.reduce((x, y) => x + y.dias, 0) / conDias.length : null, grupos: g,
     totalEnv: total.length, conDetalle: total.filter(x => dMap.has(x.k)).length, sinDetalle: sinDet, sinRecojo: [...dMap].filter(([k]) => !eMap.has(k)).map(([k, rows]) => ({ k, nodo: norm(rows[0].nodo), fecha: String(rows[0].fecha_reporte).slice(0, 10), n: rows.length })),
@@ -1975,7 +1976,7 @@ async function calcularRecojos(silencioso) {
     const rango = (q, col) => { if (desde) q = q.gte(col, desde); if (hasta) q = q.lte(col, hasta); return q; };
     const [envios, det, desp] = await Promise.all([
       traerTodo(() => { let q = rango(sb.from('envios').select('id,fecha,nodo,motivo,transporte,pedidos,bultos,importe').eq('motivo', 'RECOJO'), 'fecha').order('id'); if (trans) q = q.eq('transporte', trans); return q; }),
-      traerTodo(() => rango(sb.from('recojo_detalle').select('fecha_reporte,nombre_cuenta,cuenta,nodo,bultos,motivo_devolucion,fecha_solicitud_cx,fecha_llegada_ctd,guia').order('id'), 'fecha_reporte')).catch(e => { if (/recojo_detalle/.test(e.message)) return null; throw e; }),
+      traerTodo(() => rango(sb.from('recojo_detalle').select('fecha_reporte,nombre_cuenta,cuenta,nro_pedido,nodo,bultos,motivo_devolucion,fecha_solicitud_cx,fecha_llegada_ctd,guia,proveedor').order('id'), 'fecha_reporte')).catch(e => { if (/recojo_detalle/.test(e.message)) return null; throw e; }),
       traerTodo(() => { let q = rango(sb.from('envios').select('importe,pedidos,motivo'), 'fecha').order('id'); if (trans) q = q.eq('transporte', trans); return q; }).catch(() => [])]);
     if (mi !== kSeq) return;
     if (!trans) pintarTransSeg([...new Set(envios.map(e => e.transporte).filter(Boolean))].sort());
@@ -2122,7 +2123,68 @@ $('#kRec').addEventListener('click', e => {
   if (e.target.closest('#krVer')) { $('#qDesde').value = $('#kDesde').value; $('#qHasta').value = $('#kHasta').value; $('#qNodo').value = ''; $('#qPed').value = ''; $('#qTipo [data-t=rec]').click(); irA('detalle'); }
 });
 
+// ---------- informe PDF y Excel de recojos ----------
+const recFilasGrupo = (m, r2) => [...m].sort((a, b) => b[1].costo - a[1].costo).map(([k, v]) => [k, v.n, r2(v.costo), v.n && v.costo ? r2(v.costo / v.n) : null, v.dn ? r2(v.dsum / v.dn) : null]);
+async function exportarRecojos() {
+  const R = kRecR; if (!R || !R.items.length) return toast('No hay recojos para exportar en el período seleccionado', 'err');
+  await xlsxLib();
+  const wb = XLSX.utils.book_new(), r2 = n => Math.round(n * 100) / 100, cpp = R.pedidos && R.costo ? r2(R.costo / R.pedidos) : null;
+  const filtros = [...document.querySelectorAll('#kAct .pill')].map(x => x.textContent).join(', ');
+  const res = [['Indicador', 'Valor'], ['Filtros', filtros], ['Costo de recojos', r2(R.costo)], ['Pedidos recogidos', R.pedidos], ['Bultos', R.bultos], ['Guías', R.guias], ['Recojos con importe', R.registros], ['Nodos', R.nodos], ['Costo por pedido', cpp],
+    ['Costo por pedido en despacho (referencia)', kRecCpp ? r2(kRecCpp) : null], ['Días de retorno promedio', R.dias != null ? r2(R.dias) : null], ['Recojos con importe y sin detalle', R.totalEnv - R.conDetalle], ['Pedidos de detalle sin recojo registrado', R.sinRecojo.reduce((x, g) => x + g.n, 0)], ['Recojos sin importe', R.sinImporte]];
+  const ws0 = XLSX.utils.aoa_to_sheet(res); ws0['!cols'] = [{ wch: 42 }, { wch: 28 }]; XLSX.utils.book_append_sheet(wb, ws0, 'RESUMEN');
+  const nodoFila = ([k, v]) => { const p = kaProv.get(norm(KA_ALIAS[k] || k)); return [k, v.n, r2(v.costo), v.n && v.costo ? r2(v.costo / v.n) : null, v.dn ? r2(v.dsum / v.dn) : null, p ? p[0] : null, p ? p[1] : null]; };
+  [['POR NODO', 'Nodo', R.grupos.nodo], ['POR CUENTA', 'Cuenta', R.grupos.cuenta], ['POR MOTIVO', 'Motivo', R.grupos.motivo]].forEach(([hoja, t, m]) => {
+    const cab = [t, 'Pedidos', 'Costo', 'Costo por pedido', 'Días de retorno'], filas = hoja === 'POR NODO' ? [...m].sort((a, b) => b[1].costo - a[1].costo).map(nodoFila) : recFilasGrupo(m, r2);
+    const ws = XLSX.utils.aoa_to_sheet([hoja === 'POR NODO' ? [...cab, 'Provincia', 'Departamento'] : cab, ...filas]); ws['!cols'] = [{ wch: 30 }, ...Array(6).fill({ wch: 16 })]; XLSX.utils.book_append_sheet(wb, ws, hoja);
+  });
+  const det = [['Fecha reporte', 'Nodo', 'Cuenta', 'N° de pedido', 'Motivo de devolución', 'Bultos', 'Guía', 'Proveedor', 'Fecha solicitud CX', 'Fecha llegada CTD', 'Días de retorno', 'Costo asignado']]
+    .concat(R.items.filter(x => !x.synth && x.cuenta !== '(sin detalle)').sort((a, b) => (a.fecha + a.nodo).localeCompare(b.fecha + b.nodo)).map(x => [x.fecha, x.nodo, x.cuenta, x.pedido, x.motivo, x.bultos, x.guia, x.prov, x.sol, x.lleg, x.dias, x.costo ? r2(x.costo) : null]));
+  const wsd = XLSX.utils.aoa_to_sheet(det); wsd['!cols'] = det[0].map(() => ({ wch: 18 })); XLSX.utils.book_append_sheet(wb, wsd, 'DETALLE');
+  XLSX.writeFile(wb, `recojos_${$('#kDesde').value || 'inicio'}_${$('#kHasta').value || 'hoy'}.xlsx`);
+}
+function informeRecojosPDF() {
+  const R = kRecR; if (!R || !R.items.length) return toast('No hay recojos para el informe en el período seleccionado', 'err');
+  const w = window.open('', '_blank'); if (!w) return toast('El navegador bloqueó la ventana del informe. Habilitar las ventanas emergentes para este sitio.', 'err');
+  const filtros = [...document.querySelectorAll('#kAct .pill')].map(x => x.textContent).join(', '), cpp = R.pedidos && R.costo ? R.costo / R.pedidos : 0;
+  const tabla = (t, cab, filas) => `<h2>${t}</h2><table><tr>${cab.map((c, i) => `<th${i ? ' class="r"' : ''}>${c}</th>`).join('')}</tr>${filas.map(f => `<tr>${f.map((c, i) => `<td${i ? ' class="r"' : ''}>${c}</td>`).join('')}</tr>`).join('')}</table>`;
+  const filas = m => [...m].sort((a, b) => b[1].costo - a[1].costo).slice(0, 20).map(([k, v]) => [esc(k), fmtN(v.n), v.costo ? fmt(v.costo) : '-', v.n && v.costo ? fmt(v.costo / v.n) : '-', v.dn ? (v.dsum / v.dn).toFixed(1) : '-']);
+  const obs = [];
+  if (R.totalEnv && R.conDetalle < R.totalEnv) obs.push(`${R.totalEnv - R.conDetalle} recojo(s) con importe y sin detalle: ${R.sinDetalle.map(g => `${g.nodo} ${fdmy(g.fecha).slice(0, 5)}`).join(', ')}.`);
+  if (R.sinRecojo.length) obs.push(`Detalle sin recojo registrado: ${R.sinRecojo.map(g => `${g.nodo} ${fdmy(g.fecha).slice(0, 5)} (${g.n})`).join(', ')}.`);
+  if (R.sinImporte) obs.push(`${R.sinImporte} recojo(s) sin importe registrado.`);
+  const lentos = krLentos(R), mapa = document.querySelector('#krSvg') && document.querySelector('#krSvg .ka-prov.d') ? document.querySelector('#krSvg').outerHTML.replace(/class="([^"]*)"/g, (m, c) => 'class="' + c.replace(/\bsel\b/g, '').trim() + '"').replace(/ data-tip="[^"]*"/g, '') : '';
+  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de recojos de Red Troncal</title><style>
+    @page { size:A4; margin:14mm } * { box-sizing:border-box } body { font:11px/1.45 Inter,system-ui,Arial,sans-serif; color:#0f172a; margin:0 }
+    header { display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #059669; padding-bottom:10px; margin-bottom:12px } header img { height:42px } h1 { font-size:20px; margin:0 } .sub { color:#64748b; font-size:11px }
+    h2 { font-size:13px; margin:18px 0 6px; border-left:4px solid #2563eb; padding-left:8px; break-after:avoid } table { width:100%; border-collapse:collapse; margin-bottom:6px } th { background:#f1f5f9; text-align:left; padding:5px 7px; font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:#475569 }
+    td { padding:4px 7px; border-top:1px solid #e2e8f0 } th.r, td.r { text-align:right; font-variant-numeric:tabular-nums } tr { break-inside:avoid }
+    .kp { display:grid; grid-template-columns:repeat(3,1fr); gap:8px } .kp div { border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px } .kp span { display:block; font-size:9px; color:#94a3b8; font-weight:700; text-transform:uppercase; letter-spacing:.05em } .kp b { font-size:17px } .kp small { display:block; color:#64748b }
+    ul { margin:4px 0 0 16px; padding:0 } li { margin:3px 0 } footer { margin-top:18px; color:#94a3b8; font-size:9px; border-top:1px solid #e2e8f0; padding-top:6px }
+    .mapa { break-inside:avoid } .mapa svg { width:100%; height:300px; background:#eef2f8; border-radius:10px; display:block } .ka-prov { stroke:#fff; stroke-width:.6; vector-effect:non-scaling-stroke } .kr-mk circle { fill:#fff; stroke-width:3.4 } .kr-mk text { font-size:11.5px; font-weight:700; fill:#0f172a; text-anchor:middle; dominant-baseline:central }
+    .ley { color:#64748b; font-size:10px; margin-top:4px }
+  </style></head><body>
+    <header><div><h1>Informe de recojos</h1><div class="sub">${esc(filtros)}</div></div><img src="${esc(new URL('logo.png', location.href).href)}" alt="Dinet"></header>
+    <div class="kp">
+      <div><span>Costo de recojos</span><b>${R.costo ? fmt(R.costo) : '-'}</b><small>${R.registros} recojo(s) con importe, ${R.nodos} nodo(s)</small></div>
+      <div><span>Pedidos recogidos</span><b>${fmtN(R.pedidos)}</b><small>${fmtN(R.bultos)} bultos${R.guias ? `, ${R.guias} guías` : ''}</small></div>
+      <div><span>Costo por pedido</span><b>${cpp ? fmt(cpp) : '-'}</b><small>${kRecCpp ? `Despacho: ${fmt(kRecCpp)}` : 'Sin despachos para comparar'}</small></div>
+      <div><span>Días de retorno (promedio)</span><b>${R.dias != null ? R.dias.toFixed(1) : '-'}</b><small>Solicitud CX a llegada a CTD</small></div>
+      <div><span>Nodo más lento</span><b>${lentos.length ? esc(lentos[0][0]) : '-'}</b><small>${lentos.length ? lentos[0][1].toFixed(1) + ' días' : ''}</small></div>
+      <div><span>Nodo más rápido</span><b>${lentos.length ? esc(lentos[lentos.length - 1][0]) : '-'}</b><small>${lentos.length ? lentos[lentos.length - 1][1].toFixed(1) + ' días' : ''}</small></div>
+    </div>
+    ${obs.length ? `<h2>Observaciones</h2><ul>${obs.map(o => `<li>${esc(o)}</li>`).join('')}</ul>` : ''}
+    ${mapa ? `<h2>Días de retorno por provincia</h2><div class="mapa">${mapa}<div class="ley">Verde: retorno más rápido. Rojo: retorno más lento. El número es el promedio de días de la provincia.</div></div>` : ''}
+    ${tabla('Por nodo', ['Nodo', 'Pedidos', 'Costo', 'Costo por pedido', 'Días de retorno'], filas(R.grupos.nodo))}
+    ${tabla('Por cuenta', ['Cuenta', 'Pedidos', 'Costo', 'Costo por pedido', 'Días de retorno'], filas(R.grupos.cuenta))}
+    ${tabla('Por motivo de devolución', ['Motivo', 'Pedidos', 'Costo', 'Costo por pedido', 'Días de retorno'], filas(R.grupos.motivo))}
+    <footer>Generado el ${new Date().toLocaleString('es-PE')}. Red Troncal, Dinet Logística.</footer>
+  </body></html>`;
+  w.document.open(); w.document.write(html); w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 600);
+}
+
 $('#kExport').onclick = async () => {
+  if (kst.modo === 'r') return exportarRecojos();
   if (!kpiResultado) return; await xlsxLib();
   const wb = XLSX.utils.book_new(), r2 = n => Math.round(n * 100) / 100;
   const aoaD = [['Fecha','Registros','Pedidos','Bultos','Cajas','Costo contado','Costo crédito','Costo total','Costo por pedido','Registros sin importe']]
