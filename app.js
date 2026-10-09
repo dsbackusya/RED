@@ -357,7 +357,14 @@ cChips(); setPaso(1);
 // ---------- adjuntos de factura (bucket "Facturas") ----------
 const BUCKET = 'Facturas';
 const MAX_ADJUNTO = 20 * 1024;   // todo adjunto se guarda con 20 KB o menos
-const urlAdjunto = path => sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+// enlace temporal firmado: el bucket es privado y la foto solo se ve con sesión iniciada (se reutiliza durante 50 minutos)
+const urlsFirmadas = new Map();
+async function urlAdjunto(path) {
+  const c = urlsFirmadas.get(path); if (c && Date.now() - c.t < 50 * 60 * 1000) return c.u;
+  const { data, error } = await sb.storage.from(BUCKET).createSignedUrl(path, 3600);
+  if (error || !data) return '';
+  urlsFirmadas.set(path, { u: data.signedUrl, t: Date.now() }); return data.signedUrl;
+}
 const esImagen = path => /\.(png|jpe?g|gif|webp|bmp|heic)$/i.test(path);
 let adjId = null;
 $('#adjFile').onchange = async e => {
@@ -733,11 +740,16 @@ function rmVivo() {
   $('#rmSt').innerHTML = stepper(vista, true); $('#rmHint').textContent = regFalta(vista)[1];
 }
 function rmFoto(r) {
-  const f = r.factura_archivo, bloq = regEnviado(r), u = f ? esc(urlAdjunto(f)) : '';
-  $('#rmTh').innerHTML = f ? (esImagen(f) ? `<img src="${u}" alt="Factura">` : ICO.file) : ICO.img;
+  const f = r.factura_archivo, bloq = regEnviado(r);
+  $('#rmTh').innerHTML = f ? (esImagen(f) ? '<img alt="Factura" style="visibility:hidden">' : ICO.file) : ICO.img;
   $('#rmTt').textContent = f ? 'Factura adjunta' : 'Sin foto de la factura';
   $('#rmTs').textContent = f ? 'Se guarda con 20 KB o menos' : (bloq ? '' : 'Tomar o seleccionar una foto: el N° y el importe se leen automáticamente');
-  $('#rmAc').innerHTML = (f ? `<a class="b sec" href="${u}" target="_blank" rel="noopener">Ver</a>` : '') + (bloq ? '' : f ? '<button type="button" class="b sec" data-f="cambiar">Cambiar</button><button type="button" class="b sec" data-f="quitar">Quitar</button>' : '<button type="button" class="b" data-f="cambiar">Adjuntar foto</button>');
+  $('#rmAc').innerHTML = (f ? '<a class="b sec hide" id="rmVer" href="#" target="_blank" rel="noopener">Ver</a>' : '') + (bloq ? '' : f ? '<button type="button" class="b sec" data-f="cambiar">Cambiar</button><button type="button" class="b sec" data-f="quitar">Quitar</button>' : '<button type="button" class="b" data-f="cambiar">Adjuntar foto</button>');
+  if (f) urlAdjunto(f).then(u => {   // el enlace firmado llega un instante después; se ignora si ya se cambió de registro o de foto
+    if (!u || r.factura_archivo !== f || !$('#rmVer')) return;
+    const img = $('#rmTh img'); if (img) { img.onload = () => { img.style.visibility = ''; }; img.src = u; }
+    $('#rmVer').href = u; $('#rmVer').classList.remove('hide');
+  });
 }
 // después de leer la factura con el OCR, el importe y el N° se reflejan en la ventana
 function rmSync(r) {
