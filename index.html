@@ -8,7 +8,7 @@
 <link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilos.css?v=20261008a">
+<link rel="stylesheet" href="estilos.css?v=20261008b">
 </head>
 <body>
 
@@ -178,44 +178,11 @@
     <div id="kgAl"></div>
     <details class="dt card" style="margin-top:14px"><summary>Detalle por día <span id="nDias"></span></summary><div class="tw"><table id="kpDias"></table></div></details>
   </div>
-  <div id="kp-cuenta" class="hide">
-  <div class="insight" id="ctaInsight"></div>
-  <div class="card ctl"><div class="row">
-    <label>Ordenar por<select id="ctaOrd"><option value="costo">Costo (mayor a menor)</option><option value="cpp">Costo por pedido (mayor a menor)</option><option value="pedidos">Pedidos (mayor a menor)</option><option value="nombre">Nombre (A-Z)</option></select></label>
-    <label class="hide">Mostrar<select id="ctaTop"><option value="8">Top 8</option><option value="12">Top 12</option><option value="999" selected>Todas</option></select></label>
-    <label>Buscar cuenta<input id="ctaQ" placeholder="Nombre…"></label>
-    <label class="chk"><input type="checkbox" id="ctaSin" checked> Incluir "sin detalle"</label>
-    <div class="seg" id="ctaVista"><button data-v="barras" class="on">Barras</button><button data-v="tabla">Tabla</button></div>
-  </div></div>
-  <div class="cgrid">
-    <div class="card">
-      <h3>Ranking de cuentas</h3>
-      <p class="hint">La barra es el costo. El color indica si el costo por pedido está por debajo (verde) o por encima (ámbar o rojo) del promedio general.</p>
-      <div id="ctaBarras"></div><div id="ctaTabla" class="tw hide"></div>
-      <div class="key"><span><i style="background:var(--grn)"></i>hasta el promedio</span><span><i style="background:var(--amb)"></i>hasta 1.5× el promedio</span><span><i style="background:var(--red)"></i>más de 1.5× el promedio</span></div>
-    </div>
-  </div>
-  <details class="dt card"><summary>Volumen frente a costo por pedido</summary>
-    <p class="hint">Cada punto es una cuenta: a la derecha, más pedidos; arriba, más caro por pedido; el tamaño es el costo total. Las cuentas con pocos pedidos y costo alto suelen ser envíos aislados que conviene revisar.</p>
-    <svg id="ctaSc" class="csvg" viewBox="0 0 900 300" width="100%" style="max-height:340px"></svg></details>
-  <div class="tip" id="ctaTip"></div>
-  </div>
-  <div id="kp-nodo" class="hide">
-    <div class="card"><h3>Costo por nodo</h3><p class="hint">La barra es el costo; el color compara la <b>tarifa por caja</b> de cada nodo con la mediana (<b id="medNodo"></b>). Una tarifa muy por encima suele indicar un envío aislado, una agencia más cara o una ruta sin negociar.</p>
-      <div class="bar-tools"><div class="seg" id="nodoVista"><button data-v="b" class="on">Barras</button><button data-v="t">Tabla</button></div></div>
-      <div id="nodoBarras"></div><div id="nodoTabla" class="tw hide"><table id="kpNodo"></table></div></div>
-  </div>
-  <div id="kp-age" class="hide">
-    <div class="cgrid">
-      <div class="card"><h3>Costo por agencia</h3><p class="hint">Cuánto se paga a cada agencia de carga. El color compara su tarifa por caja con la mediana de las agencias.</p><div id="ageBarras"></div></div>
-      <div class="card"><h3>Contado frente a crédito por agencia</h3><p class="hint">Las agencias en crédito son las que acumulan facturas pendientes.</p><div id="ageMix"></div></div>
-    </div>
-  </div>
-  <div id="kp-zona" class="hide">
-    <div class="card"><h3>Costo por transporte</h3><div class="tw"><table id="kpTrans"></table></div></div>
-    <div class="card"><h3>Costo por zona</h3><p class="hint">La zona se carga con cada registro.</p><div id="zonaBarras"></div></div>
-    <div class="card"><h3>Tarifa por caja según transporte y zona</h3><p class="hint">Costo dividido entre cajas. Las celdas más oscuras son las rutas más caras por caja.</p><div class="tw" style="max-height:none"><table class="mx" id="zonaMx"></table></div></div>
-  </div>
+  <div id="kp-cuenta" class="ka hide"></div>
+  <div id="kp-nodo" class="ka hide"></div>
+  <div id="kp-age" class="ka hide"></div>
+  <div id="kp-zona" class="ka hide"></div>
+  <div id="kaTip"></div>
   <div id="kp-cal" class="hide"><div class="card"><h3>Calidad de datos</h3><p class="hint">Los indicadores son confiables en la medida en que los registros estén completos. Cada punto lleva a la pantalla donde se corrige.</p><div id="calList"></div></div></div>
 </section>
 
@@ -347,6 +314,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 <script src="config.js"></script>
 <script src="ocr.js?v=4"></script>
-<script src="app.js?v=20261008a"></script>
+<script src="app.js?v=20261008b"></script>
 </body>
 </html>

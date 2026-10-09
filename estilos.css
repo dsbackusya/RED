@@ -832,3 +832,91 @@
   .kc-tip .d.up { color:#ff8a8a } .kc-tip .d.dn { color:#7be0a1 } .kc-tip i { font-style:normal; color:#c7c7cc; font-size:11.5px; display:block; margin-top:4px }
   @media (max-width:900px) { .kc-kp { grid-template-columns:repeat(2, minmax(0,1fr)) } }
   @media (max-width:640px) { .kc { padding:20px 16px } #kpVista { width:100% } #kpVista button { flex:1; padding:6px 4px } .kc-k b { font-size:18px } }
+
+  /* ---------- Costos: análisis por cuenta, nodo, agencia, transporte y zona ---------- */
+  .ka { --navy:#0b3d82; --navy2:#1a5db8; --sky:#9dbdf0; --kok:#248a3d; --kokbg:rgba(36,138,61,.11); --kamb:#a15c00; --kambbg:rgba(230,150,0,.15); --kbad:#d70015; --kbadbg:rgba(215,0,21,.09) }
+  .ka h3 { margin:0; font-size:19px; font-weight:600; letter-spacing:-.02em; color:var(--ink) }
+  .ka small { font-size:12px }
+  .ka-card { position:relative; background:var(--card); border-radius:26px; padding:22px 26px 20px; box-shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 30px rgba(11,61,130,.05); overflow:hidden; min-width:0 }
+  .ka-card::before { content:""; position:absolute; inset:0; border-radius:inherit; background:radial-gradient(120% 70% at 50% -12%, rgba(26,93,184,.09), rgba(26,93,184,0) 60%); pointer-events:none }
+  .ka-card > * { position:relative }
+  .ka-cab { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:14px }
+  .ka-hint { color:var(--mut); font-size:13px; margin:2px 0 0; max-width:62ch }
+  .ka-eye { display:block; font-size:11.5px; font-weight:600; color:var(--pri); letter-spacing:.02em; text-transform:uppercase; margin-bottom:2px }
+  .ka-q { border:0; background:var(--head); border-radius:99px; padding:7px 14px; font-size:13px; width:170px; outline:none }
+  .ka-q:focus { box-shadow:0 0 0 3px rgba(0,102,204,.18); background:#fff }
+  .ka-hall { display:flex; gap:12px; align-items:flex-start; padding:14px 20px; border-radius:20px; background:rgba(0,102,204,.07); margin-bottom:16px; font-size:14.5px; color:var(--ink) }
+  .ka-hall svg { flex:none; width:20px; height:20px; margin-top:2px; color:var(--pri) } .ka-hall b { font-weight:600 }
+  .ka-kpis { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); padding:0; margin-bottom:18px }
+  .ka-kp { padding:18px 24px 16px; min-width:0; border-left:1px solid var(--line) } .ka-kp:first-child { border-left:0 }
+  .ka-kp small { display:block; color:var(--mut); font-size:12.5px }
+  .ka-kp b { display:block; font-size:28px; line-height:1.15; font-weight:700; letter-spacing:-.035em; margin:2px 0 3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .ka-kp em { font-style:normal; font-size:12.5px; color:var(--mut); display:flex; gap:7px; align-items:center; flex-wrap:wrap }
+  .ka-dl { display:inline-block; font-size:11.5px; font-weight:600; padding:1px 8px; border-radius:99px; white-space:nowrap }
+  .ka-dl.up { background:var(--kbadbg); color:var(--kbad) } .ka-dl.dn { background:var(--kokbg); color:var(--kok) } .ka-dl.n { background:var(--head); color:var(--mut) }
+  .ka-grid { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(0,1fr); gap:18px; align-items:start }
+  .ka-stack { display:grid; gap:18px; min-width:0 } .ka-fix { position:sticky; top:16px; min-width:0 } .ka-full { margin-top:18px }
+  .ka-tw { overflow-x:auto; margin:0 -6px }
+  .ka .ka-rt { width:100%; border-collapse:collapse; background:transparent; font-size:inherit; min-width:620px }
+  .ka .ka-rt th { position:static; background:none; text-align:left; font-size:11.5px; font-weight:600; letter-spacing:0; text-transform:none; color:var(--mut); padding:0 8px 9px; border-bottom:1px solid var(--line); white-space:nowrap; user-select:none }
+  .ka .ka-rt th[data-s] { cursor:pointer } .ka .ka-rt th[data-s]:hover, .ka .ka-rt th.on { color:var(--ink) } .ka .ka-rt th.on::after { content:" \2193" }
+  .ka .ka-rt td { padding:11px 8px; border-top:0; border-bottom:1px solid var(--line); vertical-align:middle; white-space:normal }
+  .ka .ka-rt tbody tr { transition:background .12s } .ka .ka-rt tbody tr.sel-ok { cursor:pointer } .ka .ka-rt tbody tr.sel-ok:hover { background:rgba(0,0,0,.025) } .ka .ka-rt tbody tr.sel { background:rgba(0,102,204,.07) }
+  .ka .ka-rt td.ka-num, .ka .ka-rt th.ka-num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap }
+  .ka .ka-rt .ka-ix { width:26px; color:var(--mut); font-size:12px; font-variant-numeric:tabular-nums }
+  .ka-nm b { display:block; font-weight:600; font-size:14px; line-height:1.25; color:var(--ink) } .ka-nm small { color:var(--mut); display:block; margin-top:1px }
+  .ka-cc { min-width:150px } .ka-cc b { font-weight:600; font-variant-numeric:tabular-nums; font-size:14px; color:var(--ink) }
+  .ka-mb { display:flex; height:5px; border-radius:3px; background:rgba(0,0,0,.05); margin-top:5px; overflow:hidden } .ka-mb i { display:block; height:100% }
+  .ka-mb .c, .ka-c-bg { background:linear-gradient(90deg,var(--navy2),var(--navy)) } .ka-mb .r { background:var(--sky) }
+  .ka-rp { display:inline-block; font-size:12.5px; font-weight:600; padding:2px 10px; border-radius:99px; font-variant-numeric:tabular-nums; white-space:nowrap }
+  .ka-rp.g { background:var(--kokbg); color:var(--kok) } .ka-rp.a { background:var(--kambbg); color:var(--kamb) } .ka-rp.r { background:var(--kbadbg); color:var(--kbad) } .ka-rp.n { background:var(--head); color:var(--mut) }
+  .ka-vs { display:block; color:var(--mut); font-size:11px; margin-top:2px; white-space:nowrap }
+  .ka .ka-rt tfoot td { border-bottom:0; font-weight:600; padding-top:13px; font-variant-numeric:tabular-nums; border-top:0 } .ka .ka-rt tfoot td.l { color:var(--mut); font-weight:500 }
+  .ka-ley { display:flex; gap:16px; align-items:center; margin-top:12px; font-size:12px; color:var(--mut); flex-wrap:wrap }
+  .ka-ley span::before { content:""; display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:6px }
+  .ka-ley .c::before { background:var(--navy) } .ka-ley .r::before { background:var(--sky) } .ka-ley .g::before { background:var(--kok) } .ka-ley .a::before { background:#e8a317 } .ka-ley .x::before { background:var(--kbad) }
+  .ka-ficha h3 { font-size:21px }
+  .ka-fk { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:14px 0 4px }
+  .ka-fk div { background:var(--head); border-radius:16px; padding:10px 14px; min-width:0 } .ka-fk small { display:block; color:var(--mut); font-size:12px } .ka-fk b { font-size:19px; letter-spacing:-.025em; font-weight:700; font-variant-numeric:tabular-nums; color:var(--ink) }
+  .ka-fk em { font-style:normal; font-size:11.5px; color:var(--mut); margin-left:4px }
+  .ka-sec { font-size:12px; font-weight:600; color:var(--mut); margin:16px 0 6px }
+  .ka-bl { display:grid; gap:8px } .ka-bl div { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 10px; font-size:13px } .ka-bl span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis } .ka-bl em { font-style:normal; color:var(--mut); font-variant-numeric:tabular-nums }
+  .ka-bl i { grid-column:1 / -1; display:block; height:4px; border-radius:2px; background:rgba(0,0,0,.05); position:relative } .ka-bl i::after { content:""; position:absolute; inset:0 auto 0 0; width:var(--w); border-radius:2px; background:var(--navy2) }
+  .ka-ch { position:relative } .ka-ch svg { display:block; width:100%; height:auto; overflow:visible }
+  .ka-hv:hover { opacity:1 !important }
+  #kaTip { position:fixed; z-index:50; pointer-events:none; background:rgba(29,29,31,.94); color:#fff; border-radius:14px; padding:9px 13px; font-size:12.5px; line-height:1.45; min-width:150px; box-shadow:0 10px 30px rgba(0,0,0,.22); opacity:0; transition:opacity .1s }
+  #kaTip.on { opacity:1 } #kaTip b { display:block; font-size:13px; margin-bottom:3px } #kaTip .f { display:flex; justify-content:space-between; gap:16px } #kaTip .f span:first-child { color:#c7c7cc }
+  .ka-dv { display:grid; grid-template-columns:minmax(90px,.8fr) minmax(0,1.6fr) auto; gap:12px; align-items:center; padding:7px 0; font-size:13px }
+  .ka-dv .n { font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--ink) }
+  .ka-dv .tr { position:relative; height:12px } .ka-dv .tr::before { content:""; position:absolute; left:50%; top:-4px; bottom:-4px; width:1px; background:rgba(0,0,0,.25) }
+  .ka-dv .bar { position:absolute; top:2px; height:8px; border-radius:4px } .ka-dv .bar.g { background:var(--kok) } .ka-dv .bar.a { background:#e8a317 } .ka-dv .bar.r { background:var(--kbad) }
+  .ka-dv .v { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap } .ka-dv .v em { font-style:normal; color:var(--mut); font-size:11.5px; margin-left:4px }
+  .ka-lg { display:flex; gap:16px; flex-wrap:wrap; font-size:12.5px; color:var(--mut); margin-bottom:6px } .ka-lg span::before { content:""; display:inline-block; width:14px; height:3px; border-radius:2px; margin-right:6px; vertical-align:3px; background:var(--c) }
+  .ka-mx { display:grid; grid-template-columns:minmax(100px,.7fr) minmax(0,2fr) auto; gap:14px; align-items:center; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px } .ka-mx:last-of-type { border-bottom:0 }
+  .ka-mx .n { font-weight:600; color:var(--ink) } .ka-mx .n small { display:block; font-weight:400; color:var(--mut) }
+  .ka-mx .b { display:flex; height:22px; border-radius:7px; overflow:hidden; background:var(--head) } .ka-mx .b i { display:grid; place-items:center; color:#fff; font-size:11px; font-weight:600; font-style:normal; min-width:0; overflow:hidden; white-space:nowrap } .ka-mx .b i.r { color:var(--navy); background:var(--sky) }
+  .ka-mx .t { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap } .ka-mx .t small { display:block; color:var(--mut) }
+  .ka-tg { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:18px; margin-bottom:18px }
+  .ka-tc { padding:20px 22px 18px } .ka-tc h3 { font-size:16px } .ka-tc .big { font-size:30px; font-weight:700; letter-spacing:-.035em; margin:6px 0 0; line-height:1.1; font-variant-numeric:tabular-nums; color:var(--ink) }
+  .ka-tc .row { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:8px; font-size:13px; color:var(--mut) } .ka-tc .row b { color:var(--ink); font-weight:600 }
+  .ka-tc .ka-mb { height:7px; margin-top:12px } .ka-tc .top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px }
+  .ka-share { font-size:12px; font-weight:600; color:var(--navy); background:rgba(26,93,184,.1); padding:2px 9px; border-radius:99px; white-space:nowrap }
+  .ka-ah { background:linear-gradient(160deg, rgba(36,138,61,.10), rgba(36,138,61,.02) 70%), #fff }
+  .ka-ah .big { font-size:38px; font-weight:700; letter-spacing:-.04em; color:var(--kok); line-height:1.1; margin:2px 0 2px; font-variant-numeric:tabular-nums }
+  .ka-ah .li { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 12px; padding:10px 0; border-top:1px solid var(--line); font-size:13px } .ka-ah .li small { color:var(--mut); grid-column:1 / -1 } .ka-ah .li b { font-variant-numeric:tabular-nums }
+  .ka-aviso { font-size:12px; color:var(--mut); margin:12px 0 0 }
+  .ka .ka-hm { width:100%; border-collapse:separate; border-spacing:5px; min-width:560px; table-layout:fixed; background:transparent; font-size:inherit }
+  .ka .ka-hm th { position:static; background:none; text-transform:none; letter-spacing:0; border:0; font-size:12px; font-weight:600; color:var(--mut); text-align:center; padding:2px 0 6px } .ka .ka-hm th:first-child { text-align:left; width:150px }
+  .ka .ka-hm td { border:0; white-space:normal } .ka .ka-hm td.r { font-weight:600; font-size:13.5px; padding:0 6px 0 0; white-space:nowrap; color:var(--ink) }
+  .ka .ka-hm td.c { text-align:center; border-radius:14px; padding:12px 4px; font-variant-numeric:tabular-nums; position:relative; height:62px }
+  .ka-hm td.c b { display:block; font-size:15px; letter-spacing:-.02em } .ka-hm td.c small { display:block; font-size:11px; opacity:.8 }
+  .ka .ka-hm td.z { background:var(--head); color:var(--mut) } .ka-hm td.best { box-shadow:inset 0 0 0 2px var(--kok) }
+  .ka-hm td.best::after { content:"Más barata"; position:absolute; top:-7px; right:8px; background:var(--kok); color:#fff; font-size:10px; font-weight:600; padding:0 7px; border-radius:99px; line-height:15px }
+  .ka-vacio { text-align:center; color:var(--mut); padding:40px 20px } .ka-vacio b { display:block; color:var(--ink); font-size:16px; margin-bottom:4px }
+  @media (max-width:1100px) { .ka-grid { grid-template-columns:minmax(0,1fr) } .ka-fix { position:static } }
+  @media (max-width:900px) { .ka-kpis { grid-template-columns:repeat(2, minmax(0,1fr)) } .ka-kp:nth-child(3) { border-left:0 } .ka-kp:nth-child(n+3) { border-top:1px solid var(--line) } }
+  @media (max-width:640px) {
+    .ka-card { padding:18px 16px; border-radius:22px } .ka-kp { padding:14px 16px } .ka-kp b { font-size:22px } .ka-q { width:100% } .ka-oc { display:none !important }
+    .ka .ka-rt { min-width:0 } .ka .ka-rt th:first-child, .ka .ka-rt td.ka-ix { display:none } .ka .ka-rt th, .ka .ka-rt td { padding-left:5px; padding-right:5px } .ka-cc { min-width:70px } .ka-rp { padding:2px 7px; font-size:12px } .ka-vs { font-size:9.5px; white-space:normal } .ka-nm b, .ka-cc b { font-size:13px } .ka-nm small { font-size:11px }
+    .ka-dv { grid-template-columns:80px minmax(0,1fr) auto } .ka-mx { grid-template-columns:minmax(0,1fr) auto } .ka-mx .b { grid-column:1 / -1; order:3 }
+  }
