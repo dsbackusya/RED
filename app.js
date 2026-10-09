@@ -1159,7 +1159,7 @@ function kaVistaRanking(id) {
     const medP = P ? mediana([...P.nodos.values()].filter(x => x.cajas).map(x => x.costo / x.cajas)) : 0;
     hall = kaHall(cj.length >= 3 && caro.r > ref * 1.3 ? `<b>${esc(kaNom(caro.name))}</b> registra una tarifa de <b>${fmt(caro.r)}</b> por caja, <b>${kaVeces(caro.r, ref)}</b>. Los nodos por encima de la mediana acumulan <b>${kaF0(sob)}</b> de sobrecosto (${(sob / T * 100).toFixed(0)} % del costo).` : cj.length ? `La tarifa mediana por caja es <b>${fmt(ref)}</b>; ningún nodo la supera en más de 30 %.` : 'No hay cajas registradas para calcular la tarifa por caja.');
     kp = [['Costo del período', fmt(T), kaDl(T, kA.prev.total) + (hayP ? ' frente al período anterior' : '')], ['Nodos con envíos', items.length, zN ? `${zN} ${zN === 1 ? 'zona' : 'zonas'}` : 'sin zona asignada'], ['Tarifa mediana por caja', ref ? fmt(ref) : '-', (medP && ref ? kaDl(ref, medP) + ' frente al período anterior' : '')], ['Sobrecosto sobre la mediana', kaF0(sob), `${(sob / T * 100).toFixed(0)} % del costo del período`]];
-    if (cj.length >= 2 && ref) side = kaDesvio(items, ref, c, 'Desviación frente a la mediana', 'Diferencia porcentual entre la tarifa por caja de cada nodo y la mediana. Al pasar el cursor se muestra el sobrecosto estimado.');
+    if (cj.length >= 2 && ref) side = kaDesvio(items, ref, c, 'Tarifa por caja frente a la mediana', 'Diferencia porcentual entre la tarifa por caja de cada nodo y la mediana. Al pasar el cursor se muestra el sobrecosto estimado.');
     mapa = kaMapaHTML(items); kaPaint.push(() => kaMapaDibujar());
     if (kA.act > 2 && items.length >= 2) bottom = `<div class="ka-card ka-full"><div class="ka-cab"><div><h3>Evolución de los ${Math.min(5, items.length)} nodos de mayor costo</h3><p class="ka-hint">Costo por ${kA.tr.sem ? 'semana' : 'día'}. Permite distinguir un nivel de costo sostenido de un pico puntual.</p></div></div>
       <div class="ka-lg">${items.slice(0, 5).map((x, k) => `<span style="--c:${KA_PAL[k]}">${esc(kaNom(x.name))}</span>`).join('')}</div><div class="ka-ch" id="kaLin"></div></div>`;
@@ -1215,7 +1215,7 @@ let kaGeo = null, kaGeoEstado = '';
 const kaProv = new Map(), kaM = { met: 'costo', vis: 'relleno', vb: null, ar: null, mov: false };
 function kaCargarGeo() {
   if (kaGeoEstado === 'cargando' || kaGeoEstado === 'ok') return; kaGeoEstado = 'cargando';
-  fetch('mapa_peru.json?v=20261008f').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  fetch('mapa_peru.json?v=20261008g').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(g => { kaGeo = g; g.p.forEach(p => kaProv.set(norm(p[0]), p)); kaGeoEstado = 'ok'; })
     .catch(() => { kaGeoEstado = 'error'; })
     .then(() => { if (document.querySelector('#kpTabs .on')?.dataset.v === 'nodo') kaPintar('nodo'); });
