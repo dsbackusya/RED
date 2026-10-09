@@ -1448,7 +1448,7 @@ function kSync() {
   $('#kgMes').classList.toggle('hide', !['mes', 'ant', 'sel'].includes(kst.p)); $('#kgRango').classList.toggle('hide', kst.p !== 'per');
   document.querySelectorAll('#kTransSeg button').forEach(b => b.classList.toggle('on', b.dataset.t === $('#kTrans').value));
   const r = kst.modo === 'r'; $('#tab-kpis').classList.toggle('modo-r', r); $('#kModo').classList.toggle('r', r); document.querySelectorAll('#kModo button').forEach(b => b.classList.toggle('on', (b.dataset.md === 'r') === r));
-  $('#kSub').textContent = r ? 'Devoluciones: costo, pedidos recogidos y tiempo de retorno por nodo' : 'Análisis del costo de transporte por cuenta, nodo, agencia, transporte y zona';
+  $('#kSub').textContent = r ? 'Costo, volumen y tiempo de retorno de las devoluciones, por nodo, proveedor y cuenta' : 'Análisis del costo de transporte por cuenta, nodo, agencia, transporte y zona';
 }
 function kPeriodo(p) {
   kst.p = p; const hoy = new Date();
@@ -1890,7 +1890,7 @@ function informePDF() {
     ${tabla('Costo por zona', ['Zona', 'Costo', '% total', 'Cajas', 'Tarifa por caja'], top(R.zonas, 20).map(([k, v]) => [esc(k), fmt(v.costo), pc(v.costo), fmtN(v.cajas), caja(v)]))}
     ${tabla('Costo por transporte', ['Transporte', 'Costo', '% total', 'Pedidos', 'Costo por pedido', 'Tarifa por caja'], top(R.transportes, 20).map(([k, v]) => [esc(k), fmt(v.costo), pc(v.costo), fmtN(v.pedidos), ped(v), caja(v)]))}
     ${dias.length > 1 ? tabla('Costo por día', ['Día', 'Registros', 'Pedidos', 'Contado', 'Crédito', 'Costo total'], dias.map(d => [fdmy(d.fecha), d.registros, fmtN(d.pedidos), fmt(d.contado), fmt(d.credito), fmt(d.costo)])) : ''}
-    <footer>Generado el ${new Date().toLocaleString('es-PE')}. Red Troncal, Dinet Logística.</footer>
+    <footer>Informe generado el ${new Date().toLocaleString('es-PE')} | Red Troncal, Dinet Logística</footer>
   </body></html>`;
   w.document.open(); w.document.write(html); w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 600);
 }
@@ -1986,7 +1986,7 @@ async function recPrevio(desde, hasta, trans) {
 }
 async function calcularRecojos(silencioso) {
   const desde = $('#kDesde').value, hasta = $('#kHasta').value, trans = $('#kTrans').value, mi = ++kSeq;
-  if (desde && hasta && desde > hasta) { $('#kRec').innerHTML = '<div class="kr-c kr-vacio"><b>La fecha inicial es posterior a la fecha final</b>Corregir el rango para visualizar los recojos.</div>'; $('#tab-kpis').classList.remove('kload'); return; }
+  if (desde && hasta && desde > hasta) { $('#kRec').innerHTML = '<div class="kr-c kr-vacio"><b>La fecha inicial es posterior a la fecha final</b>Corregir el rango para visualizar la información.</div>'; $('#tab-kpis').classList.remove('kload'); return; }
   $('#kRefrescar').disabled = true; pintarActivos(); $('#tab-kpis').classList.add('kload');
   try {
     const rango = (q, col) => { if (desde) q = q.gte(col, desde); if (hasta) q = q.lte(col, hasta); return q; };
@@ -2011,36 +2011,36 @@ async function calcularRecojos(silencioso) {
 const recCumple = (R, plazo) => { const v = R.items.filter(x => x.dias != null), dentro = v.filter(x => x.dias <= plazo).length; return { n: v.length, dentro, pct: v.length ? dentro / v.length * 100 : 0, fuera: v.filter(x => x.dias > plazo).sort((a, b) => b.dias - a.dias) }; };
 function recHallazgos(R, P) {
   const h = [], lentos = krLentos(R), C = recCumple(R, krPlazo);
-  if (lentos.length > 1 && R.dias) { const [n, v] = lentos[0], dif = (v / R.dias - 1) * 100; if (dif >= 25) h.push(['w', `${n} es el nodo más lento: ${v.toFixed(1)} días, ${dif.toFixed(0)} % por encima del promedio (${R.dias.toFixed(1)} días).`]); }
+  if (lentos.length > 1 && R.dias) { const [n, v] = lentos[0], dif = (v / R.dias - 1) * 100; if (dif >= 25) h.push(['w', `${n} presenta el mayor tiempo de retorno: ${v.toFixed(1)} días, ${dif.toFixed(0)} % sobre el promedio (${R.dias.toFixed(1)} días).`]); }
   const pr = [...R.grupos.prov].filter(([k, v]) => v.dn && !k.startsWith('(')).map(([k, v]) => [k, v.dsum / v.dn]).sort((a, b) => b[1] - a[1]);
-  if (pr.length > 1 && pr[0][1] >= pr[pr.length - 1][1] * 1.5) h.push(['w', `${pr[0][0]} promedia ${pr[0][1].toFixed(1)} días frente a ${pr[pr.length - 1][1].toFixed(1)} de ${pr[pr.length - 1][0]}.`]);
+  if (pr.length > 1 && pr[0][1] >= pr[pr.length - 1][1] * 1.5) h.push(['w', `${pr[0][0]} registra un retorno promedio de ${pr[0][1].toFixed(1)} días, frente a ${pr[pr.length - 1][1].toFixed(1)} días de ${pr[pr.length - 1][0]}.`]);
   const et = R.etapas.filter(e => e[1] != null && e[1] > 0), tot = et.reduce((x, e) => x + e[1], 0);
-  if (et.length && tot > 0) { const m = et.reduce((a, b) => b[1] > a[1] ? b : a); h.push(['i', `La etapa más larga es "${m[0]}": ${m[1].toFixed(1)} días, el ${(m[1] / tot * 100).toFixed(0)} % del recorrido.`]); }
-  if (C.n) h.push([C.pct >= 90 ? 'ok' : C.pct >= 70 ? 'i' : 'w', `${C.dentro} de ${C.n} pedidos (${C.pct.toFixed(0)} %) volvieron en ${krPlazo} días o menos.`]);
-  if (kRecCpp && R.costo && R.pedidos) { const cpp = R.costo / R.pedidos; h.push(['i', `Un pedido de recojo cuesta ${(cpp / kRecCpp).toFixed(1)} veces uno de despacho (${fmt(cpp)} frente a ${fmt(kRecCpp)}).`]); }
-  if (P && P.costo && R.costo) { const d = (R.costo / P.costo - 1) * 100; if (Math.abs(d) >= 10) h.push([d > 0 ? 'w' : 'ok', `El costo de recojos ${d > 0 ? 'subió' : 'bajó'} ${Math.abs(d).toFixed(0)} % frente al período anterior (${fmt(P.costo)}).`]); }
-  if (P && P.dias && R.dias) { const d = (R.dias / P.dias - 1) * 100; if (Math.abs(d) >= 15) h.push([d > 0 ? 'w' : 'ok', `El tiempo de retorno ${d > 0 ? 'aumentó' : 'disminuyó'} ${Math.abs(d).toFixed(0)} % frente al período anterior (${P.dias.toFixed(1)} días).`]); }
-  if (R.totalEnv && R.conDetalle < R.totalEnv) h.push(['w', `${R.totalEnv - R.conDetalle} ${R.totalEnv - R.conDetalle === 1 ? 'recojo' : 'recojos'} sin detalle: su costo no se reparte por cuenta, motivo ni proveedor.`]);
+  if (et.length && tot > 0) { const m = et.reduce((a, b) => b[1] > a[1] ? b : a); h.push(['i', `La etapa de mayor duración es "${m[0]}": ${m[1].toFixed(1)} días, equivalente al ${(m[1] / tot * 100).toFixed(0)} % del recorrido.`]); }
+  if (C.n) h.push([C.pct >= 90 ? 'ok' : C.pct >= 70 ? 'i' : 'w', `${C.dentro} de ${C.n} pedidos (${C.pct.toFixed(0)} %) retornaron dentro del plazo objetivo de ${krPlazo} días.`]);
+  if (kRecCpp && R.costo && R.pedidos) { const cpp = R.costo / R.pedidos; h.push(['i', `El costo por pedido de recojo equivale a ${(cpp / kRecCpp).toFixed(1)} veces el de despacho (${fmt(cpp)} frente a ${fmt(kRecCpp)}).`]); }
+  if (P && P.costo && R.costo) { const d = (R.costo / P.costo - 1) * 100; if (Math.abs(d) >= 10) h.push([d > 0 ? 'w' : 'ok', `El costo de recojos ${d > 0 ? 'aumentó' : 'disminuyó'} ${Math.abs(d).toFixed(0)} % respecto del período anterior (${fmt(P.costo)}).`]); }
+  if (P && P.dias && R.dias) { const d = (R.dias / P.dias - 1) * 100; if (Math.abs(d) >= 15) h.push([d > 0 ? 'w' : 'ok', `El tiempo promedio de retorno ${d > 0 ? 'aumentó' : 'disminuyó'} ${Math.abs(d).toFixed(0)} % respecto del período anterior (${P.dias.toFixed(1)} días).`]); }
+  if (R.totalEnv && R.conDetalle < R.totalEnv) h.push(['w', `${R.totalEnv - R.conDetalle} ${R.totalEnv - R.conDetalle === 1 ? 'recojo con importe no tiene' : 'recojos con importe no tienen'} detalle asociado: su costo no se distribuye por cuenta, motivo ni proveedor.`]);
   return h;
 }
 function krHallazgos(R) {
   const h = recHallazgos(R, kRecPrev).slice(0, 6); if (!h.length) return '<span id="krHall"></span>';
-  return `<section class="kr-c kr-hall" id="krHall"><div class="kr-cab"><div><h3>Hallazgos</h3><p>Lo más relevante del período, calculado automáticamente.</p></div></div><ul>${h.map(([c, t]) => `<li><i class="kr-hd ${c}"></i><span>${esc(t)}</span></li>`).join('')}</ul></section>`;
+  return `<section class="kr-c kr-hall" id="krHall"><div class="kr-cab"><div><h3>Hallazgos del período</h3><p>Principales observaciones, generadas a partir de los datos del período.</p></div></div><ul>${h.map(([c, t]) => `<li><i class="kr-hd ${c}"></i><span>${esc(t)}</span></li>`).join('')}</ul></section>`;
 }
 const KR_ET = ['#1a5db8', '#4f93e6', '#34a853', '#e8a317', '#8e8e93'];
 function krEtapas(R) {
   const et = R.etapas, hay = et.some(e => e[1] != null), suma = et.reduce((x, e) => x + (e[1] > 0 ? e[1] : 0), 0), mx = et.reduce((m, e) => e[1] != null && e[1] > m ? e[1] : m, 0);
-  if (!hay) return `<section class="kr-c"><div class="kr-cab"><div><h3>Dónde se va el tiempo</h3><p>Promedio de días en cada etapa del recorrido.</p></div></div><p class="kr-h">El detalle no trae las fechas de cada etapa en este período.</p></section>`;
-  return `<section class="kr-c"><div class="kr-cab"><div><h3>Dónde se va el tiempo</h3><p>Promedio de días en cada etapa del recorrido.</p></div>${R.totalCompleto != null ? `<div class="kr-tot">${R.totalCompleto.toFixed(1)} días<small>del pedido a la llegada a CTD</small></div>` : ''}</div>
+  if (!hay) return `<section class="kr-c"><div class="kr-cab"><div><h3>Tiempo por etapa del recorrido</h3><p>Promedio de días de cada etapa, desde el pedido hasta la llegada a CTD.</p></div></div><p class="kr-h">El detalle del período no incluye las fechas de cada etapa.</p></section>`;
+  return `<section class="kr-c"><div class="kr-cab"><div><h3>Tiempo por etapa del recorrido</h3><p>Promedio de días de cada etapa, desde el pedido hasta la llegada a CTD.</p></div>${R.totalCompleto != null ? `<div class="kr-tot">${R.totalCompleto.toFixed(1)} días<small>recorrido total</small></div>` : ''}</div>
     <div class="kr-et">${et.map((e, i) => e[1] > 0 ? `<i style="flex:${(e[1] / suma).toFixed(4)};background:${KR_ET[i]}" title="${esc(e[0])}: ${e[1].toFixed(1)} días"></i>` : '').join('')}</div>
-    <ul class="kr-etl">${et.map((e, i) => `<li><i style="background:${KR_ET[i]}"></i><span>${esc(e[0])}${e[1] != null && e[1] === mx && mx > 0 ? '<em>Mayor demora</em>' : ''}</span><b>${e[1] != null ? e[1].toFixed(1) + ' días' : '-'}</b></li>`).join('')}</ul></section>`;
+    <ul class="kr-etl">${et.map((e, i) => `<li><i style="background:${KR_ET[i]}"></i><span>${esc(e[0])}${e[1] != null && e[1] === mx && mx > 0 ? '<em>Mayor duración</em>' : ''}</span><b>${e[1] != null ? e[1].toFixed(1) + ' días' : '-'}</b></li>`).join('')}</ul></section>`;
 }
 function krCump(R) {
   const C = recCumple(R, krPlazo), cls = C.pct >= 90 ? 'v' : C.pct >= 70 ? 'a' : 'r';
-  const cab = `<div class="kr-cab"><div><h3>Cumplimiento de plazo</h3><p>Pedidos que volvieron dentro del plazo objetivo, contado desde la solicitud CX.</p></div><label class="kr-pl">Plazo <input type="number" id="krPlazo" min="1" max="60" value="${krPlazo}" aria-label="Plazo objetivo en días"> días</label></div>`;
-  if (!C.n) return `<section class="kr-c" id="krCump">${cab}<p class="kr-h">El detalle no trae fechas de solicitud y llegada para calcular el plazo.</p></section>`;
-  return `<section class="kr-c" id="krCump">${cab}<div class="kr-pct"><b>${C.pct.toFixed(0)} %</b><span>${C.dentro} de ${C.n} pedidos en ${krPlazo} días o menos</span></div><div class="kr-pb"><i class="${cls}" style="width:${C.pct.toFixed(1)}%"></i></div>
-    ${C.fuera.length ? `<div class="kr-fu">Pedidos fuera de plazo${C.fuera.length > 5 ? ` (los 5 más lentos de ${C.fuera.length})` : ''}</div><div class="kr-tw"><table class="kr-t"><thead><tr><th>Pedido</th><th>Nodo</th><th>Proveedor</th><th class="n">Días</th></tr></thead><tbody>${C.fuera.slice(0, 5).map(x => `<tr><td class="cut" title="${esc(x.pedido || '')}">${esc(x.pedido || '-')}</td><td>${esc(x.nodo)}</td><td class="cut">${esc(x.prov)}</td><td class="n dlento">${x.dias}</td></tr>`).join('')}</tbody></table></div>` : '<p class="kr-h">Todos los pedidos volvieron dentro del plazo.</p>'}</section>`;
+  const cab = `<div class="kr-cab"><div><h3>Cumplimiento de plazo</h3><p>Porcentaje de pedidos retornados dentro del plazo objetivo, medido desde la solicitud CX.</p></div><label class="kr-pl">Plazo objetivo <input type="number" id="krPlazo" min="1" max="60" value="${krPlazo}" aria-label="Plazo objetivo en días"> días</label></div>`;
+  if (!C.n) return `<section class="kr-c" id="krCump">${cab}<p class="kr-h">El detalle no incluye las fechas necesarias para medir el plazo.</p></section>`;
+  return `<section class="kr-c" id="krCump">${cab}<div class="kr-pct"><b>${C.pct.toFixed(0)} %</b><span>${C.dentro} de ${C.n} pedidos dentro de ${krPlazo} días</span></div><div class="kr-pb"><i class="${cls}" style="width:${C.pct.toFixed(1)}%"></i></div>
+    ${C.fuera.length ? `<div class="kr-fu">Pedidos fuera de plazo${C.fuera.length > 5 ? ` (los 5 de mayor duración, de ${C.fuera.length})` : ` (${C.fuera.length})`}</div><div class="kr-tw"><table class="kr-t"><thead><tr><th>Pedido</th><th>Nodo</th><th>Proveedor</th><th class="n">Días</th></tr></thead><tbody>${C.fuera.slice(0, 5).map(x => `<tr><td class="cut" title="${esc(x.pedido || '')}">${esc(x.pedido || '-')}</td><td>${esc(x.nodo)}</td><td class="cut">${esc(x.prov)}</td><td class="n dlento">${x.dias}</td></tr>`).join('')}</tbody></table></div>` : '<p class="kr-h">Todos los pedidos retornaron dentro del plazo objetivo.</p>'}</section>`;
 }
 const krLentos = R => [...R.grupos.nodo].filter(([, v]) => v.dn).map(([k, v]) => [k, v.dsum / v.dn]).sort((a, b) => b[1] - a[1]);
 const krBarras = () => requestAnimationFrame(() => requestAnimationFrame(() => document.querySelectorAll('#kRec .kr-bar i').forEach(i => i.style.width = i.dataset.w + '%')));
@@ -2054,11 +2054,11 @@ function krTabla(R) {
   const ok = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>', ale = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>';
   const lista = (a, f) => a.slice(0, 3).map(f).join(', ') + (a.length > 3 ? '…' : '');
   const avisos = [];
-  if (!kRecDet) avisos.push(['w', 'Falta ejecutar supabase_recojo_detalle.sql en Supabase']);
-  if (R.totalEnv) avisos.push(R.conDetalle === R.totalEnv ? ['', `${R.conDetalle} de ${R.totalEnv} ${R.totalEnv === 1 ? 'recojo' : 'recojos'} con su detalle`] : ['w', `${R.totalEnv - R.conDetalle} ${R.totalEnv - R.conDetalle === 1 ? 'recojo con importe y sin detalle' : 'recojos con importe y sin detalle'}: ${lista(R.sinDetalle, g => `${g.nodo} ${fdmy(g.fecha).slice(0, 5)}`)}`]);
-  if (R.sinRecojo.length) avisos.push(['w', `Detalle sin recojo registrado: ${lista(R.sinRecojo, g => `${g.nodo} ${fdmy(g.fecha).slice(0, 5)} (${g.n})`)}`]);
-  if (R.sinImporte) avisos.push(['w', `${R.sinImporte} ${R.sinImporte === 1 ? 'recojo sin importe' : 'recojos sin importe'}: completar en Registros`]);
-  return `<section class="kr-c" id="krTabla"><div class="kr-tabs"><b>${{ nodo: 'Costo y tiempo de retorno por nodo', cuenta: 'Costo repartido por cuenta', motivo: 'Costo repartido por motivo de devolución', prov: 'Costo y tiempo de retorno por proveedor' }[tipo]}</b>
+  if (!kRecDet) avisos.push(['w', 'Detalle de recojos no disponible: falta crear la tabla en la base de datos (supabase_recojo_detalle.sql)']);
+  if (R.totalEnv) avisos.push(R.conDetalle === R.totalEnv ? ['', `${R.conDetalle} de ${R.totalEnv} ${R.totalEnv === 1 ? 'recojo cuenta' : 'recojos cuentan'} con detalle asociado`] : ['w', `${R.totalEnv - R.conDetalle} ${R.totalEnv - R.conDetalle === 1 ? 'recojo con importe sin detalle asociado' : 'recojos con importe sin detalle asociado'}: ${lista(R.sinDetalle, g => `${g.nodo} ${fdmy(g.fecha).slice(0, 5)}`)}`]);
+  if (R.sinRecojo.length) avisos.push(['w', `Detalle sin recojo registrado en el período: ${lista(R.sinRecojo, g => `${g.nodo} ${fdmy(g.fecha).slice(0, 5)} (${g.n})`)}`]);
+  if (R.sinImporte) avisos.push(['w', `${R.sinImporte} ${R.sinImporte === 1 ? 'recojo sin importe registrado' : 'recojos sin importe registrado'}`]);
+  return `<section class="kr-c" id="krTabla"><div class="kr-tabs"><b>${{ nodo: 'Costo y tiempo de retorno por nodo', cuenta: 'Costo distribuido por cuenta', motivo: 'Costo distribuido por motivo de devolución', prov: 'Costo y tiempo de retorno por proveedor' }[tipo]}</b>
       <div class="pseg" id="krSeg">${[['nodo', 'Por nodo'], ['prov', 'Por proveedor'], ['cuenta', 'Por cuenta'], ['motivo', 'Por motivo']].map(([k, t]) => `<button type="button" data-rt="${k}" class="${tipo === k ? 'on' : ''}">${t}</button>`).join('')}</div></div>
       <div class="kr-tw"><table class="kr-t"><thead><tr><th>${nombre}</th><th class="n">Pedidos</th><th class="n">Costo</th><th class="n">Por pedido</th><th style="width:28%">${conDias ? 'Días de retorno' : 'Participación'}</th></tr></thead><tbody>${filas}</tbody></table></div>
       ${avisos.length ? `<div class="kr-av">${avisos.map(([c, t]) => `<span class="kr-a ${c}">${c ? ale : ok}${esc(t)}</span>`).join('')}</div>` : ''}</section>`;
@@ -2066,17 +2066,17 @@ function krTabla(R) {
 function pintarRecojos() {
   const R = kRecR, el = $('#kRec'); if (!R) return;
   const hay = R.pedidos || R.costo || R.sinRecojo.length || R.sinImporte;
-  if (!hay) { el.innerHTML = '<div class="kr-c kr-vacio"><b>Sin recojos en el período seleccionado</b>Cargar la hoja RECOJOS y la hoja DETALLE RECOJOS en Cargar despacho.</div>'; return; }
+  if (!hay) { el.innerHTML = '<div class="kr-c kr-vacio"><b>No hay recojos registrados en el período seleccionado</b>Verificar el rango de fechas o cargar la información en la pestaña Cargar despacho.</div>'; return; }
   const cpp = R.pedidos && R.costo ? R.costo / R.pedidos : 0, lentos = krLentos(R);
-  const tag = lentos.length > 1 ? `<span class="kr-tag">${esc(lentos[0][0])} ${lentos[0][1].toFixed(1)}</span>` : '';
+  const tag = lentos.length > 1 ? `<span class="kr-tag">Mayor: ${esc(lentos[0][0])} ${lentos[0][1].toFixed(1)}</span>` : '';
   const P = kRecPrev, pc = P && P.pedidos && P.costo ? P.costo / P.pedidos : 0;
   const dl = (x, y, tipo) => { if (!x || !y) return ''; const d = (x - y) / y * 100, c = Math.abs(d) < .5 ? '' : tipo === 'neutro' ? '' : d > 0 ? 'up' : 'dn'; return `<em class="kr-d ${c}" title="Período anterior">${Math.abs(d) < .5 ? 'Sin cambio' : (d > 0 ? '+' : '-') + Math.abs(d).toFixed(1) + ' %'}</em>`; };
   const cifra = (t, v, s, d = '') => `<div class="kr-cifra"><span>${t}</span><b>${v}${d}</b><small>${s}</small></div>`;
-  const cifras = cifra('Costo de recojos', R.costo ? fmt(R.costo) : '-', R.costo ? `${R.registros} ${R.registros === 1 ? 'recojo' : 'recojos'}, ${R.nodos} ${R.nodos === 1 ? 'nodo' : 'nodos'}${P && P.costo ? `. Período anterior: ${fmt(P.costo)}` : ''}` : 'Falta el importe de los recojos', P ? dl(R.costo, P.costo) : '') +
+  const cifras = cifra('Costo de recojos', R.costo ? fmt(R.costo) : '-', R.costo ? `${R.registros} ${R.registros === 1 ? 'recojo' : 'recojos'} en ${R.nodos} ${R.nodos === 1 ? 'nodo' : 'nodos'}${P && P.costo ? `. Período anterior: ${fmt(P.costo)}` : ''}` : 'Importe pendiente de registro', P ? dl(R.costo, P.costo) : '') +
     cifra('Pedidos recogidos', fmtN(R.pedidos), `${fmtN(R.bultos)} ${R.bultos === 1 ? 'bulto' : 'bultos'}${R.guias ? `, ${R.guias} ${R.guias === 1 ? 'guía' : 'guías'}` : ''}${P && P.pedidos ? `. Período anterior: ${fmtN(P.pedidos)}` : ''}`, P ? dl(R.pedidos, P.pedidos, 'neutro') : '') +
-    cifra('Costo por pedido', cpp ? fmt(cpp) : '-', kRecCpp ? (cpp ? `frente a ${fmt(kRecCpp)} en despacho` : `en despacho: ${fmt(kRecCpp)}`) : 'Sin despachos para comparar', dl(cpp, pc)) +
-    `<div class="kr-cifra"><span>Días de retorno${tag}</span><b>${R.dias != null ? R.dias.toFixed(1) : '-'}${P ? dl(R.dias, P.dias) : ''}</b><small>${R.dias != null ? 'de la solicitud CX a la llegada a CTD' : 'Sin fechas de retorno en el detalle'}${P && P.dias ? `. Período anterior: ${P.dias.toFixed(1)}` : ''}</small></div>`;
-  el.innerHTML = `<section class="kr-c"><div class="kr-cab"><div><h3>Recojos</h3><p>Devoluciones recogidas en el período. El costo de cada recojo se reparte entre los pedidos de su detalle, por fecha y nodo.</p></div><button type="button" class="kr-ver" id="krVer">Ver el detalle de recojos</button></div><div class="kr-cifras">${cifras}</div></section>${krHallazgos(R)}<div class="kr-dos">${krEtapas(R)}${krCump(R)}</div>${krMapaHTML()}${krTabla(R)}`;
+    cifra('Costo por pedido', cpp ? fmt(cpp) : '-', kRecCpp ? (cpp ? `frente a ${fmt(kRecCpp)} en despacho` : `en despacho: ${fmt(kRecCpp)}`) : 'Sin despachos en el período para comparar', dl(cpp, pc)) +
+    `<div class="kr-cifra"><span>Días de retorno${tag}</span><b>${R.dias != null ? R.dias.toFixed(1) : '-'}${P ? dl(R.dias, P.dias) : ''}</b><small>${R.dias != null ? 'de la solicitud CX a la llegada a CTD' : 'Sin fechas suficientes en el detalle'}${P && P.dias ? `. Período anterior: ${P.dias.toFixed(1)}` : ''}</small></div>`;
+  el.innerHTML = `<section class="kr-c"><div class="kr-cab"><div><h3>Resumen de recojos</h3><p>Devoluciones recogidas en el período. El costo de cada recojo se distribuye entre los pedidos de su detalle, según fecha y nodo.</p></div><button type="button" class="kr-ver" id="krVer">Ver detalle de recojos</button></div><div class="kr-cifras">${cifras}</div></section>${krHallazgos(R)}<div class="kr-dos">${krEtapas(R)}${krCump(R)}</div>${krMapaHTML()}${krTabla(R)}`;
   krBarras(); krMapaDibujar();
 }
 
@@ -2094,7 +2094,7 @@ function krColor(v, lo, hi) {
   const a = [214, 228, 250], b = [11, 61, 130], s = Math.sqrt(t); return 'rgb(' + a.map((x, i) => Math.round(x + (b[i] - x) * s)).join(',') + ')';
 }
 function krMapaHTML() {
-  const cab = '<div class="kr-cab"><div><h3>Días de retorno por provincia</h3><p>Cada nodo se ubica en su provincia. Las más lentas en volver se pintan en rojo.</p></div>';
+  const cab = '<div class="kr-cab"><div><h3>Días de retorno por provincia</h3><p>Tiempo promedio de retorno por provincia. Las provincias con mayor tiempo se muestran en rojo.</p></div>';
   if (kaGeoEstado === 'error') return `<section class="kr-c">${cab}</div><p class="kr-h">No se pudo cargar el mapa. Actualizar la página para intentarlo de nuevo.</p></section>`;
   if (!kaGeo) { kaCargarGeo(); return `<section class="kr-c">${cab}</div><div class="ka-lienzo kr-lz" style="cursor:default"><div class="cargando">Cargando el mapa…</div></div></section>`; }
   krItems().forEach(x => { if (!x.p) x.p = null; });
@@ -2118,7 +2118,7 @@ function krMapaDibujar() {
   svg.innerHTML = `<g id="krGp">${kaGeo.p.map(p => { const x = por.get(p[0]);
     const tip = x ? `<b>${esc(x.name)}</b><small>${esc(p[0])} · ${esc(p[1])}</small>${kaTf('Días de retorno', x.dias != null ? x.dias.toFixed(1) : '-')}${kaTf('Pedidos', fmtN(x.n))}${kaTf('Costo', x.costo ? fmt(x.costo) : '-')}` : `<b>${esc(p[0])}</b><small>Sin recojos en el período</small>`;
     return `<path class="ka-prov ${x ? 'd' : ''}" data-p="${esc(p[0])}" ${x ? `data-n="${esc(x.name)}"` : ''} ${kaTipA(tip)} d="${p[4]}"/>`; }).join('')}</g><g id="krGm"></g>`;
-  const sin = items.filter(x => !x.p); $('#krFuente').textContent = `Límites provinciales: INEI (2007).${sin.length ? ` ${sin.length} ${sin.length === 1 ? 'nodo no está ubicado' : 'nodos no están ubicados'} en el mapa (${sin.map(x => x.name).join(', ')}).` : ''}`;
+  const sin = items.filter(x => !x.p); $('#krFuente').textContent = `Límites provinciales: INEI (2007).${sin.length ? ` ${sin.length} ${sin.length === 1 ? 'nodo sin ubicación' : 'nodos sin ubicación'} en el mapa (${sin.map(x => x.name).join(', ')}).` : ''}`;
   krMapaActualizar(true);
   const zl = $('#krLz');
   zl.addEventListener('pointerdown', e => { if (e.target.closest('.ka-zoom')) return; krM.ar = { x: e.clientX, y: e.clientY, vx: krM.vb.x, vy: krM.vb.y, t: e.target.closest('.ka-prov.d, .kr-mk') }; krM.mov = false; });
@@ -2143,12 +2143,12 @@ function krPanel(items, ub) {
   let ficha = '';
   if (x) {
     const dif = x.dias != null && R.dias ? (x.dias / R.dias - 1) * 100 : null;
-    ficha = `<div class="kr-fi"><small>${x.p ? esc(x.p[0] + ' · ' + x.p[1]) : 'Sin ubicar en el mapa'}</small><h4>${esc(x.name)}</h4>
+    ficha = `<div class="kr-fi"><small>${x.p ? esc(x.p[0] + ' · ' + x.p[1]) : 'Sin ubicación en el mapa'}</small><h4>${esc(x.name)}</h4>
       <div class="kr-fg"><div><span>Días de retorno</span><b>${x.dias != null ? x.dias.toFixed(1) : '-'}</b></div><div><span>Pedidos</span><b>${fmtN(x.n)}</b></div><div><span>Costo</span><b>${x.costo ? fmt(x.costo) : '-'}</b></div></div>
-      ${dif != null ? `<p class="${dif > 5 ? 'lento' : dif < -5 ? 'rapido' : ''}">${Math.abs(dif) <= 5 ? 'Cerca del promedio' : `${Math.abs(dif).toFixed(0)} % ${dif > 0 ? 'más lento' : 'más rápido'} que el promedio`} (${R.dias.toFixed(1)} días)</p>` : ''}</div>`;
+      ${dif != null ? `<p class="${dif > 5 ? 'lento' : dif < -5 ? 'rapido' : ''}">${Math.abs(dif) <= 5 ? 'En línea con el promedio' : `${Math.abs(dif).toFixed(0)} % ${dif > 0 ? 'sobre' : 'bajo'} el promedio`} (${R.dias.toFixed(1)} días)</p>` : ''}</div>`;
   }
-  const tit = { dias: 'Provincias más lentas en volver', pedidos: 'Provincias con más pedidos', costo: 'Provincias de mayor costo' }[krM.met];
-  $('#krPanel').innerHTML = ficha + `<div class="ka-sec" style="margin-top:14px">${tit}</div><div class="ka-top">${ord.slice(0, 8).map((n, i) => `<button type="button" data-n="${esc(n.name)}" class="${n.name === krM.sel ? 'sel' : ''}"><span class="n">${i + 1}</span><span class="nm"><b>${esc(n.name)}</b><i style="width:${krVal(n) / mx * 100}%"></i></span><span class="v">${krM.met === 'dias' ? n.dias.toFixed(1) + ' días' : krM.met === 'pedidos' ? fmtN(n.n) + ' pedidos' : fmt(n.costo)}</span></button>`).join('') || '<p class="kr-h">Sin datos para este indicador.</p>'}</div>`;
+  const tit = { dias: 'Provincias con mayor tiempo de retorno', pedidos: 'Provincias con más pedidos', costo: 'Provincias de mayor costo' }[krM.met];
+  $('#krPanel').innerHTML = ficha + `<div class="ka-sec" style="margin-top:14px">${tit}</div><div class="ka-top">${ord.slice(0, 8).map((n, i) => `<button type="button" data-n="${esc(n.name)}" class="${n.name === krM.sel ? 'sel' : ''}"><span class="n">${i + 1}</span><span class="nm"><b>${esc(n.name)}</b><i style="width:${krVal(n) / mx * 100}%"></i></span><span class="v">${krM.met === 'dias' ? n.dias.toFixed(1) + ' días' : krM.met === 'pedidos' ? fmtN(n.n) + ' pedidos' : fmt(n.costo)}</span></button>`).join('') || '<p class="kr-h">Sin datos para este indicador en el período.</p>'}</div>`;
 }
 function krAjustar() {
   const v = krM.vb, w0 = kaGeo.w, h0 = kaGeo.h;
@@ -2211,11 +2211,11 @@ function informeRecojosPDF() {
   const tabla = (t, cab, filas) => `<h2>${t}</h2><table><tr>${cab.map((c, i) => `<th${i ? ' class="r"' : ''}>${c}</th>`).join('')}</tr>${filas.map(f => `<tr>${f.map((c, i) => `<td${i ? ' class="r"' : ''}>${c}</td>`).join('')}</tr>`).join('')}</table>`;
   const filas = m => [...m].sort((a, b) => b[1].costo - a[1].costo).slice(0, 20).map(([k, v]) => [esc(k), fmtN(v.n), v.costo ? fmt(v.costo) : '-', v.n && v.costo ? fmt(v.costo / v.n) : '-', v.dn ? (v.dsum / v.dn).toFixed(1) : '-']);
   const obs = [];
-  if (R.totalEnv && R.conDetalle < R.totalEnv) obs.push(`${R.totalEnv - R.conDetalle} recojo(s) con importe y sin detalle: ${R.sinDetalle.map(g => `${g.nodo} ${fdmy(g.fecha).slice(0, 5)}`).join(', ')}.`);
-  if (R.sinRecojo.length) obs.push(`Detalle sin recojo registrado: ${R.sinRecojo.map(g => `${g.nodo} ${fdmy(g.fecha).slice(0, 5)} (${g.n})`).join(', ')}.`);
-  if (R.sinImporte) obs.push(`${R.sinImporte} recojo(s) sin importe registrado.`);
+  if (R.totalEnv && R.conDetalle < R.totalEnv) obs.push(`${R.totalEnv - R.conDetalle} ${R.totalEnv - R.conDetalle === 1 ? 'recojo con importe sin detalle asociado' : 'recojos con importe sin detalle asociado'}: ${R.sinDetalle.map(g => `${g.nodo} ${fdmy(g.fecha).slice(0, 5)}`).join(', ')}.`);
+  if (R.sinRecojo.length) obs.push(`Detalle sin recojo registrado en el período: ${R.sinRecojo.map(g => `${g.nodo} ${fdmy(g.fecha).slice(0, 5)} (${g.n})`).join(', ')}.`);
+  if (R.sinImporte) obs.push(`${R.sinImporte} ${R.sinImporte === 1 ? 'recojo sin importe registrado' : 'recojos sin importe registrado'}.`);
   const hallP = recHallazgos(R, kRecPrev), CP = recCumple(R, krPlazo), lentos = krLentos(R), mapa = document.querySelector('#krSvg') && document.querySelector('#krSvg .ka-prov.d') ? document.querySelector('#krSvg').outerHTML.replace(/class="([^"]*)"/g, (m, c) => 'class="' + c.replace(/\bsel\b/g, '').trim() + '"').replace(/ data-tip="[^"]*"/g, '') : '';
-  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de recojos de Red Troncal</title><style>
+  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de recojos y devoluciones</title><style>
     @page { size:A4; margin:14mm } * { box-sizing:border-box } body { font:11px/1.45 Inter,system-ui,Arial,sans-serif; color:#0f172a; margin:0 }
     header { display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #059669; padding-bottom:10px; margin-bottom:12px } header img { height:42px } h1 { font-size:20px; margin:0 } .sub { color:#64748b; font-size:11px }
     h2 { font-size:13px; margin:18px 0 6px; border-left:4px solid #2563eb; padding-left:8px; break-after:avoid } table { width:100%; border-collapse:collapse; margin-bottom:6px } th { background:#f1f5f9; text-align:left; padding:5px 7px; font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:#475569 }
@@ -2225,25 +2225,25 @@ function informeRecojosPDF() {
     .mapa { break-inside:avoid } .mapa svg { width:100%; height:300px; background:#eef2f8; border-radius:10px; display:block } .ka-prov { stroke:#fff; stroke-width:.6; vector-effect:non-scaling-stroke } .kr-mk circle { fill:#fff; stroke-width:3.4 } .kr-mk text { font-size:11.5px; font-weight:700; fill:#0f172a; text-anchor:middle; dominant-baseline:central }
     .ley { color:#64748b; font-size:10px; margin-top:4px }
   </style></head><body>
-    <header><div><h1>Informe de recojos</h1><div class="sub">${esc(filtros)}</div></div><img src="${esc(new URL('logo.png', location.href).href)}" alt="Dinet"></header>
+    <header><div><h1>Informe de recojos y devoluciones</h1><div class="sub">${esc(filtros)}</div></div><img src="${esc(new URL('logo.png', location.href).href)}" alt="Dinet"></header>
     <div class="kp">
-      <div><span>Costo de recojos</span><b>${R.costo ? fmt(R.costo) : '-'}</b><small>${R.registros} recojo(s) con importe, ${R.nodos} nodo(s)</small></div>
+      <div><span>Costo de recojos</span><b>${R.costo ? fmt(R.costo) : '-'}</b><small>${R.registros} ${R.registros === 1 ? 'recojo' : 'recojos'} con importe, ${R.nodos} ${R.nodos === 1 ? 'nodo' : 'nodos'}</small></div>
       <div><span>Pedidos recogidos</span><b>${fmtN(R.pedidos)}</b><small>${fmtN(R.bultos)} bultos${R.guias ? `, ${R.guias} guías` : ''}</small></div>
-      <div><span>Costo por pedido</span><b>${cpp ? fmt(cpp) : '-'}</b><small>${kRecCpp ? `Despacho: ${fmt(kRecCpp)}` : 'Sin despachos para comparar'}</small></div>
+      <div><span>Costo por pedido</span><b>${cpp ? fmt(cpp) : '-'}</b><small>${kRecCpp ? `Despacho: ${fmt(kRecCpp)}` : 'Sin despachos en el período para comparar'}</small></div>
       <div><span>Días de retorno (promedio)</span><b>${R.dias != null ? R.dias.toFixed(1) : '-'}</b><small>Solicitud CX a llegada a CTD</small></div>
-      <div><span>Nodo más lento</span><b>${lentos.length ? esc(lentos[0][0]) : '-'}</b><small>${lentos.length ? lentos[0][1].toFixed(1) + ' días' : ''}</small></div>
-      <div><span>Nodo más rápido</span><b>${lentos.length ? esc(lentos[lentos.length - 1][0]) : '-'}</b><small>${lentos.length ? lentos[lentos.length - 1][1].toFixed(1) + ' días' : ''}</small></div>
+      <div><span>Nodo con mayor tiempo</span><b>${lentos.length ? esc(lentos[0][0]) : '-'}</b><small>${lentos.length ? lentos[0][1].toFixed(1) + ' días' : ''}</small></div>
+      <div><span>Nodo con menor tiempo</span><b>${lentos.length ? esc(lentos[lentos.length - 1][0]) : '-'}</b><small>${lentos.length ? lentos[lentos.length - 1][1].toFixed(1) + ' días' : ''}</small></div>
     </div>
     ${obs.length ? `<h2>Observaciones</h2><ul>${obs.map(o => `<li>${esc(o)}</li>`).join('')}</ul>` : ''}
     ${hallP.length ? `<h2>Hallazgos</h2><ul>${hallP.map(([, t]) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
-    ${R.etapas.some(e => e[1] != null) ? tabla('Dónde se va el tiempo', ['Etapa', 'Días promedio'], [...R.etapas.map(e => [esc(e[0]), e[1] != null ? e[1].toFixed(1) : '-']), ['<b>Recorrido completo (pedido a llegada a CTD)</b>', R.totalCompleto != null ? '<b>' + R.totalCompleto.toFixed(1) + '</b>' : '-']]) : ''}
-    ${CP.n ? `<h2>Cumplimiento de plazo</h2><p><b>${CP.pct.toFixed(0)} %</b> de los pedidos (${CP.dentro} de ${CP.n}) volvieron en ${krPlazo} días o menos, contados desde la solicitud CX.${CP.fuera.length ? ` Más lentos: ${CP.fuera.slice(0, 5).map(x => `${esc(x.pedido || '-')} (${esc(x.nodo)}, ${x.dias} d)`).join('; ')}.` : ''}</p>` : ''}
-    ${mapa ? `<h2>Días de retorno por provincia</h2><div class="mapa">${mapa}<div class="ley">Verde: retorno más rápido. Rojo: retorno más lento. El número es el promedio de días de la provincia.</div></div>` : ''}
+    ${R.etapas.some(e => e[1] != null) ? tabla('Tiempo por etapa del recorrido', ['Etapa', 'Días promedio'], [...R.etapas.map(e => [esc(e[0]), e[1] != null ? e[1].toFixed(1) : '-']), ['<b>Recorrido completo (pedido a llegada a CTD)</b>', R.totalCompleto != null ? '<b>' + R.totalCompleto.toFixed(1) + '</b>' : '-']]) : ''}
+    ${CP.n ? `<h2>Cumplimiento de plazo</h2><p><b>${CP.pct.toFixed(0)} %</b> de los pedidos (${CP.dentro} de ${CP.n}) retornaron dentro del plazo objetivo de ${krPlazo} días, medido desde la solicitud CX.${CP.fuera.length ? ` Pedidos de mayor duración: ${CP.fuera.slice(0, 5).map(x => `${esc(x.pedido || '-')} (${esc(x.nodo)}, ${x.dias} días)`).join('; ')}.` : ''}</p>` : ''}
+    ${mapa ? `<h2>Días de retorno por provincia</h2><div class="mapa">${mapa}<div class="ley">Verde: menor tiempo de retorno. Rojo: mayor tiempo de retorno. Cada cifra corresponde al promedio de días de la provincia.</div></div>` : ''}
     ${tabla('Por nodo', ['Nodo', 'Pedidos', 'Costo', 'Costo por pedido', 'Días de retorno'], filas(R.grupos.nodo))}
     ${tabla('Por proveedor', ['Proveedor', 'Pedidos', 'Costo', 'Costo por pedido', 'Días de retorno'], filas(R.grupos.prov))}
     ${tabla('Por cuenta', ['Cuenta', 'Pedidos', 'Costo', 'Costo por pedido', 'Días de retorno'], filas(R.grupos.cuenta))}
     ${tabla('Por motivo de devolución', ['Motivo', 'Pedidos', 'Costo', 'Costo por pedido', 'Días de retorno'], filas(R.grupos.motivo))}
-    <footer>Generado el ${new Date().toLocaleString('es-PE')}. Red Troncal, Dinet Logística.</footer>
+    <footer>Informe generado el ${new Date().toLocaleString('es-PE')} | Red Troncal, Dinet Logística</footer>
   </body></html>`;
   w.document.open(); w.document.write(html); w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 600);
 }
