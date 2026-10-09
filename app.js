@@ -592,10 +592,6 @@ $('#rSeg').addEventListener('click', e => {
 });
 $('#rRefrescar').onclick = () => buscarRegistros();
 $('#rNuevo').onclick = () => irA('cargar');
-$('#topSearch').addEventListener('keydown', e => {
-  if (e.key !== 'Enter') return;
-  $('#rNodo').value = e.target.value.trim(); pag.n = 1; irA('registros'); buscarRegistros();
-});
 // detalle de pasos al pasar el mouse por el estado: flota fuera de la tabla para no crear barras de desplazamiento
 const rTip = $('#rTip'), ocultarTip = () => { rTip.hidden = true; };
 $('#rTabla').addEventListener('mouseover', e => {

@@ -206,8 +206,6 @@
   nav button:hover { color:var(--ink) } nav button.on { color:var(--ink); background:var(--head); font-weight:600 }
   .estado { display:none; font-size:12px; font-weight:500; color:var(--bad); background:var(--badbg); padding:3px 11px; border-radius:99px }
   .estado.mal { display:inline-block }
-  .busca { width:200px } .busca input { width:100%; padding:6px 12px; border-radius:99px; border:0; background:var(--head); font-size:13px }
-  .busca input:focus { background:#fff; outline:3px solid rgba(0,102,204,.4) }
   .lk { background:none; border:0; color:var(--pri); font-size:14px; cursor:pointer; padding:4px 2px } .lk:hover { text-decoration:underline }
   main { max-width:1680px; margin:0 auto; padding:40px 24px 96px }
   .wrap { max-width:none }
@@ -310,7 +308,7 @@
   @media (max-width:900px) {
     .topbar .in { flex-wrap:wrap; height:auto; padding:8px 16px 6px; gap:6px 14px }
     .tlogo { height:30px } nav { order:3; flex:1 0 100%; overflow-x:auto; scrollbar-width:none; margin:0 -4px } nav::-webkit-scrollbar { display:none }
-    .busca { display:none } .lk { margin-left:auto }
+    .lk { margin-left:auto }
     main { padding:24px 16px 72px } h1 { font-size:32px } .sub { font-size:15px }
     .card { padding:18px } .kpis { grid-template-columns:1fr 1fr; gap:0 20px }
     .top .acts { flex-wrap:wrap; gap:6px 18px }
@@ -339,7 +337,7 @@
   @media (max-width:760px) {
     html { -webkit-tap-highlight-color:transparent } body { overscroll-behavior-y:none }
     /* barra superior mínima: solo el logo (y Salir si hay login) */
-    .topbar .in { height:46px; padding:0 16px; gap:12px; flex-wrap:nowrap } .topbar nav, .busca, .estado:not(.mal) { display:none } .tlogo { height:30px }
+    .topbar .in { height:46px; padding:0 16px; gap:12px; flex-wrap:nowrap } .topbar nav, .estado:not(.mal) { display:none } .tlogo { height:30px }
     main { padding:16px 16px calc(84px + env(safe-area-inset-bottom)) } h1 { font-size:30px } .sub { font-size:15px; margin-top:4px }
     .top { margin-bottom:18px; align-items:flex-start } .top .acts { flex-wrap:wrap; gap:4px 18px; font-size:15px }
     .top .acts .b { font-size:15px; padding:8px 0 }
