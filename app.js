@@ -1476,23 +1476,29 @@ function kgUnidad(envios, prev, tipo) {
   const pv = tipo === 'todo' ? prev : (prev.pp && prev.pp[tipo]) || { total: 0, pedidos: 0, bultos: 0, cajas: 0 };
   const r = (x, y) => y ? x / y : 0;
   const liq = L.filter(regTerminado), sumLiq = liq.reduce((x, e) => x + Number(e.importe), 0);
-  return { cpp: r(t, p), cpc: r(t, c), cpb: r(t, b), dpp: kgDelta(r(t, p), r(pv.total, pv.pedidos)), dpc: kgDelta(r(t, c), r(pv.total, pv.cajas)), dpb: kgDelta(r(t, b), r(pv.total, pv.bultos)), n: L.length, liq: liq.length, sumLiq };
+  const base = L.filter(e => e.modo_pago === 'CONTADO').reduce((x, e) => x + Number(e.importe), 0);
+  return { cpp: r(t, p), cpc: r(t, c), cpb: r(t, b), ant: r(pv.total, pv.pedidos), dpp: kgDelta(r(t, p), r(pv.total, pv.pedidos)), dpc: kgDelta(r(t, c), r(pv.total, pv.cajas)), dpb: kgDelta(r(t, b), r(pv.total, pv.bultos)), n: L.length, liq: liq.length, sumLiq, base, tot: t };
 }
 function kgTransportes(R) {
   const trs = [...R.transportes].sort((a, b) => b[1].costo - a[1].costo), tot = trs.reduce((x, [, v]) => x + v.costo, 0) || 1;
-  return `<div class="kg-sep"></div><h3 class="kg-t kg-t2">Distribución por transporte</h3><p class="kg-h">Participación de cada transporte en el costo</p><div class="kg-trl">${trs.map(([k, v], i) => { const nm = k.startsWith('(') ? 'Sin transporte' : k, pct = Math.round(v.costo / tot * 100), col = KG_COL[i % KG_COL.length];
-    return `<div class="kg-tr"><span class="kg-av" style="background:${col}">${esc(nm.slice(0, 2).toUpperCase())}</span><div class="t"><b title="${esc(nm)}">${esc(nm)}</b><small>${v.n} ${v.n === 1 ? 'registro' : 'registros'}</small><div class="kg-mini"><i style="width:${Math.max(3, pct)}%;background:${col}"></i></div></div><div class="m"><b>${fmt(v.costo)}</b><small>${pct} %</small></div></div>`; }).join('')}</div>`;
+  const conTar = trs.filter(([k, v]) => v.cajas && !k.startsWith('(')), menor = conTar.length > 1 ? conTar.reduce((a, b) => b[1].costo / b[1].cajas < a[1].costo / a[1].cajas ? b : a)[0] : null;
+  return `<div class="kg-sep"></div><h3 class="kg-t kg-t2">Distribución por transporte</h3><p class="kg-h">Participación en el costo y tarifa por caja de cada uno</p>
+    <div class="kg-apil">${trs.map(([k, v], i) => `<i style="width:${v.costo / tot * 100}%;background:${KG_COL[i % KG_COL.length]}" title="${esc(k.startsWith('(') ? 'Sin transporte' : k)}"></i>`).join('')}</div>
+    <div class="kg-trl">${trs.map(([k, v], i) => { const nm = k.startsWith('(') ? 'Sin transporte' : k, pct = Math.round(v.costo / tot * 100), col = KG_COL[i % KG_COL.length];
+      return `<div class="kg-tr"><span class="kg-av" style="background:${col}">${esc(nm.slice(0, 2).toUpperCase())}</span><div class="t"><b><span class="kg-trn" title="${esc(nm)}">${esc(nm)}</span>${k === menor ? '<span class="kg-best">Menor tarifa</span>' : ''}</b><small>${v.n} ${v.n === 1 ? 'registro' : 'registros'}${v.cajas ? ` · ${fmt(v.costo / v.cajas)} por caja` : ''}</small></div><div class="m"><b>${fmt(v.costo)}</b><small>${pct} %</small></div></div>`; }).join('')}</div>`;
 }
-// una sola tarjeta: camión (sobresale), costo por unidad y reparto por transporte
+// una sola tarjeta: camión con profundidad (sobresale), costo por unidad y reparto por transporte
 function kgFlota(R, envios, prev) {
   const U = kgUnidad(envios, prev, kgTipo), v = x => x ? fmt(x) : '-', cred = kgTipo === 'CREDITO', rg = n => `${n} ${n === 1 ? 'registro' : 'registros'}`;
-  const st = (ic, t, val, tag) => `<div class="kg-st"><span class="i">${KG_IC[ic]}</span><div><small>${t}</small><b>${val}</b></div>${tag}</div>`;
-  return `<section class="kg-c kg-flota"><img class="kg-truck" src="camion.webp" alt="Camión Dinet">
+  const tile = (ic, t, val, tag) => `<div class="kg-tile"><span class="t">${KG_IC[ic]}${t}</span><b>${val}</b>${tag}</div>`, pct = U.base ? Math.min(100, U.sumLiq / U.base * 100) : 0;
+  return `<section class="kg-c kg-flota"><div class="kg-truck kg-stage" aria-hidden="true"><div class="kg-refl"></div><div class="kg-cuerpo"><img src="camion.webp" alt=""><div class="kg-brillo"></div></div></div>
     <div class="kg-tit"><div><h3 class="kg-t">Costo por unidad</h3><p class="kg-h">Costo unitario del transporte</p></div>
       <div class="kg-seg" role="tablist" aria-label="Tipo de pago">${[['todo', 'Todo'], ['CONTADO', 'Contado'], ['CREDITO', 'Crédito']].map(([k, t]) => `<button type="button" data-ut="${k}" class="${kgTipo === k ? 'on' : ''}">${t}</button>`).join('')}</div></div>
     <div class="kg-uh"><div class="kg-un"><small>S/</small><span>${U.cpp ? kgNum(U.cpp) : '-'}</span><em>por pedido</em></div>${U.dpp}</div>
-    <div class="kg-sts">${st('caja', 'Tarifa por caja', v(U.cpc), U.dpc)}
-      ${cred ? st('sol', 'No sujeto a liquidación', rg(U.n), '<span class="kg-tag eq">a crédito</span>') : st('sol', 'Por liquidar', fmt(U.sumLiq), `<span class="kg-tag eq">${rg(U.liq)}</span>`)}</div>
+    <p class="kg-ant">${U.ant ? `Período anterior: ${fmt(U.ant)} por pedido` : 'Sin período anterior comparable'}</p>
+    <div class="kg-tiles">${tile('caja', 'Tarifa por caja', v(U.cpc), U.dpc)}${tile('bulto', 'Costo por bulto', v(U.cpb), U.dpb)}</div>
+    ${cred ? `<div class="kg-liq"><div class="r1"><span class="t">Liquidación</span><b>No aplica</b></div><div class="r2"><span>${rg(U.n)} a crédito, no sujetas a liquidación</span><span>${fmt(U.tot)}</span></div></div>`
+      : `<div class="kg-liq"><div class="r1"><div><span class="t">Por liquidar</span><b>${fmt(U.sumLiq)}</b></div><span class="kg-tag eq">${rg(U.liq)}</span></div><div class="kg-bar"><i style="width:${pct}%"></i></div><div class="r2"><span>${pct.toFixed(0)} % del costo al contado</span><span>de ${fmt(U.base)}</span></div></div>`}
     ${kgTransportes(R)}</section>`;
 }
 function kgRanking(R, envios) {
@@ -1528,6 +1534,15 @@ function pintarResumen(R, dias, prev, envios) {
   $('#kgrid').innerHTML = hero + evo + kgFlota(R, envios, prev) + kgRanking(R, envios); $('#kgAl').innerHTML = alertas;
 }
 $('#kgAl').addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) irA(g.dataset.go); });
+// el camión sigue al cursor: se inclina, y el brillo recorre la carrocería
+const kgSoltar = st => { st.classList.remove('act'); ['--kg-ry', '--kg-rx', '--kg-p'].forEach(p => st.style.removeProperty(p)); };
+$('#kgrid').addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse') return;
+  const st = e.target.closest('.kg-stage'), act = e.currentTarget.querySelector('.kg-stage.act'); if (act && act !== st) kgSoltar(act); if (!st) return;
+  const r = st.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+  st.classList.add('act'); st.style.setProperty('--kg-ry', (x * 14).toFixed(1) + 'deg'); st.style.setProperty('--kg-rx', (-y * 6).toFixed(1) + 'deg'); st.style.setProperty('--kg-p', (50 + x * 70).toFixed(0) + '%');
+});
+$('#kgrid').addEventListener('pointerleave', e => { const act = e.currentTarget.querySelector('.kg-stage.act'); if (act) kgSoltar(act); });
 $('#kgrid').addEventListener('click', e => {
   const u = e.target.closest('[data-ut]'); if (u) { kgTipo = u.dataset.ut; if (kRes) pintarResumen(kRes.R, kRes.dias, kRes.prev, kRes.envios); return; }
   const r = e.target.closest('[data-rk]'); if (r) { kgRank = r.dataset.rk; if (kRes) pintarResumen(kRes.R, kRes.dias, kRes.prev, kRes.envios); return; }

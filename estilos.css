@@ -777,17 +777,10 @@
   .kg-sep { height:1px; background:var(--line); margin:22px 0 18px } .kg-t2 { font-size:17px }
   .kg-uh { display:flex; align-items:flex-end; justify-content:space-between; gap:10px; margin-top:18px }
   .kg-un { font-size:44px; font-weight:700; letter-spacing:-.04em; line-height:1; display:flex; align-items:baseline; gap:4px; white-space:nowrap } .kg-un small { font-size:20px; font-weight:600; color:var(--mut); letter-spacing:-.02em } .kg-un em { font-style:normal; font-size:13px; font-weight:500; color:var(--mut); letter-spacing:0; margin-left:6px }
-  .kg-sts { position:relative; display:flex; flex-direction:column; gap:12px; padding-top:16px }
-  .kg-sts::before { content:""; position:absolute; left:28px; top:44px; bottom:34px; border-left:1.5px dashed rgba(0,0,0,.16) }
-  .kg-st { position:relative; display:flex; align-items:center; gap:14px; background:var(--head); border-radius:99px; padding:9px 14px 9px 10px }
-  .kg-st .i { width:38px; height:38px; border-radius:50%; background:#fff; color:var(--kn); display:grid; place-items:center; flex:none; box-shadow:0 1px 2px rgba(0,0,0,.08) } .kg-st .i svg { width:18px; height:18px }
-  .kg-st > div { flex:1; min-width:0 } .kg-st small { display:block; color:var(--mut); font-size:12px; line-height:1.2; white-space:nowrap } .kg-st b { font-size:17px; font-weight:600; letter-spacing:-.02em; white-space:nowrap }
-  @container (max-width:250px) { .kg-st .kg-tag, .kg-uh .kg-tag { display:none } }
   .kg-tr { display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid var(--line) } .kg-trl > .kg-tr:first-child { border-top:0; margin-top:6px }
   .kg-av { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; color:#fff; font-weight:700; font-size:14px; flex:none }
   .kg-tr .t { flex:1; min-width:0 } .kg-tr b { display:block; font-size:14.5px; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap } .kg-tr small { color:var(--mut); font-size:12px }
   .kg-tr .m { text-align:right; white-space:nowrap } .kg-tr .m b { font-size:15px; overflow:visible }
-  .kg-mini { height:4px; border-radius:99px; background:var(--head); margin-top:5px; overflow:hidden } .kg-mini i { display:block; height:100%; border-radius:99px }
   .kg-rh { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap }
   .kg-rows { margin-top:10px }
   .kg-row { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1.5fr) .6fr .9fr .9fr; gap:10px; align-items:center; background:var(--head); border-radius:14px; padding:11px 14px; margin-bottom:6px; font-size:13.5px }
@@ -959,3 +952,27 @@
   .ka-lst { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:30px; margin-top:24px; padding-top:20px; border-top:1px solid var(--line) }
   .ka-dos { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%,420px),1fr)); gap:18px; margin-top:18px } .ka-dos > .ka-full { margin-top:0 }
   @media (max-width:760px) { .ka-lst { grid-template-columns:minmax(0,1fr); gap:6px } }
+
+  /* Costo por unidad: camión con profundidad y tarjeta plana */
+  @property --kg-ry { syntax:'<angle>'; inherits:true; initial-value:0deg }
+  @property --kg-rx { syntax:'<angle>'; inherits:true; initial-value:0deg }
+  @property --kg-p { syntax:'<percentage>'; inherits:true; initial-value:40% }
+  .kg-stage { filter:none; pointer-events:auto; aspect-ratio:1000 / 687; perspective:900px; animation:kg-vaiven 8s ease-in-out infinite }
+  .kg-stage.act { animation:none }
+  @keyframes kg-vaiven { 0%, 100% { --kg-ry:-5deg; --kg-p:22% } 50% { --kg-ry:5deg; --kg-p:72% } }
+  .kg-cuerpo { position:absolute; inset:0; transform-style:preserve-3d; transform:rotateY(var(--kg-ry)) rotateX(var(--kg-rx)); transition:transform .4s cubic-bezier(.2,.8,.2,1) } .kg-stage.act .kg-cuerpo { transition:transform .08s linear }
+  .kg-cuerpo img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; pointer-events:none; filter:drop-shadow(0 22px 22px rgba(11,61,130,.25)) }
+  .kg-brillo { position:absolute; inset:0; pointer-events:none; -webkit-mask:url(camion.webp) center / contain no-repeat; mask:url(camion.webp) center / contain no-repeat; background:linear-gradient(105deg, rgba(255,255,255,0) calc(var(--kg-p) - 16%), rgba(255,255,255,.75) var(--kg-p), rgba(255,255,255,0) calc(var(--kg-p) + 16%)); mix-blend-mode:soft-light }
+  .kg-refl { position:absolute; left:8%; right:8%; bottom:7%; height:9%; border-radius:50%; background:radial-gradient(50% 50% at 50% 50%, rgba(11,61,130,.30), rgba(11,61,130,0) 70%); filter:blur(5px); transform:translateX(calc(var(--kg-ry) * -1.4)) }
+  .kg-ant { font-size:12.5px; color:var(--mut); margin:6px 0 0 }
+  .kg-tiles { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px }
+  .kg-tile { background:var(--head); border-radius:20px; padding:12px 14px; min-width:0 } .kg-tile .t { display:flex; align-items:center; gap:7px; color:var(--mut); font-size:12.5px; white-space:nowrap } .kg-tile .t svg { width:16px; height:16px; color:#1a5db8; flex:none }
+  .kg-tile b { display:block; font-size:20px; letter-spacing:-.03em; font-weight:700; margin:3px 0 4px; font-variant-numeric:tabular-nums; white-space:nowrap }
+  .kg-liq { margin-top:10px; background:var(--head); border-radius:20px; padding:13px 16px }
+  .kg-liq .r1 { display:flex; justify-content:space-between; align-items:center; gap:8px } .kg-liq .t { display:block; color:var(--mut); font-size:12.5px } .kg-liq b { font-size:20px; letter-spacing:-.03em; font-weight:700; font-variant-numeric:tabular-nums }
+  .kg-bar { height:8px; border-radius:99px; background:rgba(0,0,0,.07); margin-top:10px; overflow:hidden } .kg-bar i { display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#1a5db8,#0b3d82) }
+  .kg-liq .r2 { display:flex; justify-content:space-between; gap:8px; font-size:12px; color:var(--mut); margin-top:6px }
+  .kg-apil { display:flex; height:14px; border-radius:99px; overflow:hidden; gap:3px; margin-top:12px } .kg-apil i { display:block; height:100%; border-radius:99px }
+  .kg-tr .t b { display:flex; align-items:center; gap:8px } .kg-trn { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0 }
+  .kg-best { flex:none; font-size:10.5px; font-weight:600; color:#248a3d; background:rgba(36,138,61,.11); padding:1px 8px; border-radius:99px; letter-spacing:0 }
+  @media (prefers-reduced-motion:reduce) { .kg-stage { animation:none } .kg-cuerpo { transition:none } }
