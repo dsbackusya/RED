@@ -70,6 +70,7 @@ const marcarMio = id => rtMios.set(id, Date.now()), esMio = id => Date.now() - (
 // ---------- acceso y pantalla de carga: red de distribución sobre el mapa real ----------
 const AC_DEST = ['PIURA', 'CHICLAYO', 'TRUJILLO', 'CAJAMARCA', 'MAYNAS', 'CORONEL PORTILLO', 'HUANCAYO', 'HUAMANGA', 'CUSCO', 'AREQUIPA', 'PUNO', 'TACNA', 'ICA', 'SAN MARTIN', 'SANTA'];
 const AC_AIRE = new Set(['MAYNAS', 'CORONEL PORTILLO', 'SAN MARTIN', 'CUSCO', 'AREQUIPA', 'PUNO', 'TACNA', 'PIURA']);   // destinos lejanos: avión; el resto: camión
+const AC_AIRE_DEV = new Set(['MAYNAS', 'AREQUIPA', 'CORONEL PORTILLO']);   // únicas devoluciones en avión
 const AC_FORMA = {
   camion: 'M-8 -3.6h9.6v7.2h-9.6zM2.2 -3.6h3.4l2.6 3.2v4h-6z',
   avion: 'M9.5 0L3.5 -1.4L-.5 -7.6L-3 -7.6L-1 -1.4L-6 -1.4L-7.6 -4.2L-9.5 -4.2L-8.2 0L-9.5 4.2L-7.6 4.2L-6 1.4L-1 1.4L-3 7.6L-.5 7.6L3.5 1.4Z'
@@ -81,24 +82,34 @@ const acSvg = (t, a, p) => { const e = document.createElementNS('http://www.w3.o
 function acDibujar() {
   if (AC.dib || !kaGeo) return;
   const svg = $('#lSvg'); AC.dib = true;
-  const gP = acSvg('g', {}, svg), gR = acSvg('g', {}, svg), gN = acSvg('g', {}, svg), gT = acSvg('g', {}, svg);
+  const gP = acSvg('g', {}, svg), gR = acSvg('g', {}, svg), gN = acSvg('g', {}, svg), gT = acSvg('g', {}, svg), gM = acSvg('g', {}, svg);   // gM: nodos principales, por encima de los vehículos
   kaGeo.p.forEach(p => acSvg('path', { d: p[4], class: 'ac-prov' }, gP));
   const pos = n => { const p = kaProv.get(norm(n)); return p ? [p[2], p[3]] : null; };
   const O = pos('LIMA') || [300, 600];
-  AC_DEST.forEach((n, i) => {
-    const d = pos(n); if (!d) return;
-    const mx = (O[0] + d[0]) / 2, my = (O[1] + d[1]) / 2, dx = d[0] - O[0], dy = d[1] - O[1], k = .18 * (i % 2 ? 1 : -1);
-    const path = acSvg('path', { d: `M${O[0]} ${O[1]} Q${mx - dy * k} ${my + dx * k} ${d[0]} ${d[1]}`, class: 'ac-ruta' }, gR);
-    const g = acSvg('g', { class: 'ac-n' }, gN);
-    acSvg('circle', { class: 'p', cx: d[0], cy: d[1], r: 6 }, g); acSvg('circle', { class: 'c', cx: d[0], cy: d[1], r: 5 }, g);
-    acSvg('text', { x: d[0] + 9, y: d[1] + 4 }, g).textContent = AC_NOM[n] || n.charAt(0) + n.slice(1).toLowerCase();
-    const aire = AC_AIRE.has(n), e = acSvg('g', { class: 'ac-cam' }, gT), est = acSvg('path', {}, e), pt = acSvg('g', {}, e);
+  // todas las provincias son destino; las de la lista principal llevan nombre y vehículo grande. Se ordenan por distancia para que la red crezca desde Lima.
+  const destinos = kaGeo.p.filter(p => norm(p[0]) !== 'LIMA').map(p => ({ n: p[0], d: [p[2], p[3]], dist: Math.hypot(p[2] - O[0], p[3] - O[1]) })).sort((x, y) => x.dist - y.dist);
+  // todas las provincias tienen nodo y ruta; solo algunas llevan vehículo, para no recargar el mapa ni la animación
+  const veh = (path, princ, aire, dir, i) => {
+    const e = acSvg('g', { class: 'ac-cam' + (dir < 0 ? ' dv' : '') }, gT), est = princ ? acSvg('path', {}, e) : null, pt = acSvg('g', {}, e);
     acSvg('path', { d: aire ? AC_FORMA.avion : AC_FORMA.camion, class: aire ? 'av' : 'cm' }, pt);
     if (!aire) { acSvg('circle', { cx: -4.6, cy: 4, r: 1.5, class: 'rd' }, pt); acSvg('circle', { cx: 3.8, cy: 4, r: 1.5, class: 'rd' }, pt); }
+    AC.cams.push({ path, e, est, pt, dir, sc: princ ? 1.6 : 1.05, len: path.getTotalLength(), t: (i * .137 + (dir < 0 ? .5 : 0)) % 1, v: (.0014 + (i % 7) * .00028) * (aire ? 1.6 : 1) });
+  };
+  let np = 0;
+  destinos.forEach((x, i) => {
+    const n = x.n, d = x.d, princ = AC_DEST.includes(n);
+    const mx = (O[0] + d[0]) / 2, my = (O[1] + d[1]) / 2, dx = d[0] - O[0], dy = d[1] - O[1], k = (princ ? .18 : .1 + (i % 4) * .03) * (i % 2 ? 1 : -1);
+    const path = acSvg('path', { d: `M${O[0]} ${O[1]} Q${mx - dy * k} ${my + dx * k} ${d[0]} ${d[1]}`, class: 'ac-ruta' + (princ ? '' : ' s') }, gR);
+    const g = acSvg('g', { class: 'ac-n' + (princ ? '' : ' s') }, princ ? gM : gN);
+    if (princ) { acSvg('circle', { class: 'p', cx: d[0], cy: d[1], r: 6 }, g); acSvg('circle', { class: 'c', cx: d[0], cy: d[1], r: 5 }, g); acSvg('text', { x: d[0] + 9, y: d[1] + 4 }, g).textContent = AC_NOM[n] || n.charAt(0) + n.slice(1).toLowerCase(); }
+    else acSvg('circle', { class: 'c', cx: d[0], cy: d[1], r: 2.6 }, g);
     AC.rutas.push({ path, g });
-    AC.cams.push({ path, e, est, pt, len: path.getTotalLength(), t: (i * .137) % 1, v: (.0016 + (i % 5) * .0003) * (aire ? 1.6 : 1) });
+    // cada ruta lleva un solo vehículo: despacho (de Lima hacia la provincia) o devolución (de la provincia hacia Lima), nunca ambos
+    const dev = princ ? (np++ % 3 === 2 || AC_AIRE_DEV.has(n)) : i % 48 === 4;
+    const aire = dev ? AC_AIRE_DEV.has(n) : princ ? AC_AIRE.has(n) : x.dist > 330;   // las devoluciones van casi siempre en camión; solo unas pocas en avión
+    if (princ || i % 24 === 0 || dev) veh(path, princ, aire, dev ? -1 : 1, i);
   });
-  const o = acSvg('g', { class: 'ac-o' }, gN);
+  const o = acSvg('g', { class: 'ac-o' }, gM);
   acSvg('circle', { class: 'p', cx: O[0], cy: O[1], r: 7 }, o); acSvg('circle', { class: 'o', cx: O[0], cy: O[1], r: 7 }, o);
   acSvg('text', { x: O[0] - 12, y: O[1] - 14, 'text-anchor': 'end' }, o).textContent = 'CTD Lima';
   $('#acNt').textContent = AC.rutas.length; $('#acCont').classList.toggle('hide', !AC.rutas.length || !$('#acceso').classList.contains('carga'));
@@ -112,11 +123,12 @@ function acConectar(w) {   // w: avance de 0 a 1; enciende ese porcentaje de nod
 function acLoop() {
   if (!AC.on) return;
   AC.cams.forEach(c => {
-    c.t += c.v * AC.vel; if (c.t > 1) c.t -= 1;
-    const p = c.path.getPointAtLength(c.len * c.t), p2 = c.path.getPointAtLength(c.len * Math.min(1, c.t + .01));
+    c.t += c.v * AC.vel * c.dir; if (c.t > 1) c.t -= 1; else if (c.t < 0) c.t += 1;
+    const p = c.path.getPointAtLength(c.len * c.t), p2 = c.path.getPointAtLength(c.len * Math.max(0, Math.min(1, c.t + .01 * c.dir)));
     const ang = Math.atan2(p2.y - p.y, p2.x - p.x) * 180 / Math.PI;   // el vehículo mira hacia donde avanza; si va hacia la izquierda se voltea para no quedar al revés
-    c.pt.setAttribute('transform', `translate(${p.x} ${p.y}) rotate(${ang}) scale(1.6 ${Math.abs(ang) > 90 ? -1.6 : 1.6})`);
-    const a = Math.max(0, c.t - .07); let d = '';
+    c.pt.setAttribute('transform', `translate(${p.x} ${p.y}) rotate(${ang}) scale(${c.sc} ${Math.abs(ang) > 90 ? -c.sc : c.sc})`);
+    if (!c.est) return;
+    const a = Math.max(0, Math.min(1, c.t - .07 * c.dir)); let d = '';
     for (let k = 0; k <= 4; k++) { const q = c.path.getPointAtLength(c.len * (a + (c.t - a) * k / 4)); d += (k ? 'L' : 'M') + q.x + ' ' + q.y; }
     c.est.setAttribute('d', d);
   });
@@ -126,7 +138,7 @@ function acMostrar(modo) {
   const ac = $('#acceso'), carga = modo === 'carga';
   ac.classList.remove('hide', 'sale'); ac.classList.toggle('carga', carga);
   $('#login').classList.toggle('hide', carga); $('#cargaIni').classList.toggle('hide', !carga);
-  AC.vel = acQuieto ? 0 : carga ? 2.2 : .7; AC.w = carga ? 0 : .55;
+  AC.vel = acQuieto ? 0 : carga ? 2.2 : .7; AC.w = carga ? 0 : 1;
   acDibujar(); acConectar(AC.w); $('#acCont').classList.toggle('hide', !carga || !AC.rutas.length);
   if (carga) { $('#acBar').style.width = '0'; ['acS1', 'acS2', 'acS3'].forEach(i => { $('#' + i).className = ''; }); }
   if (!AC.on) { AC.on = true; acLoop(); }
