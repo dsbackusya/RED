@@ -13,7 +13,7 @@ const ICO = {
 const flecha = sube => `<svg class="ar" viewBox="0 0 10 10" width="9" height="9" fill="currentColor" aria-hidden="true"><path d="${sube ? 'M5 1.5l4 7H1z' : 'M5 8.5l-4-7h8z'}"/></svg>`;
 // librería de Excel: se descarga solo al importar o exportar
 let xlsxPromesa;
-const xlsxLib = () => window.XLSX ? Promise.resolve() : (xlsxPromesa ||= new Promise((ok, ko) => { const t = document.createElement('script'); t.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; t.onload = ok; t.onerror = () => { xlsxPromesa = null; ko(new Error('No se pudo cargar la librería de Excel. Revisa tu conexión.')); }; document.head.appendChild(t); }));
+const xlsxLib = () => window.XLSX ? Promise.resolve() : (xlsxPromesa ||= new Promise((ok, ko) => { const t = document.createElement('script'); t.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; t.onload = ok; t.onerror = () => { xlsxPromesa = null; ko(new Error('No se pudo cargar la librería de Excel. Verificar la conexión a internet.')); }; document.head.appendChild(t); }));
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
 const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SETIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
@@ -209,7 +209,7 @@ async function leerArchivo(f) {
   try {
     hrnCarga = null; recDetCarga = null; await xlsxLib(); const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' });
     const filas = leerTabla(wb); hrnCarga = leerHrn(wb); recDetCarga = leerRecojoDet(wb);
-    if (!filas && !hrnCarga && !recDetCarga) return flash($('#cMsg'), 'No se encontraron filas en las hojas DESPACHO, RECOJOS, DETALLE o DETALLE RECOJOS. Descarga la plantilla y completa esas hojas.', 'err');
+    if (!filas && !hrnCarga && !recDetCarga) return flash($('#cMsg'), 'No se encontraron filas en las hojas DESPACHO, RECOJOS, DETALLE o DETALLE RECOJOS. Descargar la plantilla y completar esas hojas.', 'err');
     previa = (filas || []).map(r => ({ ...r, agencia: r.agencia || '', modo_pago: r.pago || '', zona: r.zona || '', detalle_gasto: detalleGasto(r) }));
     let rellenas = 0;   // la zona vacía se completa con la última que tuvo ese nodo en los registros guardados
     try {
@@ -241,7 +241,7 @@ function cAlertar() {
   const sinAg = previa.filter(r => !r.agencia).length, sinPg = previa.filter(r => !r.modo_pago).length, a = $('#cAlerta'), n = previa.filter(r => cFalta(r)).length;
   a.classList.toggle('hide', !n);
   const partes = [sinAg && `${sinAg} ${sinAg === 1 ? 'nodo sin agencia' : 'nodos sin agencia'}`, sinPg && `${sinPg} ${sinPg === 1 ? 'nodo sin pago' : 'nodos sin pago'}`].filter(Boolean).join(' y ');
-  a.innerHTML = n ? `${ALERTA}<span><b>${partes}.</b> ${sinPg ? 'El pago es obligatorio: elígelo aquí. ' : ''}${sinAg ? 'La agencia se puede completar aquí o después en Registros.' : ''}</span>${cFiltro === 'falta' ? '<button type="button" data-f="">Ver todos</button>' : '<button type="button" data-f="falta">Ver solo esos</button>'}` : '';
+  a.innerHTML = n ? `${ALERTA}<span><b>${partes}.</b> ${sinPg ? 'El pago es obligatorio: seleccionarlo en esta tabla. ' : ''}${sinAg ? 'La agencia puede completarse en esta tabla o después en Registros.' : ''}</span>${cFiltro === 'falta' ? '<button type="button" data-f="">Ver todos</button>' : '<button type="button" data-f="falta">Ver solo esos</button>'}` : '';
 }
 function pintarPrevia(anim) {
   $('#cDrop').classList.add('hide'); $('#cArch').classList.remove('hide'); $('#cPlantilla').classList.add('hide'); $('#cHow').classList.add('hide');
@@ -270,7 +270,7 @@ function pintarPrevia(anim) {
       <td data-c="n" data-l="Bultos"><input data-f="bultos" type="number" value="${r.bultos ?? ''}"></td>
       <td data-c="n" data-l="Cajas"><input data-f="cajas" type="number" value="${r.cajas ?? ''}"></td>
       <td data-c="placa" data-l="Placa"><input data-f="placa" value="${esc(r.placa)}" placeholder="ABC-123"></td>
-      <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" class="${r.agencia ? '' : 'vacia'}" value="${esc(r.agencia)}" placeholder="Escribe la agencia"></td>
+      <td data-c="agencia" data-l="Agencia"><input data-f="agencia" list="dlAgencias" class="${r.agencia ? '' : 'vacia'}" value="${esc(r.agencia)}" placeholder="Ingresar agencia"></td>
       <td data-c="pago" data-l="Pago"><select data-f="modo_pago" data-v="${r.modo_pago}" class="${r.modo_pago ? '' : 'vacia'}"><option value=""${r.modo_pago ? '' : ' selected'}>Elegir…</option>${PAGOS.map(p => `<option${p === r.modo_pago ? ' selected' : ''}>${p}</option>`).join('')}</select></td>
       <td data-c="zona" data-l="Zona"><input data-f="zona" value="${esc(r.zona)}" placeholder="SUR, CENTRO…"></td></tr>`).join('');
   $('#cPrev').classList.remove('hide');
@@ -298,7 +298,7 @@ $('#cTabla').addEventListener('change', e => {
 function cMostrarOk(titulo, texto, soloDetalle) {
   setPaso(3); ['#cS1', '#cPrev'].forEach(q => $(q).classList.add('hide')); $('#cBarra').hidden = true; $('#tab-cargar').classList.remove('conbarra');
   $('#cOkT').textContent = titulo; $('#cOkP').textContent = texto;
-  $('#cOkIr').textContent = soloDetalle ? 'Ver el detalle' : 'Completar importes en Registros'; $('#cOkIr').dataset.go = soloDetalle ? 'detalle' : 'registros';
+  $('#cOkIr').textContent = soloDetalle ? 'Ver detalle' : 'Completar importes en Registros'; $('#cOkIr').dataset.go = soloDetalle ? 'detalle' : 'registros';
   $('#cOk').classList.remove('hide'); scrollTo(0, 0);
 }
 const mayus = t => t.charAt(0).toUpperCase() + t.slice(1);
@@ -310,25 +310,25 @@ async function cGuardarDetalles() {
   return t.join('; ');
 }
 $('#cGuardar').onclick = async () => {
-  if (cSinFecha()) return flash($('#cMsg'), (previa.some(r => !r.fecha) ? 'Hay filas sin fecha. Complétalas en la tabla.' : 'Hay filas del Detalle sin FECHA. Agrégala en el Excel y vuelve a subirlo.'), 'err');
+  if (cSinFecha()) return flash($('#cMsg'), (previa.some(r => !r.fecha) ? 'Existen filas sin fecha. Completar la fecha en la tabla.' : 'Existen filas del Detalle sin FECHA. Agregar la fecha en el Excel y volver a cargar el archivo.'), 'err');
   if (!previa.length) {   // solo detalle
     $('#cGuardar').disabled = true;
     try { cMostrarOk('Detalle guardado', mayus(await cGuardarDetalles()) + '.', true); previa = []; hrnCarga = null; recDetCarga = null; $('#cFile').value = ''; }
-    catch (err) { flash($('#cMsg'), 'No se pudo guardar el detalle: ' + err.message + '. Vuelve a subir el archivo: las filas ya cargadas no se duplicarán.', 'err'); }
+    catch (err) { flash($('#cMsg'), 'No se pudo guardar el detalle: ' + err.message + '. Volver a cargar el archivo: las filas ya registradas no se duplicarán.', 'err'); }
     $('#cGuardar').disabled = false; return;
   }
   const fechas = cFechas();
   const repetidos = new Set(), vistos = new Set(); previa.forEach(r => { const k = r.fecha + '|' + norm(r.nodo) + '|' + r.motivo; if (vistos.has(k)) repetidos.add(r.nodo + (r.motivo === 'RECOJO' ? ' (recojo)' : '')); vistos.add(k); });
-  if (repetidos.size) return flash($('#cMsg'), `Hay nodos repetidos con el mismo motivo y fecha: ${[...repetidos].join(', ')}. Deja una sola fila por nodo, motivo y fecha.`, 'err');
+  if (repetidos.size) return flash($('#cMsg'), `Existen nodos repetidos con el mismo motivo y fecha: ${[...repetidos].join(', ')}. Mantener una sola fila por nodo, motivo y fecha.`, 'err');
   const sinPago = previa.filter(r => !r.modo_pago);
-  if (sinPago.length) { cFiltro = 'falta'; pintarPrevia(); return flash($('#cMsg'), `Falta el modo de pago en ${sinPago.length} ${sinPago.length === 1 ? 'nodo' : 'nodos'}: ${sinPago.slice(0, 4).map(r => r.nodo).join(', ')}${sinPago.length > 4 ? '…' : ''}. Elígelo en la tabla.`, 'err'); }
-  if (previa.some(r => !r.agencia) && !await confirmar('Hay nodos sin agencia', 'Puedes completarla después en Registros. ¿Guardar igual?', 'Guardar')) return;
+  if (sinPago.length) { cFiltro = 'falta'; pintarPrevia(); return flash($('#cMsg'), `Falta registrar el modo de pago en ${sinPago.length} ${sinPago.length === 1 ? 'nodo' : 'nodos'}: ${sinPago.slice(0, 4).map(r => r.nodo).join(', ')}${sinPago.length > 4 ? '…' : ''}. Seleccionarlo en la tabla.`, 'err'); }
+  if (previa.some(r => !r.agencia) && !await confirmar('Hay nodos sin agencia', 'La agencia puede completarse después en Registros. ¿Desea guardar de todos modos?', 'Guardar')) return;
   $('#cGuardar').disabled = true;
   const { data: ya, error: eYa } = await sb.from('envios').select('fecha,nodo,motivo,liquidacion_id').in('fecha', fechas);
   if (eYa) { $('#cGuardar').disabled = false; return flash($('#cMsg'), /motivo/.test(eYa.message) ? 'Falta ejecutar supabase_motivo.sql en Supabase.' : eYa.message, 'err'); }
   const clave = (f, n, m) => f + '|' + norm(n) + '|' + m, enviados = new Set((ya || []).filter(x => x.liquidacion_id).map(x => clave(String(x.fecha).slice(0, 10), x.nodo, x.motivo))), nuevosN = previa.filter(r => !enviados.has(clave(r.fecha, r.nodo, r.motivo)));
   const txtFecha = fechas.length > 1 ? `de ${fechas.length} fechas (${fdmy(fechas[0])} al ${fdmy(fechas[fechas.length - 1])})` : 'del ' + fdmy(fechas[0]);
-  if ((ya || []).length && !await confirmar(`Ya hay ${ya.length} ${ya.length === 1 ? 'registro' : 'registros'} ${txtFecha}`, `Se actualizarán nodo, transporte, cantidades, placa, agencia, pago y zona con lo de este archivo; el importe y la factura se conservan.` + (enviados.size ? ` ${enviados.size} ${enviados.size === 1 ? 'registro ya está enviado y no se tocará' : 'registros ya están enviados y no se tocarán'}.` : ''), 'Actualizar')) { $('#cGuardar').disabled = false; return; }
+  if ((ya || []).length && !await confirmar(`Ya hay ${ya.length} ${ya.length === 1 ? 'registro' : 'registros'} ${txtFecha}`, `Se actualizarán nodo, transporte, cantidades, placa, agencia, pago y zona con los datos de este archivo; el importe y la factura se conservan.` + (enviados.size ? ` ${enviados.size} ${enviados.size === 1 ? 'registro ya está enviado y no se tocará' : 'registros ya están enviados y no se tocarán'}.` : ''), 'Actualizar')) { $('#cGuardar').disabled = false; return; }
   if (!nuevosN.length) { $('#cGuardar').disabled = false; return flash($('#cMsg'), 'Todos los nodos de este archivo ya están enviados en una liquidación.', 'err'); }
   const filas = nuevosN.map(r => ({ fecha: r.fecha, origen: 'LIMA', transporte: r.transporte, nodo: r.nodo, bultos: r.bultos, pedidos: r.pedidos, cajas: r.cajas,
     placa: r.placa || null, agencia: r.agencia || null, zona: r.zona || null, detalle_gasto: r.detalle_gasto, modo_pago: r.modo_pago, motivo: r.motivo }));
@@ -339,7 +339,7 @@ $('#cGuardar').onclick = async () => {
   let detalle = '';
   if (hrnCarga || recDetCarga) {
     try { detalle = ' ' + mayus(await cGuardarDetalles()) + '.'; }
-    catch (err) { cReiniciar(); return flash($('#cMsg'), `El despacho se guardó, pero el detalle no: ${err.message}. Vuelve a subir el mismo archivo: las filas del detalle ya cargadas no se duplicarán.`, 'err'); }
+    catch (err) { cReiniciar(); return flash($('#cMsg'), `El despacho se guardó, pero el detalle no: ${err.message}. Volver a cargar el mismo archivo: las filas del detalle ya registradas no se duplicarán.`, 'err'); }
   }
   const hayD = filas.some(r => r.motivo === 'DESPACHO'), hayR = filas.some(r => r.motivo === 'RECOJO');
   cMostrarOk(hayD && hayR ? 'Despachos y recojos guardados' : hayR ? (filas.length === 1 ? 'Recojo guardado' : 'Recojos guardados') : (filas.length === 1 ? 'Despacho guardado' : 'Despachos guardados'), `${filas.length} ${filas.length === 1 ? 'registro' : 'registros'} ${txtFecha}.${detalle} Falta completar importe y factura de cada uno.`, false);
@@ -360,7 +360,7 @@ $('#adjFile').onchange = async e => {
   if (!/^(image\/|application\/pdf)/.test(f.type)) return flash($('#rMsg'), 'Solo se aceptan imágenes o PDF.', 'err');
   const esImg = f.type.startsWith('image/');
   if (f.size > 30 * 1024 * 1024) return flash($('#rMsg'), 'El archivo supera los 30 MB.', 'err');
-  if (!esImg && f.size > MAX_ADJUNTO) return flash($('#rMsg'), 'El PDF supera 20 KB. Sube una foto o captura de la factura: las imágenes se comprimen solas.', 'err');
+  if (!esImg && f.size > MAX_ADJUNTO) return flash($('#rMsg'), 'El PDF supera 20 KB. Cargar una foto o captura de la factura: las imágenes se comprimen automáticamente.', 'err');
   let subir = f, tipo = f.type, ext = 'pdf';
   if (esImg) {
     flash($('#rMsg'), 'Comprimiendo imagen…', 'ok');
@@ -419,7 +419,7 @@ async function revisarFactura(file, r) {
     const vistos = R.destinosVistos || [];
     if (vistos.length && !vistos.includes(norm(r.nodo))) { est.hidden = false; est.className = 'fd-ley err'; txt.textContent = `La factura menciona ${vistos.slice(0, 3).join(', ')} y este registro es ${r.nodo}.`; }
   } catch (err) {
-    fallo = true; est.hidden = false; est.className = 'fd-ley err'; txt.textContent = 'No se pudo leer la factura. Escribe los datos desde la foto o cierra con "Solo adjunto".';
+    fallo = true; est.hidden = false; est.className = 'fd-ley err'; txt.textContent = 'No se pudo leer la factura. Ingresar los datos manualmente a partir de la foto o cerrar con "Solo adjunto".';
   }
   fPintar(false);
   if (!fallo && $('#fFactura').value.trim()) fChequear();
@@ -538,7 +538,7 @@ function pintarTablaRegistros() {
   const N = registros.length, paginas = Math.max(1, Math.ceil(N / pag.size));
   pag.n = Math.min(Math.max(1, pag.n), paginas);
   const ini = (pag.n - 1) * pag.size, vista = registros.slice(ini, ini + pag.size);
-  $('#rTabla').innerHTML = '<tr><th data-c="fecha">Fecha</th><th data-c="nodo">Nodo</th><th data-c="carga">Carga</th><th data-c="agencia">Agencia y zona</th><th data-c="pago" class="c">Pago</th><th data-c="importe" class="num">Importe</th><th data-c="prog">Estado</th><th data-c="acc" aria-label="Acciones"></th></tr>' + (vista.map(filaRegistro).join('') || '<tr><td colspan="8"><div class="empty"><b>Sin registros en este rango</b><span>Ajusta las fechas o sube un despacho en «Cargar despacho».</span></div></td></tr>');
+  $('#rTabla').innerHTML = '<tr><th data-c="fecha">Fecha</th><th data-c="nodo">Nodo</th><th data-c="carga">Carga</th><th data-c="agencia">Agencia y zona</th><th data-c="pago" class="c">Pago</th><th data-c="importe" class="num">Importe</th><th data-c="prog">Estado</th><th data-c="acc" aria-label="Acciones"></th></tr>' + (vista.map(filaRegistro).join('') || '<tr><td colspan="8"><div class="empty"><b>Sin registros en este rango</b><span>Ajustar el rango de fechas o cargar un despacho en «Cargar despacho».</span></div></td></tr>');
   const nums = []; for (let i = 1; i <= paginas; i++) if (i === 1 || i === paginas || Math.abs(i - pag.n) <= 1) nums.push(i); else if (nums[nums.length - 1] !== '…') nums.push('…');
   $('#rPag').innerHTML = `<div class="l"><span>Filas por página:</span><select id="rSize" aria-label="Filas por página">${[15, 25, 50, 100].map(v => `<option${v === pag.size ? ' selected' : ''}>${v}</option>`).join('')}</select><span>Mostrando <b>${N ? ini + 1 : 0}-${Math.min(N, ini + pag.size)}</b> de <b>${N}</b> registros</span></div>
     <div class="r"><button data-p="prev"${pag.n <= 1 ? ' disabled' : ''} aria-label="Anterior">${ICO.prev}</button>${nums.map(n => n === '…' ? '<span>…</span>' : `<button data-p="${n}" class="${n === pag.n ? 'on' : ''}">${n}</button>`).join('')}<button data-p="next"${pag.n >= paginas ? ' disabled' : ''} aria-label="Siguiente">${ICO.next}</button></div>`;
@@ -619,7 +619,7 @@ $('#rTabla').addEventListener('click', e => {
   const mn = e.target.closest('[data-act=menu]'); if (!mn) return;
   const id = mn.closest('tr').dataset.id, r = regBase.find(x => x.id === id);
   if (!rMenu.hidden && rMenu.dataset.id === id) return cerrarMenu();
-  const b = rMenu.querySelector('button'); b.disabled = !r || regEnviado(r); b.title = b.disabled ? 'Está en una liquidación. Anúlala para eliminarlo.' : '';
+  const b = rMenu.querySelector('button'); b.disabled = !r || regEnviado(r); b.title = b.disabled ? 'Pertenece a una liquidación. Anular la liquidación para poder eliminarlo.' : '';
   rMenu.dataset.id = id; rMenu.hidden = false;
   const rc = mn.getBoundingClientRect();
   rMenu.style.top = Math.max(8, Math.min(rc.bottom + 4, innerHeight - rMenu.offsetHeight - 8)) + 'px'; rMenu.style.right = Math.max(8, innerWidth - rc.right) + 'px';
@@ -719,7 +719,7 @@ function abrirReg(id, orden) {
   $('#rmMeta').innerHTML = motTag(r.motivo) + tbadge(r.transporte) + (r.agencia ? `<span class="tb">${esc(r.agencia)}</span>` : '') + (r.zona ? `<span class="tb">Zona ${esc(r.zona)}</span>` : '') + (r.cajas != null ? `<span class="tb">${r.cajas} ${r.cajas === 1 ? 'caja' : 'cajas'}</span>` : '');
   $('#rmPlaca').value = r.placa ?? ''; $('#rmImp').value = r.importe == null ? '' : Number(r.importe).toFixed(2); $('#rmFac').value = r.factura ?? ''; $('#rmDet').value = r.detalle_gasto ?? '';
   ['#rmPlaca', '#rmImp', '#rmFac', '#rmDet'].forEach(q => $(q).disabled = bloq);
-  const av = $('#rmAv'); av.hidden = !bloq; av.textContent = bloq ? `Está en ${lqNumeros.has(r.liquidacion_id) ? lqCod(lqNumeros.get(r.liquidacion_id)) : 'una liquidación'}. Anula la liquidación para editarlo.` : '';
+  const av = $('#rmAv'); av.hidden = !bloq; av.textContent = bloq ? `Está en ${lqNumeros.has(r.liquidacion_id) ? lqCod(lqNumeros.get(r.liquidacion_id)) : 'una liquidación'}. Anular la liquidación para poder editarlo.` : '';
   $('#rmOk').hidden = $('#rmSig').hidden = bloq; $('#rmCancel').textContent = bloq ? 'Cerrar' : 'Cancelar';
   rm.dup = null; clearTimeout(rmDupT); rmDupSeq++; rmMostrarDup(); rmFoto(r); rmVivo();
   if (!$('#regDlg').open) $('#regDlg').showModal();
@@ -733,7 +733,7 @@ function rmFoto(r) {
   const f = r.factura_archivo, bloq = regEnviado(r), u = f ? esc(urlAdjunto(f)) : '';
   $('#rmTh').innerHTML = f ? (esImagen(f) ? `<img src="${u}" alt="Factura">` : ICO.file) : ICO.img;
   $('#rmTt').textContent = f ? 'Factura adjunta' : 'Sin foto de la factura';
-  $('#rmTs').textContent = f ? 'Se guarda con 20 KB o menos' : (bloq ? '' : 'Toma o elige una foto: se lee el N° y el importe automáticamente');
+  $('#rmTs').textContent = f ? 'Se guarda con 20 KB o menos' : (bloq ? '' : 'Tomar o seleccionar una foto: el N° y el importe se leen automáticamente');
   $('#rmAc').innerHTML = (f ? `<a class="b sec" href="${u}" target="_blank" rel="noopener">Ver</a>` : '') + (bloq ? '' : f ? '<button type="button" class="b sec" data-f="cambiar">Cambiar</button><button type="button" class="b sec" data-f="quitar">Quitar</button>' : '<button type="button" class="b" data-f="cambiar">Adjuntar foto</button>');
 }
 // después de leer la factura con el OCR, el importe y el N° se reflejan en la ventana
@@ -793,13 +793,13 @@ async function guardarReg(siguiente) {
   if (siguiente) abrirReg(rm.orden[rm.orden.indexOf(rm.id) + 1]); else $('#regDlg').close();
 }
 async function rmIr(delta) {
-  if (rmSucio() && !await confirmar('Hay cambios sin guardar', 'Si cambias de registro se perderán.', 'Descartar', true)) return;
+  if (rmSucio() && !await confirmar('Hay cambios sin guardar', 'Al cambiar de registro se perderán.', 'Descartar', true)) return;
   abrirReg(rm.orden[rm.orden.indexOf(rm.id) + delta]);
 }
 $('#rmF').onsubmit = e => { e.preventDefault(); guardarReg(false); };
 $('#rmSig').onclick = () => guardarReg(true);
 $('#rmPrev').onclick = () => rmIr(-1); $('#rmNext').onclick = () => rmIr(1);
-$('#rmCancel').onclick = $('#rmX').onclick = async () => { if (rmSucio() && !await confirmar('Hay cambios sin guardar', 'Si cierras se perderán.', 'Descartar', true)) return; $('#regDlg').close(); };
+$('#rmCancel').onclick = $('#rmX').onclick = async () => { if (rmSucio() && !await confirmar('Hay cambios sin guardar', 'Al cerrar se perderán.', 'Descartar', true)) return; $('#regDlg').close(); };
 
 $('#rExport').onclick = async () => {
   await xlsxLib();
@@ -1742,7 +1742,7 @@ $('#metaX').onclick = () => $('#metaDlg').close();
 $('#metaOk').onclick = async () => {
   const v = Number($('#metaV').value); if (!(v > 0)) return toast('Ingresar un monto mayor que cero', 'err');
   const { error } = await sb.from('metas').upsert({ mes: kMeta.mes, monto: v, updated_at: new Date().toISOString() });
-  if (error) return toast('No se pudo guardar la meta. Verifica que se haya ejecutado supabase_fase2.sql. ' + error.message, 'err');
+  if (error) return toast('No se pudo guardar la meta. Verificar que se haya ejecutado supabase_fase2.sql. ' + error.message, 'err');
   $('#metaDlg').close(); toast('Meta guardada', 'ok'); calcularKpis();
 };
 $('#metaQ').onclick = async () => {
@@ -2270,7 +2270,7 @@ $('#kExport').onclick = async () => {
 const LQ_DEF = { liquidador: 'BENITES VEGA LUIS MIGUEL', area: 'ECOMMERCE', moneda: 'SOLES', concepto: 'Flete interprovincial', concepto_recojo: 'Recojo interprovincial', tipo_doc: 'FACTURA', cuenta: '63111002', centro: '8003825', denominacion: 'Distribución Red Troncal', limite: '1500' };
 const LQ_FILAS = 47;   // filas que tiene el formato (14 a 60)
 let lqPar = { ...LQ_DEF }, lqLista = [], lqPend = [], lqSel = new Set(), lqHistData = [], lqVista = 'listos', lqPer = '', lqTexto = '';
-const lqScript = src => new Promise((ok, ko) => { const t = document.createElement('script'); t.src = src; t.onload = ok; t.onerror = () => ko(new Error('No se pudo cargar una librería. Revisa tu conexión.')); document.head.appendChild(t); });
+const lqScript = src => new Promise((ok, ko) => { const t = document.createElement('script'); t.src = src; t.onload = ok; t.onerror = () => ko(new Error('No se pudo cargar una librería. Verificar la conexión a internet.')); document.head.appendChild(t); });
 async function lqLibs() {
   if (!window.ExcelJS) await lqScript('https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js');
   if (!window.JSZip) await lqScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
@@ -2348,12 +2348,12 @@ function lqPintar() {
     const todos = mostrar.length > 0 && mostrar.every(r => lqSel.has(r.id)), nArch = `${grupos.length} ${grupos.length === 1 ? 'archivo' : 'archivos'}`;
     const barra = $('#lqBarra'); barra.hidden = !lqLista.length;
     barra.innerHTML = `<div class="l"><input type="checkbox" id="lqTodos" ${todos ? 'checked' : ''} aria-label="Seleccionar todos"><span><b>${elegidos.length} de ${base.length}</b> seleccionados</span><span class="m">${fmt(total)} · ${nArch}</span></div>
-      <div class="lq-ach">${grupos.map((g, i) => { const s = g.reduce((x, r) => x + Number(r.importe), 0); return `<span class="lq-fl" style="--p:${Math.min(100, s / lim * 100)}%"><b>${i + 1}</b> ${diaC(lqF(g[0]))} <span>·</span> ${fmt(s)}</span>`; }).join('') || '<span class="lq-vacio">Marca registros para armar la liquidación</span>'}</div>
+      <div class="lq-ach">${grupos.map((g, i) => { const s = g.reduce((x, r) => x + Number(r.importe), 0); return `<span class="lq-fl" style="--p:${Math.min(100, s / lim * 100)}%"><b>${i + 1}</b> ${diaC(lqF(g[0]))} <span>·</span> ${fmt(s)}</span>`; }).join('') || '<span class="lq-vacio">Seleccionar registros para generar la liquidación</span>'}</div>
       <button type="button" class="lq-go" id="lqDescargar" ${elegidos.length && !lqOcupado ? '' : 'disabled'}>${lqOcupado ? 'Preparando…' : 'Descargar liquidación'}</button>`;
     const tt = $('#lqTodos'); if (tt) tt.indeterminate = elegidos.length > 0 && !todos;
     const cuenta = {}; elegidos.forEach(r => { const k = norm(r.factura); cuenta[k] = (cuenta[k] || 0) + 1; });
     const repetidas = Object.keys(cuenta).filter(k => cuenta[k] > 1), grandes = elegidos.filter(r => Number(r.importe) > lim).length;
-    $('#lqAviso').innerHTML = [repetidas.length && `<b>N° de factura repetido:</b> ${repetidas.map(esc).join(', ')}. Revisa que no se pague dos veces.`, grandes && `${grandes} ${grandes === 1 ? 'registro supera' : 'registros superan'} el máximo y ${grandes === 1 ? 'irá' : 'irán'} solo en su archivo.`].filter(Boolean).join('<br>');
+    $('#lqAviso').innerHTML = [repetidas.length && `<b>N° de factura repetido:</b> ${repetidas.map(esc).join(', ')}. Verificar que no se pague dos veces.`, grandes && `${grandes} ${grandes === 1 ? 'registro supera' : 'registros superan'} el máximo y ${grandes === 1 ? 'irá' : 'irán'} solo en su archivo.`].filter(Boolean).join('<br>');
     $('#lqTabla').innerHTML = `<tr><th data-c="chk"></th><th data-c="fecha">Fecha</th><th data-c="nodo">Nodo</th><th data-c="factura">Factura</th><th class="num" data-c="importe">Importe</th><th data-c="arch">Archivo</th></tr>` +
       (mostrar.map(r => { const a = idx.get(r.id);
         return `<tr data-id="${r.id}" class="${lqSel.has(r.id) ? 'sel' : ''}"><td data-c="chk"><input type="checkbox" data-id="${r.id}" ${lqSel.has(r.id) ? 'checked' : ''} aria-label="Incluir ${esc(r.nodo)}"></td><td data-c="fecha">${fdmy(r.fecha)}</td><td data-c="nodo"><div class="nodo">${esc(r.nodo)}${r.motivo === 'RECOJO' ? '<span class="tb rec">Recojo</span>' : ''}</div><div class="meta">${esc(r.transporte || '')}</div></td><td data-c="factura">${esc(r.factura)}</td><td class="num" data-c="importe"><b>${fmt(r.importe)}</b></td><td data-c="arch">${a ? `<span class="lq-arch"><i>${a}</i>Archivo ${a}</span>` : '<span class="lq-arch nn"><i>—</i>No incluido</span>'}</td><td data-c="meta">${[diaC(lqF(r)), r.factura, a ? 'Archivo ' + a : ''].filter(Boolean).map(esc).join(' · ')}</td></tr>`; }).join('') ||
@@ -2374,7 +2374,7 @@ function lqHistPintar() {
   $('#lqHist').innerHTML = '<tr><th>N°</th><th>Fecha</th><th>Pago</th><th class="num">Registros</th><th class="num">Total</th><th></th></tr>' +
     (data.map(l => `<tr data-id="${l.id}"><td><b>${lqCod(l.numero)}</b></td><td>${fdmy(l.fecha)}</td><td>${l.modo_pago === 'CREDITO' ? 'Crédito' : l.modo_pago === 'CONTADO' ? 'Contado' : 'Contado y crédito'}</td><td class="num">${l.items}</td><td class="num"><b>${fmt(l.total)}</b></td>
       <td style="text-align:right"><span class="lq-acc"><button type="button" class="lnk" data-a="bajar">Descargar</button><button type="button" class="rib" data-act="lqmenu" aria-label="Más acciones" title="Más acciones"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></span></td></tr>`).join('') ||
-    '<tr><td colspan="6"><div class="empty"><b>Aún no hay liquidaciones</b><span>Aquí quedarán las que descargues.</span></div></td></tr>');
+    '<tr><td colspan="6"><div class="empty"><b>Aún no hay liquidaciones</b><span>Las liquidaciones descargadas se mostrarán en esta sección.</span></div></td></tr>');
 }
 // ----- eventos de la pantalla -----
 $('#lqSeg').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (!b) return; lqVista = b.dataset.v; $('#lqQ').value = ''; lqTexto = ''; lqPintar(); });
@@ -2475,7 +2475,7 @@ async function lqDescargar() {
     }
     for (let i = 0; i < grupos.length; i++) {
       const ids = grupos[i].map(r => r.id), { data: marcados, error } = await sb.from('envios').update({ liquidacion_id: creadas[i].id }).in('id', ids).is('liquidacion_id', null).select('id'); if (error) throw error;
-      if (marcados.length !== ids.length) throw new Error('Algunos registros ya están en otra liquidación. Vuelve a buscar.');
+      if (marcados.length !== ids.length) throw new Error('Algunos registros ya pertenecen a otra liquidación. Volver a buscar.');
     }
     lqBajar(await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }), `Liquidaciones ${fdmy(today()).replace(/\//g, '-')}.zip`);
     toast(`${grupos.length} ${grupos.length === 1 ? 'liquidación descargada' : 'liquidaciones descargadas'}` + (fallas ? `. ${fallas} ${fallas === 1 ? 'foto no se pudo incluir' : 'fotos no se pudieron incluir'}` : ''), fallas ? 'err' : undefined);
@@ -2557,7 +2557,7 @@ function rtEnvio(p) {
       const tr = document.querySelector(`#rTabla tr[data-id="${id}"]`);
       if (tr && !tr.contains(document.activeElement)) repintarFila(r);
       contarEstados(); pintarResumenRegistros();
-      if (enModal && !esMio(id)) { if (!sucio) abrirReg(id); else toast('Otro usuario cambió este registro. Guarda o descarta tus cambios.', 'err'); }
+      if (enModal && !esMio(id)) { if (!sucio) abrirReg(id); else toast('Otro usuario modificó este registro. Guardar o descartar los cambios propios.', 'err'); }
     }
   } else if (p.eventType === 'DELETE') {
     if (r) { rtEspera('reg', buscarRegistros, 400); if ($('#regDlg').open && rm.id === id) { $('#regDlg').close(); toast('Este registro fue eliminado por otro usuario', 'err'); } }
