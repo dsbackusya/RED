@@ -1015,7 +1015,7 @@ async function guardarHrn(filas) {
   const existentes = new Set(ya.map(r => clave({ ...r, fecha_reporte: String(r.fecha_reporte).slice(0, 10) }))), nuevas = filas.filter(r => !existentes.has(clave(r)));
   for (let i = 0; i < nuevas.length; i += 400) {
     const lote = nuevas.slice(i, i + 400);
-    const { error } = await sb.from('hrn_detalle').insert(lote); if (error) throw error;
+    const { error } = await sb.from('hrn_detalle').insert(lote); memoLimpiar(); if (error) throw error;
   }
   hrnCargado = false;
   return { nuevas: nuevas.length, repetidas: filas.length - nuevas.length, fechas };
@@ -1582,7 +1582,7 @@ $('#kModo').onclick = e => { const b = e.target.closest('button'); if (!b || b.d
 $('#kCuenta').onchange = $('#kNodoR').onchange = () => { kHash(); kAuto(); };
 $('#kTransSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; $('#kTrans').value = b.dataset.t; kSync(); kAuto(); };
 $('#kFiltros').onclick = () => { const o = $('#tab-kpis').classList.toggle('fopen'); $('#kFiltros').setAttribute('aria-expanded', o); $('#kFiltros').textContent = o ? 'Ocultar filtros' : 'Filtros'; };
-$('#kRefrescar').onclick = () => calcularKpis();
+$('#kRefrescar').onclick = () => { memoLimpiar(); calcularKpis(); };
 function kRestablecer() { $('#kTrans').value = ''; $('#kAgencia').value = ''; $('#kZona').value = ''; $('#kCuenta').value = ''; $('#kNodoR').value = ''; kPeriodo('mes'); }
 function pintarUpd() {
   if (!kUpdTs) { $('#kUpd').textContent = ''; return; }
@@ -1618,7 +1618,17 @@ function poblarFiltros(lista) {
   $('#kAgencia').innerHTML = '<option value="">Todas</option>' + ags.map(a => `<option>${esc(a)}</option>`).join('') + '<option>(sin agencia)</option>'; $('#kAgencia').value = ag;
   $('#kZona').innerHTML = '<option value="">Todas</option>' + zs.map(a => `<option>${esc(a)}</option>`).join('') + '<option>(sin zona)</option>'; $('#kZona').value = zo;
 }
+// consultas del Dashboard que casi no cambian: se reutilizan unos minutos; se descartan al actualizar, al llegar un cambio en tiempo real o al guardar datos
+const memoK = new Map();
+function memo(clave, ms, fn) {
+  const m = memoK.get(clave); if (m && Date.now() - m.t < ms) return m.p;
+  const p = fn(); memoK.set(clave, { t: Date.now(), p }); p.catch(() => memoK.delete(clave)); return p;
+}
+const memoLimpiar = pref => { for (const k of [...memoK.keys()]) if (!pref || k.startsWith(pref)) memoK.delete(k); };
 async function periodoPrevio(desde, hasta, trans) {
+  return memo(`prev|${desde}|${hasta}|${trans}|${kst.m}|${$('#kAgencia').value}|${$('#kZona').value}`, 120000, () => periodoPrevioCalc(desde, hasta, trans));
+}
+async function periodoPrevioCalc(desde, hasta, trans) {
   const vacio = () => ({ total: 0, pedidos: 0, bultos: 0, cajas: 0 });
   if (!desde || !hasta) return { ...vacio(), pp: { CONTADO: vacio(), CREDITO: vacio() } };
   const d0 = new Date(desde + 'T00:00:00'), d1 = new Date(hasta + 'T00:00:00'), n = Math.round((d1 - d0) / 86400000) + 1;
@@ -1814,7 +1824,8 @@ let kpEnvios = [];
 let kMeta = { aplica: false };
 
 // ---------- HRN agregado en la base de datos (con respaldo al detalle) ----------
-async function traerHrn(desde, hasta) {
+function traerHrn(desde, hasta) { return memo(`hrn|${desde}|${hasta}`, 300000, () => traerHrnCalc(desde, hasta)); }
+async function traerHrnCalc(desde, hasta) {
   try {
     return await traerTodo(() => {
       let q = sb.from('hrn_grupos').select('fecha_reporte,nodo,descripcion_cuenta,pedidos,bultos,peso,volumen').order('fecha_reporte').order('nodo').order('descripcion_cuenta');
@@ -1832,7 +1843,8 @@ async function traerHrn(desde, hasta) {
 
 // ---------- meta mensual ----------
 const mesNombre = m => { const [y, n] = m.split('-').map(Number), t = new Date(y, n - 1, 1).toLocaleDateString('es-PE', { month: 'long', year: 'numeric' }); return t.charAt(0).toUpperCase() + t.slice(1); };
-async function cargarMeta() {
+function cargarMeta() { const mes = $('#kMes').value; return memo(`meta|${mes}`, 300000, cargarMetaCalc); }
+async function cargarMetaCalc() {
   const mes = $('#kMes').value, sinFiltros = !$('#kTrans').value && !$('#kAgencia').value && !$('#kZona').value;
   if (!mes || !['mes', 'ant', 'sel'].includes(kst.p)) return { aplica: false, motivo: 'rango' };
   if (!sinFiltros) return { aplica: false, motivo: 'filtros', mes };
@@ -1859,11 +1871,11 @@ $('#metaOk').onclick = async () => {
   const v = Number($('#metaV').value); if (!(v > 0)) return toast('Ingresar un monto mayor que cero', 'err');
   const { error } = await sb.from('metas').upsert({ mes: kMeta.mes, monto: v, updated_at: new Date().toISOString() });
   if (error) return toast('No se pudo guardar la meta. Verificar que se haya ejecutado supabase_fase2.sql. ' + error.message, 'err');
-  $('#metaDlg').close(); toast('Meta guardada', 'ok'); calcularKpis();
+  $('#metaDlg').close(); toast('Meta guardada', 'ok'); memoLimpiar('meta'); calcularKpis();
 };
 $('#metaQ').onclick = async () => {
   const { error } = await sb.from('metas').delete().eq('mes', kMeta.mes);
-  if (error) return toast(error.message, 'err'); $('#metaDlg').close(); toast('Meta quitada', 'ok'); calcularKpis();
+  if (error) return toast(error.message, 'err'); $('#metaDlg').close(); toast('Meta quitada', 'ok'); memoLimpiar('meta'); calcularKpis();
 };
 document.addEventListener('click', e => { if (e.target.closest('#metaBtn')) abrirMeta(); });
 
@@ -2663,7 +2675,7 @@ function rtRefrescarVista() {
   if (t === 'liquidaciones' && !lqOcupado) rtEspera('lq', () => { lqBuscar({ conservar: true }); lqHistorial(); }, 800);
 }
 function rtEnvio(p) {
-  rtUltimo = Date.now();
+  rtUltimo = Date.now(); memoLimpiar('prev');
   const nuevo = p.new || {}, id = nuevo.id || (p.old || {}).id, r = regBase.find(x => x.id === id);
   if (p.eventType === 'UPDATE' && r) {
     const igual = Object.keys(nuevo).every(k => String(nuevo[k] ?? '') === String(r[k] ?? ''));
