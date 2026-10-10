@@ -280,15 +280,10 @@ const cFechas = () => [...new Set(previa.map(r => r.fecha).filter(Boolean))].sor
 const cFechasTodas = () => [...new Set([...previa.map(r => r.fecha), ...(hrnCarga || []).map(r => r.fecha_reporte), ...(recDetCarga || []).map(r => r.fecha_reporte)].filter(Boolean))].sort();
 const cSinFecha = () => previa.filter(r => !r.fecha).length + (hrnCarga || []).filter(r => !r.fecha_reporte).length + (recDetCarga || []).filter(r => !r.fecha_reporte).length;
 const cHojas = () => ({ despacho: previa.some(r => r.motivo === 'DESPACHO'), recojos: previa.some(r => r.motivo === 'RECOJO'), detalle: !!hrnCarga, recdet: !!recDetCarga });
-function cChips() {
-  const h = cArchivo ? cHojas() : null;
-  document.querySelectorAll('.chip[data-h]').forEach(c => { const si = h && h[c.dataset.h]; c.className = 'chip' + (h ? (si ? ' si' : ' no') : ''); c.innerHTML = (si ? ICO.check : '') + c.dataset.t; });
-}
-document.querySelectorAll('.chip[data-h]').forEach(c => c.dataset.t = c.textContent);
 function cReiniciar() {
   cSeq++; previa = []; hrnCarga = null; recDetCarga = null; cArchivo = null; cFiltro = ''; $('#cFile').value = ''; $('#cHojas').classList.add('hide'); $('#cMsg').className = 'msg';
-  ['#cPrev', '#cOk', '#cArch', '#cHojas'].forEach(q => $(q).classList.add('hide')); ['#cS1', '#cDrop', '#cPlantilla', '#cHow'].forEach(q => $(q).classList.remove('hide'));
-  $('#cBarra').hidden = true; $('#tab-cargar').classList.remove('conbarra'); cChips(); setPaso(1);
+  ['#cPrev', '#cOk', '#cArch', '#cHojas'].forEach(q => $(q).classList.add('hide')); ['#cS1', '#cDrop', '#cAyuda'].forEach(q => $(q).classList.remove('hide')); $('#cGrid').classList.remove('uno');
+  $('#cBarra').hidden = true; $('#tab-cargar').classList.remove('conbarra'); setPaso(1);
 }
 const cEspera = ms => new Promise(r => setTimeout(r, ms));
 const cReducir = () => matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -302,7 +297,7 @@ async function cLeer(seq) {
   if (cReducir()) return true;
   const n = { despacho: previa.filter(r => r.motivo === 'DESPACHO').length, recojos: previa.filter(r => r.motivo === 'RECOJO').length, detalle: hrnCarga ? hrnCarga.length : 0, recdet: recDetCarga ? recDetCarga.length : 0 };
   const hojas = [['despacho', 'DESPACHO', 'Nodos despachados'], ['recojos', 'RECOJOS', 'Nodos recogidos'], ['detalle', 'DETALLE', 'Bultos con su fecha'], ['recdet', 'DETALLE RECOJOS', 'Pedidos recogidos']];
-  $('#cDrop').classList.add('hide'); $('#cPlantilla').classList.add('hide'); $('#cHow').classList.add('hide'); $('#cArch').classList.remove('hide');
+  $('#cDrop').classList.add('hide'); $('#cAyuda').classList.add('hide'); $('#cGrid').classList.add('uno'); $('#cArch').classList.remove('hide');
   $('#cArchN').textContent = cArchivo.nombre; $('#cArchS').textContent = `${cArchivo.kb} KB, leyendo las hojas`;
   $('#cHojas').innerHTML = hojas.map(([k, t, d]) => `<div class="chj" data-k="${k}"><span class="pt">${ICO.check}</span><div class="t"><b>${t}</b><span>${d}</span></div><div class="num"><b></b></div></div>`).join('');
   $('#cHojas').classList.remove('hide'); await cEspera(120);
@@ -354,8 +349,8 @@ function cAlertar() {
   a.innerHTML = n ? `${ALERTA}<span><b>${partes}.</b> ${sinPg ? 'El pago es obligatorio: seleccionarlo en esta tabla. ' : ''}${sinAg ? 'La agencia puede completarse en esta tabla o después en Registros.' : ''}</span>${cFiltro === 'falta' ? '<button type="button" data-f="">Ver todos</button>' : '<button type="button" data-f="falta">Ver solo esos</button>'}` : '';
 }
 function pintarPrevia(anim) {
-  $('#cDrop').classList.add('hide'); $('#cArch').classList.remove('hide'); $('#cPlantilla').classList.add('hide'); $('#cHow').classList.add('hide');
-  $('#cArchN').textContent = cArchivo.nombre; $('#cArchS').textContent = `${cArchivo.kb} KB`; cChips();
+  $('#cDrop').classList.add('hide'); $('#cArch').classList.remove('hide'); $('#cAyuda').classList.add('hide'); $('#cGrid').classList.add('uno');
+  $('#cArchN').textContent = cArchivo.nombre; $('#cArchS').textContent = `${cArchivo.kb} KB`;
   const des = previa.filter(r => r.motivo === 'DESPACHO'), rec = previa.filter(r => r.motivo === 'RECOJO'), suma = (a, k) => a.reduce((x, r) => x + (r[k] || 0), 0);
   const cant = a => `${fmtN(suma(a, 'pedidos'))} pedidos, ${fmtN(suma(a, 'bultos'))} bultos, ${fmtN(suma(a, 'cajas'))} cajas`;
   const nodosDet = hrnCarga ? new Set(hrnCarga.map(r => r.nodo)).size : 0, nodosRec = recDetCarga ? new Set(recDetCarga.map(r => r.nodo)).size : 0;
@@ -455,7 +450,7 @@ $('#cGuardar').onclick = async () => {
   cMostrarOk(hayD && hayR ? 'Despachos y recojos guardados' : hayR ? (filas.length === 1 ? 'Recojo guardado' : 'Recojos guardados') : (filas.length === 1 ? 'Despacho guardado' : 'Despachos guardados'), `${filas.length} ${filas.length === 1 ? 'registro' : 'registros'} ${txtFecha}.${detalle} Falta completar importe y factura de cada uno.`, false);
   previa = []; hrnCarga = null; recDetCarga = null; $('#cFile').value = '';
 };
-cChips(); setPaso(1);
+setPaso(1);
 
 // ---------- adjuntos de factura (bucket "Facturas") ----------
 const BUCKET = 'Facturas';

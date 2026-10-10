@@ -558,7 +558,7 @@
   .cps .pn .ico { width:13px; height:13px; stroke-width:3 }
   .cps .ps.on { color:var(--ink); font-weight:600 } .cps .ps.on .pn { background:var(--pri); color:#fff; transform:scale(1.12) } .cps .ps.hecho { color:var(--ink) } .cps .ps.hecho .pn { background:var(--ok); color:#fff }
   .cps .ln { width:28px; height:2px; background:#d2d2d7; border-radius:2px; position:relative; overflow:hidden } .cps .ln::after { content:""; position:absolute; inset:0; background:var(--ok); transform:scaleX(0); transform-origin:left; transition:transform .6s var(--ease) } .cps .ln.hecho::after { transform:scaleX(1) }
-  .cdrop { position:relative; border-radius:18px; background:linear-gradient(180deg,#f7faff,#fafafc); min-height:220px; display:grid; place-items:center; text-align:center; cursor:pointer; padding:28px 20px; transition:background .25s, transform .25s var(--ease) }
+  .cdrop { position:relative; border-radius:18px; background:linear-gradient(180deg,#f7faff,#fafafc); min-height:340px; display:grid; place-items:center; text-align:center; cursor:pointer; padding:28px 20px; transition:background .25s, transform .25s var(--ease) }
   .cdrop .borde { position:absolute; inset:0; width:100%; height:100%; pointer-events:none } .cdrop .borde rect { width:calc(100% - 2px); height:calc(100% - 2px); fill:none; stroke:#b9c9e0; stroke-width:1.5; stroke-dasharray:7 7; animation:cmarcha 1.6s linear infinite }
   .cdrop:hover, .cdrop.on { background:linear-gradient(180deg,#eef5fd,#f6faff) } .cdrop:focus-visible { outline:2px solid rgba(0,102,204,.45) }
   .cdrop.on { transform:scale(1.01) } .cdrop.on .borde rect { stroke:var(--pri); animation-duration:.6s }
@@ -567,7 +567,7 @@
   .icw .onda { position:absolute; inset:0; border-radius:50%; border:2px solid var(--pri); opacity:0; animation:conda 2.8s ease-out infinite } .icw .onda:nth-child(2) { animation-delay:.9s } .icw .onda:nth-child(3) { animation-delay:1.8s }
   .icw .nuc { position:absolute; inset:0; border-radius:50%; background:#e1edfb; color:var(--pri); display:grid; place-items:center; animation:cflota 3s ease-in-out infinite } .icw .nuc .ico { width:28px; height:28px }
   .cdrop.on .icw .nuc { animation:none; transform:translateY(-8px) scale(1.12); transition:transform .3s var(--ease) }
-  .cdrop b { display:block; font-size:19px; letter-spacing:-.01em } .cdrop span { color:var(--mut); font-size:13px } .cdrop .b { margin-top:10px }
+  .cdrop b { display:block; font-size:21px; letter-spacing:-.02em } .cdrop span { color:var(--mut); font-size:13px } .cdrop .b { margin-top:10px }
   @keyframes cmarcha { to { stroke-dashoffset:-28 } } @keyframes conda { 0% { transform:scale(.7); opacity:.45 } 100% { transform:scale(1.9); opacity:0 } } @keyframes cflota { 50% { transform:translateY(-5px) } }
   .carch .ic { width:46px; height:46px; border-radius:14px; background:#fff; color:var(--ok); display:grid; place-items:center; flex:none } .carch .ic .ico { width:24px; height:24px }
   .carch b { display:block; font-size:15px; word-break:break-all } .carch span { color:#3d6b4a; font-size:13px } .carch .b { margin-left:auto }
@@ -586,6 +586,17 @@
   .chip.si { background:var(--okbg); color:var(--ok) } .chip.no { color:#98989d; text-decoration:line-through } .chip .ico { width:12px; height:12px; stroke-width:3 }
   details.how { margin-top:12px; font-size:13px; color:var(--mut) } details.how summary { cursor:pointer; color:var(--pri); width:max-content; list-style:none } details.how summary::-webkit-details-marker { display:none }
   details.how[open] summary { margin-bottom:8px } details.how ul { margin:0; padding-left:18px; display:grid; gap:4px }
+  .cdrop .fmt { margin-top:14px; font-size:12px; color:#8e8e93 } .cdrop .b { height:42px; padding:0 24px }
+  .cgrid { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); gap:20px; align-items:stretch } .cgrid > .card:first-child { display:flex; flex-direction:column } .cgrid > .card:first-child .cdrop { flex:1 } .cgrid.uno { grid-template-columns:minmax(0,1fr) }
+  #cAyuda h3 { margin:0 0 4px; font-size:16px; letter-spacing:-.01em } #cAyuda .chint { margin:0 0 16px; font-size:13px; color:var(--mut) }
+  .hojas { display:grid; gap:10px }
+  .hoja { display:flex; gap:12px; align-items:flex-start; padding:12px 14px; border:1px solid var(--line); border-radius:14px; transition:border-color .2s, background .2s } .hoja:hover { border-color:#b9d0f5; background:#fafcff }
+  .hoja .hic { flex:none; width:34px; height:34px; border-radius:10px; display:grid; place-items:center; color:#fff; font-size:12px; font-weight:700 }
+  .hoja b { display:block; font-size:14px } .hoja span { display:block; font-size:12.5px; color:var(--mut); line-height:1.4; margin-top:1px }
+  .hoja .i1 { background:linear-gradient(135deg,#1a73d6,#0066cc) } .hoja .i2 { background:linear-gradient(135deg,#f5a524,#e8890c) } .hoja .i3 { background:linear-gradient(135deg,#3a8fe8,#2c6ccf) } .hoja .i4 { background:linear-gradient(135deg,#f0b04a,#d9730d) }
+  .reglas { margin:16px 0 0; padding:14px 16px; background:#f5f8fd; border-radius:14px; font-size:12.5px; color:#48484a; line-height:1.55 } .reglas b { color:#0b3d82 }
+  .cenl { display:flex; justify-content:flex-end; margin-top:16px; padding-top:14px; border-top:1px solid var(--line) }
+  @media (max-width:900px) { .cgrid { grid-template-columns:1fr } }
   .ctiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; margin-bottom:16px }
   .ctile { background:var(--card); border-radius:20px; padding:18px 20px; display:flex; flex-direction:column; gap:2px }
   .ctile .t { color:var(--mut); font-size:13px; display:flex; align-items:center; gap:8px } .ctile .dot { width:8px; height:8px; border-radius:50%; background:var(--ok) }

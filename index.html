@@ -11,7 +11,7 @@
 <link rel="preload" as="fetch" href="mapa_peru.json?v=20261008g" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="estilos.css?v=20261012a">
+<link rel="stylesheet" href="estilos.css?v=20261012b">
 </head>
 <body>
 
@@ -80,20 +80,24 @@
 <section id="tab-cargar" class="hide">
   <div class="top"><div><h1>Cargar despacho</h1><div class="sub">Cargar el Excel del día y revisar antes de guardar</div></div><div class="cps" id="cPasos"></div></div>
   <div id="cS1">
+    <div class="cgrid" id="cGrid">
     <div class="card">
-      <div class="cdrop" id="cDrop" role="button" tabindex="0" aria-label="Elegir el Excel del día"><svg class="borde" aria-hidden="true"><rect x="1" y="1" rx="17"/></svg><div class="ctr"><div class="icw"><i class="onda"></i><i class="onda"></i><i class="onda"></i><div class="nuc" id="cIcSube"></div></div><b>Arrastra el Excel aquí</b><span>o seleccionar un archivo desde el equipo</span><button type="button" class="b" id="cElegir">Elegir archivo</button></div></div>
+      <div class="cdrop" id="cDrop" role="button" tabindex="0" aria-label="Elegir el Excel del día"><svg class="borde" aria-hidden="true"><rect x="1" y="1" rx="17"/></svg><div class="ctr"><div class="icw"><i class="onda"></i><i class="onda"></i><i class="onda"></i><div class="nuc" id="cIcSube"></div></div><b>Arrastra el Excel aquí</b><span>o seleccionar un archivo desde el equipo</span><button type="button" class="b" id="cElegir">Elegir archivo</button><small class="fmt">Formatos admitidos: .xlsx, .xls y .csv</small></div></div>
       <div class="carch hide" id="cArch"><div class="ic" id="cIcDoc"></div><div><b id="cArchN"></b><span id="cArchS"></span></div><button type="button" class="b sec" id="cCambiar">Cambiar</button></div>
   <div class="chojas hide" id="cHojas"></div>
-      <div class="cayuda"><span>El Excel puede traer</span><span class="chip" data-h="despacho">Despacho</span><span class="chip" data-h="recojos">Recojos</span><span class="chip" data-h="detalle">Detalle despacho</span><span class="chip" data-h="recdet">Detalle recojos</span><span class="sp"></span><button type="button" class="lnk" id="cPlantilla">Descargar plantilla</button></div>
-      <details class="how" id="cHow"><summary>¿Cómo debe ser el Excel?</summary>
-        <ul>
-          <li>Hojas <b>DESPACHO</b> y <b>RECOJOS</b>: columnas FECHA, NODO, PEDIDOS, BULTO, CAJAS, TRANSPORTE, PLACA, AGENCIA, MODO DE PAGO (CONTADO o CREDITO) y ZONA.</li>
-          <li>Hoja <b>DETALLE</b>: una fila por bulto, con su FECHA en la primera columna.</li>
-          <li>Hoja <b>DETALLE RECOJOS</b>: una fila por pedido recogido. Primero FECHA y NOMBRE CUENTA, y luego las columnas del reporte de devoluciones (CUENTA, N° DE PEDIDO, NODO, GUÍA y las demás).</li>
-          <li>Se pueden cargar solo las hojas necesarias. En todas las hojas, la FECHA de cada fila define la fecha de registro y no puede estar vacía. Si la ZONA está vacía, se completa con la última zona registrada para ese nodo. Los datos faltantes se completan en la pantalla de revisión.</li>
-        </ul>
-      </details>
       <div id="cMsg" class="msg"></div>
+    </div>
+    <div class="card" id="cAyuda">
+      <h3>Hojas que se reconocen</h3><p class="chint">El Excel puede traer una o varias. Se cargan solo las que estén presentes.</p>
+      <div class="hojas">
+        <div class="hoja"><div class="hic i1">D</div><div><b>Despacho</b><span>FECHA, NODO, PEDIDOS, BULTO, CAJAS, TRANSPORTE, PLACA, AGENCIA, MODO DE PAGO (CONTADO o CREDITO) y ZONA</span></div></div>
+        <div class="hoja"><div class="hic i2">R</div><div><b>Recojos</b><span>Mismas columnas que Despacho, para los recojos y devoluciones del día</span></div></div>
+        <div class="hoja"><div class="hic i3">DD</div><div><b>Detalle despacho</b><span>Una fila por bulto, con su FECHA en la primera columna</span></div></div>
+        <div class="hoja"><div class="hic i4">DR</div><div><b>Detalle recojos</b><span>Una fila por pedido recogido: FECHA, NOMBRE CUENTA y las columnas del reporte de devoluciones (CUENTA, N° DE PEDIDO, NODO, GUÍA y las demás)</span></div></div>
+      </div>
+      <div class="reglas"><b>Reglas.</b> La FECHA de cada fila define la fecha de registro y no puede estar vacía. Si la ZONA está vacía, se completa con la última zona registrada para ese nodo. Los datos faltantes se completan en la pantalla de revisión.</div>
+      <div class="cenl"><button type="button" class="lnk" id="cPlantilla">Descargar plantilla</button></div>
+    </div>
     </div>
   </div>
   <div id="cPrev" class="hide">
@@ -328,6 +332,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 <script src="config.js?v=20261010p"></script>
 <script src="ocr.js?v=5"></script>
-<script src="app.js?v=20261012a"></script>
+<script src="app.js?v=20261012b"></script>
 </body>
 </html>
