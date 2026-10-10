@@ -197,7 +197,7 @@ async function mostrarApp(user) {
   irA(t0);
   try { await pReg; acCarga(.7, 'Calculando indicadores', 3); if (kpisPend) await Promise.race([kpisPend, new Promise(r => setTimeout(r, 10000))]); } catch (e) {}
   acCarga(1, 'Listo', 0);
-  await new Promise(r => setTimeout(r, Math.max(350, 1700 - (Date.now() - tIni))));
+  await new Promise(r => setTimeout(r, Math.max(250, 1100 - (Date.now() - tIni))));
   acOcultar();
 }
 window.addEventListener('hashchange', () => { const t = location.hash.slice(1).split('?')[0].replace(/^hrn$/, 'detalle'); if (TITULOS[t]) irA(t); });
