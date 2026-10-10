@@ -2394,7 +2394,7 @@ $('#kExport').onclick = async () => {
 // ---------- liquidaciones ----------
 const LQ_DEF = { liquidador: 'BENITES VEGA LUIS MIGUEL', area: 'ECOMMERCE', moneda: 'SOLES', concepto: 'Flete interprovincial', concepto_recojo: 'Recojo interprovincial', tipo_doc: 'FACTURA', cuenta: '63111002', centro: '8003825', denominacion: 'Distribución Red Troncal', limite: '1500' };
 const LQ_FILAS = 47;   // filas que tiene el formato (14 a 60)
-let lqPar = { ...LQ_DEF }, lqLista = [], lqPend = [], lqSel = new Set(), lqHistData = [], lqVista = 'listos', lqPer = '', lqTexto = '';
+let lqPar = { ...LQ_DEF }, lqLista = [], lqPend = [], lqSel = new Set(), lqHistData = [], lqVista = 'listos', lqPer = '', lqTexto = '', lqMes = today().slice(0, 7), lqGran = 'd', lqLiq = { clave: '', rows: [] }, lqDashClave = '';
 const lqScript = src => new Promise((ok, ko) => { const t = document.createElement('script'); t.src = src; t.onload = ok; t.onerror = () => ko(new Error('No se pudo cargar una librería. Verificar la conexión a internet.')); document.head.appendChild(t); });
 async function lqLibs() {
   if (!window.ExcelJS) await lqScript('https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js');
@@ -2411,6 +2411,7 @@ async function lqAbrir() {
 const lqLimite = () => Number(lqPar.limite) || 1500;
 let lqSeq = 0, lqOcupado = false;
 async function lqBuscar(opc) {
+  lqCargarLiq();
   const mi = ++lqSeq, crear = () => {
     let q = sb.from('envios').select('*').is('liquidacion_id', null).eq('modo_pago', 'CONTADO').order('fecha').order('transporte').order('nodo').order('id');
     if ($('#lqTrans').value) q = q.eq('transporte', $('#lqTrans').value);
@@ -2442,28 +2443,98 @@ function lqPartir(list) {
   return grupos;
 }
 const lqF = r => String(r.fecha).slice(0, 10);
-const lqBase = () => { const q = norm(lqTexto); return lqLista.filter(r => (!lqPer || lqF(r) === lqPer) && (!q || norm(r.nodo + ' ' + (r.factura || '')).includes(q))); };
+const lqEnVista = r => lqF(r).startsWith(lqMes) && (!lqPer || lqF(r) === lqPer);
+const lqBase = () => { const q = norm(lqTexto); return lqLista.filter(r => lqEnVista(r) && (!q || norm(r.nodo + ' ' + (r.factura || '')).includes(q))); };
 const lqElegidos = () => lqBase().filter(r => lqSel.has(r.id));
 const lqFechaTxt = f => `${diaC(f)} ${f.slice(0, 4)}`;
 const LFIL = {
   trans: { sel: '#lqTrans', def: 'todos los transportes', txt: v => v },
   mot: { sel: '#lqMot', def: 'despachos y recojos', txt: v => v === 'DESPACHO' ? 'solo despachos' : 'solo recojos', ops: [['', 'Despachos y recojos'], ['DESPACHO', 'Solo despachos'], ['RECOJO', 'Solo recojos']] }
 };
-const lqOpciones = k => k === 'per' ? [['', 'Todas las fechas'], ...[...new Set(lqLista.map(lqF))].sort().map(f => [f, lqFechaTxt(f)])] : k === 'trans' ? [['', 'Todos los transportes'], ...[...$('#lqTrans').options].filter(o => o.value).map(o => [o.value, o.value])] : LFIL[k].ops;
+const lqOpciones = k => k === 'trans' ? [['', 'Todos los transportes'], ...[...$('#lqTrans').options].filter(o => o.value).map(o => [o.value, o.value])] : LFIL[k].ops;
 function lqFrase() {
   let n = 0;
-  const tp = document.querySelector('.rx-tk[data-lk="per"]'); tp.textContent = lqPer ? lqFechaTxt(lqPer) : 'todas las fechas'; tp.classList.toggle('set', !!lqPer); if (lqPer) n++;
   Object.keys(LFIL).forEach(k => { const v = $(LFIL[k].sel).value, tk = document.querySelector(`.rx-tk[data-lk="${k}"]`); tk.textContent = v ? LFIL[k].txt(v) : LFIL[k].def; tk.classList.toggle('set', !!v); if (v) n++; });
   $('#lqLimp').hidden = !n;
 }
+// ----- vista por mes y resumen de liquidaciones (por fecha de despacho) -----
+const LQ_MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'], LQ_DIAS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+const lqDiasMes = ym => new Date(Number(ym.slice(0, 4)), Number(ym.slice(5, 7)), 0).getDate();
+const lqDt = f => { const [y, m, d] = f.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+const lqLunes = f => { const t = lqDt(f); t.setUTCDate(t.getUTCDate() - ((t.getUTCDay() + 6) % 7)); return t.toISOString().slice(0, 10); };
+const lqKilo = n => n >= 1000 ? (n / 1000).toFixed(1).replace('.0', '') + 'k' : String(Math.round(n));
+const lqSuma = (rows, f) => rows.reduce((s, r) => s + (f(r) ? Number(r.importe) || 0 : 0), 0);
+const lqLiqClave = () => `liq|${lqMes.slice(0, 4)}|${$('#lqTrans').value}|${$('#lqMot').value}`;
+function lqCargarLiq() {
+  const clave = lqLiqClave(), anio = lqMes.slice(0, 4), t = $('#lqTrans').value, m = $('#lqMot').value;
+  memo(clave, 300000, () => traerTodo(() => { let q = sb.from('envios').select('fecha,importe,liquidacion_id').not('liquidacion_id', 'is', null).gte('fecha', anio + '-01-01').lte('fecha', anio + '-12-31').order('id'); if (t) q = q.eq('transporte', t); if (m) q = q.eq('motivo', m); return q; }))
+    .then(rows => { if (clave === lqLiqClave()) { lqLiq = { clave, rows }; lqPintar(); } }).catch(() => {});
+}
+function lqMesPintar() {
+  const hoy = today(), liqM = lqLiq.clave === lqLiqClave() ? lqLiq.rows.filter(r => lqF(r).startsWith(lqMes)) : null, listosM = lqLista.filter(r => lqF(r).startsWith(lqMes)), pendM = lqPend.filter(r => lqF(r).startsWith(lqMes));
+  $('#lqMesT').textContent = `${LQ_MESES[Number(lqMes.slice(5, 7)) - 1]} ${lqMes.slice(0, 4)}`; $('#lqNext').disabled = lqMes >= hoy.slice(0, 7); $('#lqPrev').disabled = lqMes <= '2025-01'; $('#lqTodo').classList.toggle('on', !lqPer);
+  $('#lqMt').innerHTML = `<div><small>Liquidado en el mes</small><b>${liqM ? fmt(lqSuma(liqM, () => true)) : '—'}</b></div><div><small>Listo por liquidar</small><b>${fmt(lqSuma(listosM, () => true))}</b></div><div><small>Incompletos</small><b>${pendM.length}</b></div>`;
+  const otros = lqLista.filter(r => !lqF(r).startsWith(lqMes)), ob = $('#lqOtros'); ob.classList.toggle('hide', !otros.length);
+  if (otros.length) { ob.textContent = `${otros.length} ${otros.length === 1 ? 'listo en otro mes' : 'listos en otros meses'}`; ob.dataset.m = otros.map(lqF).sort()[0].slice(0, 7); }
+  const dias = lqDiasMes(lqMes), porDia = (rows, d) => rows.filter(r => lqF(r) === `${lqMes}-${String(d).padStart(2, '0')}`);
+  $('#lqTira').innerHTML = Array.from({ length: dias }, (_, i) => {
+    const d = i + 1, f = `${lqMes}-${String(d).padStart(2, '0')}`, fut = f > hoy, liq = liqM ? lqSuma(porDia(liqM, d), () => true) : 0, pen = lqSuma(porDia(listosM, d), () => true), inc = porDia(pendM, d).length;
+    const monto = liq || pen, cls = [fut ? 'fut' : '', !fut && !liq && !pen && !inc ? 'nada' : '', liq ? 'liq' : '', pen ? 'pen' : '', inc ? 'inc' : '', lqPer === f ? 'on' : '', f === hoy ? 'hoy' : ''].filter(Boolean).join(' ');
+    return `<button type="button" class="lqm-dc ${cls}" data-f="${f}" ${fut ? 'disabled' : ''} title="${d} de ${LQ_MESES[Number(lqMes.slice(5, 7)) - 1].toLowerCase()}"><small>${LQ_DIAS[lqDt(f).getUTCDay()]}</small><b>${d}</b><i></i><em>${monto ? lqKilo(monto) : ''}</em></button>`;
+  }).join('');
+  const clave = [lqMes, lqGran, lqLiq.clave, lqLiq.rows.length, lqLista.length].join('|'); if (clave !== lqDashClave) { lqDashClave = clave; lqDash(); }
+}
+function lqBuckets() {
+  const anio = lqMes.slice(0, 4), hoy = today(), liq = lqLiq.clave === lqLiqClave() ? lqLiq.rows : [], B = new Map();
+  const clave = f => lqGran === 'd' ? f : lqGran === 's' ? lqLunes(f) : f.slice(0, 7), cab = (k, f) => { if (!B.has(k)) B.set(k, { k, ini: f, fin: f, liq: 0, pen: 0, ids: new Set(), reg: 0 }); const b = B.get(k); if (f < b.ini) b.ini = f; if (f > b.fin) b.fin = f; return b; };
+  if (lqGran === 'm') { for (let m = 1; m <= 12; m++) { const f = `${anio}-${String(m).padStart(2, '0')}-01`; if (f.slice(0, 7) <= hoy.slice(0, 7)) cab(f.slice(0, 7), f); } }
+  else for (let d = 1; d <= lqDiasMes(lqMes); d++) { const f = `${lqMes}-${String(d).padStart(2, '0')}`; if (f <= hoy) cab(clave(f), f); }
+  const dentro = f => lqGran === 'm' ? f.startsWith(anio) : f.startsWith(lqMes);
+  liq.forEach(r => { const f = lqF(r); if (!dentro(f)) return; const b = cab(clave(f), f); b.liq += Number(r.importe) || 0; b.ids.add(r.liquidacion_id); b.reg++; });
+  lqLista.forEach(r => { const f = lqF(r); if (!dentro(f)) return; cab(clave(f), f).pen += Number(r.importe) || 0; });
+  return [...B.values()].sort((x, y) => x.k.localeCompare(y.k)).map((b, i) => {
+    const d = Number(b.ini.slice(8, 10)), mc = LQ_MESES[Number(b.ini.slice(5, 7)) - 1];
+    return { ...b, n: b.ids.size, t: lqGran === 'd' ? `${fdmy(b.ini).slice(0, 5)}` : lqGran === 's' ? `${d} al ${Number(b.fin.slice(8, 10))} de ${mc.slice(0, 3).toLowerCase()}` : `${mc} ${b.ini.slice(0, 4)}`, l: lqGran === 'd' ? `${LQ_DIAS[lqDt(b.ini).getUTCDay()]} ${d}` : lqGran === 's' ? `Sem ${i + 1}` : mc.slice(0, 3) };
+  });
+}
+function lqDash() {
+  const B = lqBuckets(), tot = B.reduce((s, b) => s + b.liq, 0), nl = B.reduce((s, b) => s + b.n, 0), reg = B.reduce((s, b) => s + b.reg, 0), con = B.filter(b => b.liq > 0), prom = con.length ? tot / con.length : 0, mx = con.reduce((a, b) => b.liq > (a ? a.liq : 0) ? b : a, null);
+  const un = { d: 'día', s: 'semana', m: 'mes' }[lqGran], unp = { d: 'días', s: 'semanas', m: 'meses' }[lqGran];
+  $('#lqdSub').textContent = lqGran === 'm' ? `Año ${lqMes.slice(0, 4)}` : `${LQ_MESES[Number(lqMes.slice(5, 7)) - 1]} ${lqMes.slice(0, 4)}`;
+  $('#lqdK').innerHTML = `<div><small>Total liquidado</small><b>${fmt(tot)}</b><em>${lqGran === 'm' ? 'en el año' : 'en el mes'}</em></div><div><small>Liquidaciones</small><b>${nl}</b><em>${fmtN(reg)} registros</em></div><div><small>Promedio por ${un}</small><b>${fmt(prom)}</b><em>${con.length} ${con.length === 1 ? un : unp} con liquidación</em></div><div><small>Mayor ${un}</small><b>${mx ? fmt(mx.liq) : '—'}</b><em>${mx ? mx.t : ''}</em></div>`;
+  const W = 900, H = 250, pl = 46, pb = 26, pt = 10, n = B.length || 1, max = Math.max(1, ...B.map(b => b.liq + b.pen)), ymax = Math.ceil(max / 1000) * 1000 || 1000, paso = (W - pl - 10) / n, bw = Math.min(46, paso * .62);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Liquidaciones por ${un}">`;
+  for (let i = 0; i <= 4; i++) { const y = pt + (H - pt - pb) * (1 - i / 4); s += `<line class="gl" x1="${pl}" x2="${W - 10}" y1="${y}" y2="${y}"/><text class="ax" x="${pl - 8}" y="${y + 4}" text-anchor="end">${lqKilo(ymax * i / 4)}</text>`; }
+  B.forEach((b, i) => {
+    const x = pl + paso * i + (paso - bw) / 2, hl = (H - pt - pb) * b.liq / ymax, hp = (H - pt - pb) * b.pen / ymax, y0 = H - pb;
+    s += `<g class="b" data-i="${i}">${hl ? `<rect x="${x}" y="${y0 - hl}" width="${bw}" height="${hl}" rx="5" fill="#0066cc"/>` : ''}${hp ? `<rect x="${x}" y="${y0 - hl - hp}" width="${bw}" height="${hp}" rx="5" fill="#b9d4f5"/>` : ''}<rect x="${x - 4}" y="${pt}" width="${bw + 8}" height="${H - pt - pb}" fill="transparent"/></g>`;
+    if (n <= 16 || i % 2 === 0) s += `<text class="ax" x="${x + bw / 2}" y="${H - 8}" text-anchor="middle">${b.l}</text>`;
+  });
+  const ch = $('#lqdChart'); ch.querySelectorAll('svg').forEach(e => e.remove()); ch.insertAdjacentHTML('afterbegin', s + '</svg>'); ch._b = B;
+  $('#lqdTabla').innerHTML = `<tr><th>${{ d: 'Día', s: 'Semana', m: 'Mes' }[lqGran]}</th><th class="num">Liquidaciones</th><th class="num">Registros</th><th class="num">Total liquidado</th><th>Participación</th></tr>` +
+    ([...B].reverse().filter(b => b.liq).slice(0, 10).map(b => `<tr><td><b>${b.t}</b></td><td class="num">${b.n}</td><td class="num">${b.reg}</td><td class="num"><b>${fmt(b.liq)}</b></td><td><span class="lqd-pb"><i style="width:${tot ? b.liq / tot * 100 : 0}%"></i></span> ${tot ? Math.round(b.liq / tot * 100) : 0} %</td></tr>`).join('') || '<tr><td colspan="5"><div class="empty"><b>Sin liquidaciones en este período</b><span>Las liquidaciones descargadas se resumirán aquí.</span></div></td></tr>');
+}
+$('#lqdChart').addEventListener('mousemove', e => {
+  const ch = e.currentTarget, g = e.target.closest('.b'), t = $('#lqdTip'); if (!g || !ch._b) { t.style.opacity = 0; return; }
+  const b = ch._b[Number(g.dataset.i)], r = ch.getBoundingClientRect();
+  t.innerHTML = `<b>${b.t}</b>Liquidado: ${fmt(b.liq)}<br>${b.pen ? 'Listo por liquidar: ' + fmt(b.pen) + '<br>' : ''}${b.n} ${b.n === 1 ? 'liquidación' : 'liquidaciones'} · ${b.reg} registros`;
+  t.style.left = Math.min(e.clientX - r.left + 14, r.width - 230) + 'px'; t.style.top = Math.max(0, e.clientY - r.top - 70) + 'px'; t.style.opacity = 1;
+});
+$('#lqdChart').addEventListener('mouseleave', () => { $('#lqdTip').style.opacity = 0; });
+$('#lqGran').addEventListener('click', e => { const b = e.target.closest('button[data-g]'); if (!b) return; lqGran = b.dataset.g; document.querySelectorAll('#lqGran button').forEach(x => x.classList.toggle('on', x === b)); lqPintar(); });
+const lqIrMes = ym => { const cambiaAnio = ym.slice(0, 4) !== lqMes.slice(0, 4); lqMes = ym; lqPer = ''; if (cambiaAnio) lqCargarLiq(); lqPintar(); };
+$('#lqPrev').onclick = () => { const [y, m] = lqMes.split('-').map(Number); lqIrMes(m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`); };
+$('#lqNext').onclick = () => { const [y, m] = lqMes.split('-').map(Number); lqIrMes(m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, '0')}`); };
+$('#lqTodo').onclick = () => { lqPer = ''; lqPintar(); };
+$('#lqOtros').onclick = e => lqIrMes(e.currentTarget.dataset.m);
+$('#lqTira').addEventListener('click', e => { const b = e.target.closest('.lqm-dc'); if (!b || b.disabled) return; lqPer = lqPer === b.dataset.f ? '' : b.dataset.f; lqPintar(); });
 let lqPendVista = [];
 function lqPintar() {
-  const fechas = [...new Set(lqLista.map(lqF))].sort();
-  if (lqPer && !fechas.includes(lqPer)) lqPer = '';
-  lqFrase();
+  lqFrase(); lqMesPintar();
+  const nListos = lqLista.filter(lqEnVista).length, pendM = lqPend.filter(lqEnVista), histM = lqHistData.filter(l => String(l.fecha).slice(0, 7) === lqMes);
   const base = lqBase(), elegidos = lqElegidos(), total = elegidos.reduce((s, r) => s + Number(r.importe), 0), grupos = lqPartir(elegidos), lim = lqLimite();
   const idx = new Map(); grupos.forEach((g, i) => g.forEach(r => idx.set(r.id, i + 1)));
-  $('#lqSeg').innerHTML = [['listos', 'Listos para liquidar', lqLista.length], ['inc', 'Incompletos', lqPend.length], ['hist', 'Historial', lqHistData.length]]
+  $('#lqSeg').innerHTML = [['listos', 'Listos para liquidar', nListos], ['inc', 'Incompletos', pendM.length], ['hist', 'Historial', histM.length]]
     .map(([v, t, n]) => `<button type="button" role="tab" data-v="${v}" aria-selected="${lqVista === v}" class="${lqVista === v ? 'on' : ''}">${t} <b>${n}</b>${v === 'inc' && n ? '<i></i>' : ''}</button>`).join('');
   $('#lqFrase').classList.toggle('sinfiltros', lqVista === 'hist');
   $('#lqVListos').classList.toggle('hide', lqVista !== 'listos'); $('#lqVInc').classList.toggle('hide', lqVista !== 'inc'); $('#lqVHist').classList.toggle('hide', lqVista !== 'hist');
@@ -2471,7 +2542,7 @@ function lqPintar() {
     $('#lqCuenta').innerHTML = '';
     const mostrar = [...base].sort((a, b) => lqF(a).localeCompare(lqF(b)) || ((idx.get(a.id) || 99) - (idx.get(b.id) || 99)) || Number(b.importe) - Number(a.importe));
     const todos = mostrar.length > 0 && mostrar.every(r => lqSel.has(r.id)), nArch = `${grupos.length} ${grupos.length === 1 ? 'archivo' : 'archivos'}`;
-    const barra = $('#lqBarra'); barra.hidden = !lqLista.length;
+    const barra = $('#lqBarra'); barra.hidden = !nListos;
     barra.innerHTML = `<div class="l"><input type="checkbox" id="lqTodos" ${todos ? 'checked' : ''} aria-label="Seleccionar todos"><span><b>${elegidos.length} de ${base.length}</b> seleccionados</span><span class="m">${fmt(total)} · ${nArch}</span></div>
       <div class="lq-ach">${grupos.map((g, i) => { const s = g.reduce((x, r) => x + Number(r.importe), 0); return `<span class="lq-fl" style="--p:${Math.min(100, s / lim * 100)}%"><b>${i + 1}</b> ${diaC(lqF(g[0]))} <span>·</span> ${fmt(s)}</span>`; }).join('') || '<span class="lq-vacio">Seleccionar registros para generar la liquidación</span>'}</div>
       <button type="button" class="lq-go" id="lqDescargar" ${elegidos.length && !lqOcupado ? '' : 'disabled'}>${lqOcupado ? 'Preparando…' : 'Descargar liquidación'}</button>`;
@@ -2479,22 +2550,23 @@ function lqPintar() {
     const cuenta = {}; elegidos.forEach(r => { const k = norm(r.factura); cuenta[k] = (cuenta[k] || 0) + 1; });
     const repetidas = Object.keys(cuenta).filter(k => cuenta[k] > 1), grandes = elegidos.filter(r => Number(r.importe) > lim).length;
     $('#lqAviso').innerHTML = [repetidas.length && `<b>N° de factura repetido:</b> ${repetidas.map(esc).join(', ')}. Verificar que no se pague dos veces.`, grandes && `${grandes} ${grandes === 1 ? 'registro supera' : 'registros superan'} el máximo y ${grandes === 1 ? 'irá' : 'irán'} solo en su archivo.`].filter(Boolean).join('<br>');
+    const sf = new Map(); elegidos.forEach(r => sf.set(lqF(r), (sf.get(lqF(r)) || 0) + Number(r.importe))); let ult = '';
     $('#lqTabla').innerHTML = `<tr><th data-c="chk"></th><th data-c="fecha">Fecha</th><th data-c="nodo">Nodo</th><th data-c="factura">Factura</th><th class="num" data-c="importe">Importe</th><th data-c="arch">Archivo</th></tr>` +
-      (mostrar.map(r => { const a = idx.get(r.id);
-        return `<tr data-id="${r.id}" class="${lqSel.has(r.id) ? 'sel' : ''}"><td data-c="chk"><input type="checkbox" data-id="${r.id}" ${lqSel.has(r.id) ? 'checked' : ''} aria-label="Incluir ${esc(r.nodo)}"></td><td data-c="fecha">${fdmy(r.fecha)}</td><td data-c="nodo"><div class="nodo">${esc(r.nodo)}${r.motivo === 'RECOJO' ? '<span class="tb rec">Recojo</span>' : ''}</div><div class="meta">${esc(r.transporte || '')}</div></td><td data-c="factura">${esc(r.factura)}</td><td class="num" data-c="importe"><b>${fmt(r.importe)}</b></td><td data-c="arch">${a ? `<span class="lq-arch"><i>${a}</i>Archivo ${a}</span>` : '<span class="lq-arch nn"><i>—</i>No incluido</span>'}</td><td data-c="meta">${[diaC(lqF(r)), r.factura, a ? 'Archivo ' + a : ''].filter(Boolean).map(esc).join(' · ')}</td></tr>`; }).join('') ||
+      (mostrar.map(r => { const a = idx.get(r.id), f = lqF(r), cab = f !== ult ? (ult = f, `<tr class="lqg"><td colspan="6">${fdmy(f)}<span>${fmt(sf.get(f) || 0)}</span></td></tr>`) : '';
+        return cab + `<tr data-id="${r.id}" class="${lqSel.has(r.id) ? 'sel' : ''}"><td data-c="chk"><input type="checkbox" data-id="${r.id}" ${lqSel.has(r.id) ? 'checked' : ''} aria-label="Incluir ${esc(r.nodo)}"></td><td data-c="fecha">${fdmy(r.fecha)}</td><td data-c="nodo"><div class="nodo">${esc(r.nodo)}${r.motivo === 'RECOJO' ? '<span class="tb rec">Recojo</span>' : ''}</div><div class="meta">${esc(r.transporte || '')}</div></td><td data-c="factura">${esc(r.factura)}</td><td class="num" data-c="importe"><b>${fmt(r.importe)}</b></td><td data-c="arch">${a ? `<span class="lq-arch"><i>${a}</i>Archivo ${a}</span>` : '<span class="lq-arch nn"><i>—</i>No incluido</span>'}</td><td data-c="meta">${[diaC(lqF(r)), r.factura, a ? 'Archivo ' + a : ''].filter(Boolean).map(esc).join(' · ')}</td></tr>`; }).join('') ||
         `<tr><td colspan="6"><div class="empty"><b>No hay registros listos para liquidar</b><span>Un registro está listo cuando tiene importe, N° de factura y foto, y aún no fue enviado.</span></div></td></tr>`);
-    const pie = $('#lqPieL'); pie.hidden = !lqLista.length; pie.innerHTML = `<span>Un archivo por fecha de despacho · máximo ${fmt(lim)} por archivo</span><button type="button" id="lqCambiar">Cambiar máximo</button>`;
-    const bm = $('#lqBarM'); bm.hidden = !lqLista.length;
+    const pie = $('#lqPieL'); pie.hidden = !nListos; pie.innerHTML = `<span>Un archivo por fecha de despacho · máximo ${fmt(lim)} por archivo</span><button type="button" id="lqCambiar">Cambiar máximo</button>`;
+    const bm = $('#lqBarM'); bm.hidden = !nListos;
     bm.innerHTML = `<div><b>${fmt(total)}</b><small>${elegidos.length} ${elegidos.length === 1 ? 'registro' : 'registros'} · ${nArch}</small></div><button type="button" class="lq-go" id="lqDescargarM" ${elegidos.length && !lqOcupado ? '' : 'disabled'}>${lqOcupado ? 'Preparando…' : 'Descargar'}</button>`;
   } else if (lqVista === 'inc') {
-    const q = norm(lqTexto), pend = lqPend.filter(r => !q || norm(r.nodo).includes(q)); lqPendVista = pend;
+    const q = norm(lqTexto), pend = pendM.filter(r => !q || norm(r.nodo).includes(q)); lqPendVista = pend;
     $('#lqCuenta').innerHTML = `<b>${pend.length}</b> ${pend.length === 1 ? 'registro sin completar' : 'registros sin completar'}`;
     $('#lqPend').innerHTML = '<tr><th>Fecha</th><th>Nodo</th><th>Le falta</th><th></th></tr>' + (pend.map((r, i) => `<tr data-i="${i}"><td>${fdmy(r.fecha)}</td><td><div class="nodo">${esc(r.nodo)}${r.motivo === 'RECOJO' ? '<span class="tb rec">Recojo</span>' : ''}</div><div class="meta">${esc(r.transporte || '')}</div></td><td><span class="lq-falta">${[Number(r.importe) > 0 ? '' : 'Importe', r.factura ? '' : 'N° de factura', r.factura_archivo ? '' : 'Foto'].filter(Boolean).map(x => `<span>${x}</span>`).join('')}</span></td><td style="text-align:right"><button type="button" class="lnk" data-a="completar">Completar en Registros</button></td></tr>`).join('') ||
       '<tr><td colspan="4"><div class="empty"><b>No hay registros incompletos</b><span>Todo lo pendiente tiene importe, factura y foto.</span></div></td></tr>');
   } else lqHistPintar();
 }
 function lqHistPintar() {
-  const q = norm(lqTexto), data = lqHistData.filter(l => !q || norm(lqCod(l.numero)).includes(q));
+  const q = norm(lqTexto), data = lqHistData.filter(l => String(l.fecha).slice(0, 7) === lqMes && (!q || norm(lqCod(l.numero)).includes(q)));
   $('#lqCuenta').innerHTML = `<b>${data.length}</b> ${data.length === 1 ? 'liquidación' : 'liquidaciones'}`;
   $('#lqHist').innerHTML = '<tr><th>N°</th><th>Fecha</th><th>Pago</th><th class="num">Registros</th><th class="num">Total</th><th></th></tr>' +
     (data.map(l => `<tr data-id="${l.id}"><td><b>${lqCod(l.numero)}</b></td><td>${fdmy(l.fecha)}</td><td>${l.modo_pago === 'CREDITO' ? 'Crédito' : l.modo_pago === 'CONTADO' ? 'Contado' : 'Contado y crédito'}</td><td class="num">${l.items}</td><td class="num"><b>${fmt(l.total)}</b></td>
@@ -2526,15 +2598,14 @@ document.addEventListener('click', e => {
   const dentro = e.target.closest('#lqFrase .rx-fb'), tk = e.target.closest('#lqFrase .rx-tk[data-pop]');
   document.querySelectorAll('#lqFrase .rx-pop.on').forEach(p => { if (p.closest('.rx-fb') !== dentro) p.classList.remove('on'); });
   if (tk) {
-    const pop = $('#' + tk.dataset.pop), k = tk.dataset.lk, actual = k === 'per' ? lqPer : $(LFIL[k].sel).value;
+    const pop = $('#' + tk.dataset.pop), k = tk.dataset.lk, actual = $(LFIL[k].sel).value;
     pop.innerHTML = lqOpciones(k).map(([v, t]) => `<button type="button" class="rx-op${actual === v ? ' on' : ''}" data-lk="${k}" data-v="${esc(v)}">${esc(t)}${RX_CHECK}</button>`).join('');
     pop.classList.toggle('on'); return;
   }
   const op = e.target.closest('#lqFrase .rx-op');
   if (op) {
     op.closest('.rx-pop').classList.remove('on');
-    if (op.dataset.lk === 'per') { lqPer = op.dataset.v; lqPintar(); }
-    else { $(LFIL[op.dataset.lk].sel).value = op.dataset.v; lqBuscar(); }
+    $(LFIL[op.dataset.lk].sel).value = op.dataset.v; lqBuscar();
   }
 });
 $('#lqLimp').onclick = () => { Object.values(LFIL).forEach(f => { $(f.sel).value = ''; }); lqPer = ''; lqBuscar(); };
@@ -2608,7 +2679,7 @@ async function lqDescargar() {
     for (const L of creadas) { await sb.from('envios').update({ liquidacion_id: null }).eq('liquidacion_id', L.id); await sb.from('liquidaciones').delete().eq('id', L.id); }
     toast('No se pudo generar la liquidación: ' + (e.message || e), 'err');
   }
-  lqOcupado = false; lqBuscar(); lqHistorial();
+  lqOcupado = false; memoLimpiar('liq'); lqBuscar(); lqHistorial();
 }
 async function lqHistorial() {
   const { data, error } = await sb.from('liquidaciones').select('*').eq('anulada', false).order('numero', { ascending: false }).limit(50);
@@ -2619,7 +2690,7 @@ async function lqAnular(id, cod) {
   if (!await confirmar(`¿Anular ${cod}?`, 'Sus registros vuelven a estar disponibles para una nueva liquidación.', 'Anular', true)) return;
   const r1 = await sb.from('envios').update({ liquidacion_id: null }).eq('liquidacion_id', id); if (r1.error) return toast(r1.error.message, 'err');
   const r2 = await sb.from('liquidaciones').update({ anulada: true }).eq('id', id); if (r2.error) return toast(r2.error.message, 'err');
-  toast(cod + ' anulada'); lqBuscar(); lqHistorial();
+  toast(cod + ' anulada'); memoLimpiar('liq'); lqBuscar(); lqHistorial();
 }
 const lqMenu = $('#lqMenu'), lqCerrarMenu = () => { lqMenu.hidden = true; lqMenu.dataset.id = ''; };
 $('#lqHist').addEventListener('click', async e => {
@@ -2672,7 +2743,7 @@ function rtRefrescarVista() {
   if (t === 'liquidaciones' && !lqOcupado) rtEspera('lq', () => { lqBuscar({ conservar: true }); lqHistorial(); }, 800);
 }
 function rtEnvio(p) {
-  rtUltimo = Date.now(); memoLimpiar('prev');
+  rtUltimo = Date.now(); memoLimpiar('prev'); memoLimpiar('liq');
   const nuevo = p.new || {}, id = nuevo.id || (p.old || {}).id, r = regBase.find(x => x.id === id);
   if (p.eventType === 'UPDATE' && r) {
     const igual = Object.keys(nuevo).every(k => String(nuevo[k] ?? '') === String(r[k] ?? ''));
@@ -2689,7 +2760,7 @@ function rtEnvio(p) {
   } else if (!r && rtCumple(nuevo)) rtEspera('reg', buscarRegistros, 500);   // registro nuevo o que ahora entra en mis filtros
   rtRefrescarVista();
 }
-function rtLiq() { rtUltimo = Date.now(); rtEspera('reg', buscarRegistros, 500); rtRefrescarVista(); }
+function rtLiq() { rtUltimo = Date.now(); memoLimpiar('liq'); rtEspera('reg', buscarRegistros, 500); rtRefrescarVista(); }
 function iniciarTiempoReal() {
   if (rtCanal) return;
   rtCanal = sb.channel('red-troncal')

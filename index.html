@@ -11,7 +11,7 @@
 <link rel="preload" as="fetch" href="mapa_peru.json?v=20261008g" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="estilos.css?v=20261012b">
+<link rel="stylesheet" href="estilos.css?v=20261012c">
 </head>
 <body>
 
@@ -211,6 +211,16 @@
   </div>
   <div id="lqSetup" class="card hide"><h3>Configuración pendiente en Supabase</h3><p class="hint">Ejecutar el archivo <b>supabase_liquidacion.sql</b> en el SQL Editor de Supabase y recargar la página.</p></div>
   <div id="lqMain">
+    <div class="lqm" id="lqMes">
+      <div class="lqm-h">
+        <div class="lqm-nav"><button type="button" id="lqPrev" aria-label="Mes anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><b id="lqMesT"></b><button type="button" id="lqNext" aria-label="Mes siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></div>
+        <button type="button" class="lqm-todo" id="lqTodo">Todo el mes</button>
+        <button type="button" class="lqm-otros hide" id="lqOtros"></button>
+        <div class="lqm-mt" id="lqMt"></div>
+      </div>
+      <div class="lqm-tira" id="lqTira"></div>
+      <div class="lqm-ley"><span><i style="background:var(--ok)"></i>Liquidado</span><span><i style="background:var(--pri)"></i>Listo por liquidar</span><span><i style="background:#e8890c"></i>Con registros incompletos</span><span><i style="background:#e0e0e5"></i>Sin movimiento</span></div>
+    </div>
     <div class="rx-bar">
       <div class="rx-seg" id="lqSeg" role="tablist" aria-label="Vista"></div>
       <span class="rx-sp"></span>
@@ -219,8 +229,6 @@
     <div class="rx-frase" id="lqFrase">
       <div class="rx-toks">
         <span>Registros de</span>
-        <div class="rx-fb"><button type="button" class="rx-tk" data-pop="lqp-per" data-lk="per" aria-haspopup="true"></button><div class="rx-pop" id="lqp-per"></div></div>
-        <span class="rx-pt">·</span>
         <div class="rx-fb"><button type="button" class="rx-tk" data-pop="lqp-trans" data-lk="trans" aria-haspopup="true"></button><div class="rx-pop" id="lqp-trans"></div></div>
         <span class="rx-pt">·</span>
         <div class="rx-fb"><button type="button" class="rx-tk" data-pop="lqp-mot" data-lk="mot" aria-haspopup="true"></button><div class="rx-pop" id="lqp-mot"></div></div>
@@ -244,6 +252,15 @@
     </div>
     <div id="lqVInc" class="hide"><div class="card tcard"><div class="tw"><table id="lqPend"></table></div><div class="lq-pie">Estos registros no se incluyen en la liquidación hasta completarlos.</div></div></div>
     <div id="lqVHist" class="hide"><div class="card tcard"><div class="tw"><table id="lqHist"></table></div></div></div>
+    <section class="lqd" id="lqDash">
+      <div class="lqd-h"><div><h2>Resumen de liquidaciones</h2><p id="lqdSub"></p></div><span class="rx-sp"></span><div class="pseg" id="lqGran"><button type="button" data-g="d" class="on">Por día</button><button type="button" data-g="s">Por semana</button><button type="button" data-g="m">Por mes</button></div></div>
+      <div class="card tcard">
+        <div class="lqd-k" id="lqdK"></div>
+        <div class="lqd-chart" id="lqdChart"><div class="lqd-tip" id="lqdTip"></div></div>
+        <div class="lqd-cl"><span><i style="background:var(--pri)"></i>Liquidado</span><span><i style="background:#b9d4f5"></i>Listo por liquidar</span></div>
+        <div class="tw"><table id="lqdTabla"></table></div>
+      </div>
+    </section>
   </div>
 </section>
 
@@ -332,6 +349,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 <script src="config.js?v=20261010p"></script>
 <script src="ocr.js?v=5"></script>
-<script src="app.js?v=20261012b"></script>
+<script src="app.js?v=20261012c"></script>
 </body>
 </html>
