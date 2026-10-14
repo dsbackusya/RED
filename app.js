@@ -493,7 +493,7 @@ $('#adjFile').onchange = async e => {
 };
 
 // ---------- lectura automática de la factura (OCR gratuito) + revisión ----------
-let fReg = null, fUrl = null, fDup = null, fSeq = 0, fT = null;
+let fReg = null, fUrl = null, fDup = null, fSeq = 0, fT = null, fOcr = null;
 function cerrarFactura() { $('#factDlg').close(); if (fUrl) { URL.revokeObjectURL(fUrl); fUrl = null; } }
 // Una sola línea de aviso bajo cada campo; "Guardar" se bloquea mientras la factura esté repetida o se esté leyendo
 function fPintar(leyendo) {
@@ -514,7 +514,7 @@ async function fChequear() {
   fDup = o; fPintar(false);
 }
 async function revisarFactura(file, r) {
-  fReg = r; fDup = null; fSeq++; clearTimeout(fT);
+  fReg = r; fDup = null; fOcr = null; fSeq++; clearTimeout(fT);
   $('#fFactura').value = r.factura || ''; $('#fImporte').value = r.importe != null ? r.importe : '';
   $('#fSub').textContent = `${r.nodo} · ${fdmy(r.fecha)}`;
   fUrl = URL.createObjectURL(file); $('#fImg').src = fUrl; fZoom(1);
@@ -525,6 +525,7 @@ async function revisarFactura(file, r) {
   try {
     const R = await OCR.leer(file, { ref: r.fecha, nodos: [...new Set(regBase.map(r => norm(r.nodo)))],
       progreso: (t, p) => { txt.textContent = 'Leyendo la factura… ' + (p ? Math.round(p * 100) + '%' : t); } });
+    fOcr = { factura: R.factura || '', importe: R.importe == null || R.importe === '' ? null : Number(R.importe), qr: !!R.viaQR, texto: String(R.texto || '').slice(0, 4000) };
     if (R.factura) $('#fFactura').value = R.factura;
     if (R.importe != null && R.importe !== '') $('#fImporte').value = R.importe;
     est.hidden = true;
@@ -575,9 +576,20 @@ $('#fGuardar').onclick = async () => {
   const { error } = await sb.from('envios').update(cambios).eq('id', fReg.id);
   $('#fGuardar').disabled = false;
   if (error) return avisar('No se pudo guardar: ' + error.message);
-  Object.assign(fReg, cambios); cerrarFactura(); flash($('#rMsg'), 'Datos de la factura guardados', 'ok');
+  ocrRegistrarCorrecciones(fReg, cambios); Object.assign(fReg, cambios); cerrarFactura(); flash($('#rMsg'), 'Datos de la factura guardados', 'ok');
   repintarFila(fReg); contarEstados(); pintarResumenRegistros(); rmSync(fReg);
 };
+// Retroalimentación del OCR: si el valor guardado difiere del leído, se registra para revisar qué formatos fallan (no interrumpe el guardado)
+function ocrRegistrarCorrecciones(r, c) {
+  const o = fOcr; fOcr = null; if (!o) return;
+  const filas = [];
+  const f1 = (o.factura || '').trim().toUpperCase(), f2 = (c.factura || '').trim().toUpperCase();
+  if (f1 !== f2 && !(!f1 && f2 === (r.factura || '').trim().toUpperCase())) filas.push({ campo: 'factura', leido: o.factura || null, final: c.factura });
+  const c100 = c.importe == null ? null : Math.round(c.importe * 100);
+  if ((o.importe == null ? null : Math.round(o.importe * 100)) !== c100 && !(o.importe == null && c100 === Math.round((Number(r.importe) || 0) * 100))) filas.push({ campo: 'importe', leido: o.importe == null ? null : String(o.importe), final: c.importe == null ? null : String(c.importe) });
+  if (!filas.length) return;
+  sb.from('ocr_correcciones').insert(filas.map(x => ({ ...x, envio_id: r.id, fecha: r.fecha, nodo: r.nodo, transporte: r.transporte || null, via_qr: o.qr, texto_ocr: o.texto }))).then(() => {}, () => {});
+}
 function refrescarAdjunto(r) {
   repintarFila(r); contarEstados();
   if ($('#regDlg').open && rm.id === r.id) { rmFoto(r); rmVivo(); }
