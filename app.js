@@ -493,7 +493,43 @@ $('#adjFile').onchange = async e => {
 };
 
 // ---------- lectura automática de la factura (OCR gratuito) + revisión ----------
-let fReg = null, fUrl = null, fDup = null, fSeq = 0, fT = null, fOcr = null;
+// ---------- series de factura aprendidas de los registros ----------
+// Las facturas ya guardadas indican qué series existen, cuántos dígitos usan y en qué rango van. Con eso se corrige la serie mal leída y se avisa de números fuera de lo habitual.
+const facParse = v => { const m = String(v || '').toUpperCase().match(/([A-Z0-9]{2,5})\s*-\s*(\d{4,9})\s*$/); return m ? { serie: m[1], num: m[2] } : null; };
+function facSeriesDe(lista) {
+  const S = new Map();
+  for (const f of lista) {
+    const p = facParse(f); if (!p) continue;
+    const s = S.get(p.serie) || { n: 0, nums: [], lens: new Map() };
+    s.n++; s.nums.push(Number(p.num)); s.lens.set(p.num.length, (s.lens.get(p.num.length) || 0) + 1); S.set(p.serie, s);
+  }
+  for (const s of S.values()) { s.min = Math.min(...s.nums); s.max = Math.max(...s.nums); s.len = [...s.lens].sort((a, b) => b[1] - a[1])[0][0]; }
+  return S;
+}
+const seriesFactura = () => memo('serie', 10 * 60 * 1000, async () => facSeriesDe((await traerTodo(() => sb.from('envios').select('factura').not('factura', 'is', null))).map(x => x.factura)));
+// Pares de caracteres que el OCR confunde entre sí
+const CONFUSOS = ['O0', 'S5', 'B8', 'I1', 'L1', 'Z2', 'G6', '38', '89'];
+const confuso = (a, b) => CONFUSOS.some(c => (c[0] === a && c[1] === b) || (c[0] === b && c[1] === a));
+// Si la serie leída no existe pero una serie conocida difiere en un solo carácter confundible, se toma esa. Devuelve el número corregido o ''.
+function facCorregir(v, S) {
+  const p = facParse(v); if (!p || !S || (S.get(p.serie) || { n: 0 }).n >= 2) return '';
+  const c = [...S].filter(([k, s]) => s.n >= 2 && k.length === p.serie.length && [...k].filter((ch, i) => ch !== p.serie[i]).length === 1 && [...k].every((ch, i) => ch === p.serie[i] || confuso(ch, p.serie[i])));
+  if (c.length !== 1) return '';
+  return String(v).toUpperCase().replace(p.serie, c[0][0]);
+}
+// Aviso (una línea) cuando el número no se parece a los registrados de esa serie
+function facAviso(v, S) {
+  const p = facParse(v); if (!p || !S || !S.size) return '';
+  const s = S.get(p.serie);
+  if (!s) return `La serie ${p.serie} no figura en facturas anteriores: verificar.`;
+  if (s.n < 3) return '';
+  if (p.num.length !== s.len) return `La serie ${p.serie} suele tener ${s.len} dígitos en el número: verificar.`;
+  const n = Number(p.num);
+  if (n < s.min - 2000 || n > s.max + 2000) return `Lejos del rango registrado de la serie ${p.serie} (${s.min} a ${s.max}): verificar.`;
+  return '';
+}
+let fNota = '';
+let fReg = null, fUrl = null, fDup = null, fSeq = 0, fT = null, fOcr = null, fSeries = null;
 function cerrarFactura() { $('#factDlg').close(); if (fUrl) { URL.revokeObjectURL(fUrl); fUrl = null; } }
 // Una sola línea de aviso bajo cada campo; "Guardar" se bloquea mientras la factura esté repetida o se esté leyendo
 function fPintar(leyendo) {
@@ -501,7 +537,7 @@ function fPintar(leyendo) {
   const mFac = $('#fmFac'), mImp = $('#fmImp');
   $('#fcFac').className = 'fcampo' + (fDup ? ' mal' : !fac && !leyendo ? ' vacio' : '');
   mFac.className = 'fmsg ' + (fDup ? 'bad' : 'warn');
-  mFac.textContent = fDup ? `Ya está registrado en ${fDup.nodo} (${fdmy(fDup.fecha)}).` : '';
+  mFac.textContent = fDup ? `Ya está registrado en ${fDup.nodo} (${fdmy(fDup.fecha)}).` : fNota || (fac && !leyendo ? facAviso(fac, fSeries) : '');
   $('#fcImp').className = 'fcampo' + (!imp && !leyendo ? ' vacio' : '');
   mImp.className = 'fmsg';
   if (r && r.importe != null && imp !== '' && Math.abs(Number(r.importe) - num(imp)) > 0.01) mImp.innerHTML = `Antes <s>S/ ${Number(r.importe).toFixed(2)}</s>`; else mImp.textContent = '';
@@ -514,7 +550,8 @@ async function fChequear() {
   fDup = o; fPintar(false);
 }
 async function revisarFactura(file, r) {
-  fReg = r; fDup = null; fOcr = null; fSeq++; clearTimeout(fT);
+  fReg = r; fDup = null; fOcr = null; fNota = ''; fSeries = null; fSeq++; clearTimeout(fT);
+  const pSeries = seriesFactura().then(S => { fSeries = S; }, () => {});
   $('#fFactura').value = r.factura || ''; $('#fImporte').value = r.importe != null ? r.importe : '';
   $('#fSub').textContent = `${r.nodo} · ${fdmy(r.fecha)}`;
   fUrl = URL.createObjectURL(file); $('#fImg').src = fUrl; fZoom(1);
@@ -526,6 +563,8 @@ async function revisarFactura(file, r) {
     const R = await OCR.leer(file, { ref: r.fecha, nodos: [...new Set(regBase.map(r => norm(r.nodo)))],
       progreso: (t, p) => { txt.textContent = 'Leyendo la factura… ' + (p ? Math.round(p * 100) + '%' : t); } });
     fOcr = { factura: R.factura || '', importe: R.importe == null || R.importe === '' ? null : Number(R.importe), qr: !!R.viaQR, texto: String(R.texto || '').slice(0, 4000) };
+    await pSeries;
+    if (R.factura && !R.viaQR) { const c = facCorregir(R.factura, fSeries); if (c) { fNota = `Serie corregida de ${facParse(R.factura).serie} a ${facParse(c).serie} según facturas anteriores.`; R.factura = c; } }
     if (R.factura) $('#fFactura').value = R.factura;
     if (R.importe != null && R.importe !== '') $('#fImporte').value = R.importe;
     est.hidden = true;
@@ -537,7 +576,7 @@ async function revisarFactura(file, r) {
   fPintar(false);
   if (!fallo && $('#fFactura').value.trim()) fChequear();
 }
-$('#fFactura').addEventListener('input', () => { fPintar(false); clearTimeout(fT); fT = setTimeout(fChequear, 400); });
+$('#fFactura').addEventListener('input', () => { fNota = ''; fPintar(false); clearTimeout(fT); fT = setTimeout(fChequear, 400); });
 $('#fImporte').addEventListener('input', () => fPintar(false));
 // Zoom de la foto: botones + / −, Ctrl + rueda, doble clic y arrastre para moverse
 let fZ = 1;
@@ -576,7 +615,7 @@ $('#fGuardar').onclick = async () => {
   const { error } = await sb.from('envios').update(cambios).eq('id', fReg.id);
   $('#fGuardar').disabled = false;
   if (error) return avisar('No se pudo guardar: ' + error.message);
-  ocrRegistrarCorrecciones(fReg, cambios); Object.assign(fReg, cambios); cerrarFactura(); flash($('#rMsg'), 'Datos de la factura guardados', 'ok');
+  memoLimpiar('serie'); ocrRegistrarCorrecciones(fReg, cambios); Object.assign(fReg, cambios); cerrarFactura(); flash($('#rMsg'), 'Datos de la factura guardados', 'ok');
   repintarFila(fReg); contarEstados(); pintarResumenRegistros(); rmSync(fReg);
 };
 // Retroalimentación del OCR: si el valor guardado difiere del leído, se registra para revisar qué formatos fallan (no interrumpe el guardado)
