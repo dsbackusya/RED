@@ -36,6 +36,48 @@ window.OCR = (() => {
     }
     return c;
   }
+  // Ubica el papel (la zona clara más grande de la foto) y devuelve un canvas recortado. Con fondos cargados (cartón con letras grandes, tableros) el OCR se confunde y no lee el encabezado.
+  function recortarPapel(img, fu = 0.5) {
+    const k = 240 / Math.max(img.width, img.height), w = Math.max(8, Math.round(img.width * k)), h = Math.max(8, Math.round(img.height * k)), n = w * h;
+    const c = document.createElement('canvas'); c.width = w; c.height = h; const cx = c.getContext('2d'); cx.drawImage(img, 0, 0, w, h);
+    const p = cx.getImageData(0, 0, w, h).data, g = new Uint8Array(n), hist = new Array(256).fill(0);
+    for (let i = 0, q = 0; q < n; i += 4, q++) { const v = Math.round(0.3 * p[i] + 0.59 * p[i + 1] + 0.11 * p[i + 2]); g[q] = v; hist[v]++; }
+    let suma = 0; for (let v = 0; v < 256; v++) suma += v * hist[v];
+    let sB = 0, wB = 0, mx = 0, umbral = 128, oscuro = 60;   // umbral de Otsu: separa lo claro (papel) de lo oscuro (fondo)
+    for (let v = 0; v < 256; v++) { wB += hist[v]; if (!wB) continue; const wF = n - wB; if (!wF) break; sB += v * hist[v]; const d = sB / wB - (suma - sB) / wF, e = wB * wF * d * d; if (e > mx) { mx = e; umbral = v; oscuro = sB / wB; } }
+    umbral = Math.round(oscuro + (umbral - oscuro) * fu);   // se baja el umbral hacia el fondo para no perder las zonas del papel con sombra
+    const vis = new Uint8Array(n), cola = new Int32Array(n); let mejor = null;
+    for (let s = 0; s < n; s++) {
+      if (vis[s] || g[s] <= umbral) continue;
+      let a = 0, b = 0, x0 = w, x1 = 0, y0 = h, y1 = 0, cnt = 0; cola[b++] = s; vis[s] = 1;
+      while (a < b) {
+        const q = cola[a++], qx = q % w, qy = (q - qx) / w; cnt++;
+        if (qx < x0) x0 = qx; if (qx > x1) x1 = qx; if (qy < y0) y0 = qy; if (qy > y1) y1 = qy;
+        for (const nq of [qx > 0 ? q - 1 : -1, qx < w - 1 ? q + 1 : -1, qy > 0 ? q - w : -1, qy < h - 1 ? q + w : -1]) if (nq >= 0 && !vis[nq] && g[nq] > umbral) { vis[nq] = 1; cola[b++] = nq; }
+      }
+      if (!mejor || cnt > mejor.cnt) mejor = { cnt, x0, x1, y0, y1 };
+    }
+    if (!mejor) return null;
+    const area = (mejor.x1 - mejor.x0 + 1) * (mejor.y1 - mejor.y0 + 1) / n;
+    if (area < 0.08 || area > 0.9) return null;   // sin un papel claramente distinto del fondo no se recorta
+    const pad = 0.03, sx = Math.max(0, Math.floor((mejor.x0 / w - pad) * img.width)), sy = Math.max(0, Math.floor((mejor.y0 / h - pad) * img.height));
+    const ex = Math.min(img.width, Math.ceil(((mejor.x1 + 1) / w + pad) * img.width)), ey = Math.min(img.height, Math.ceil(((mejor.y1 + 1) / h + pad) * img.height));
+    const r = document.createElement('canvas'); r.width = ex - sx; r.height = ey - sy; r.getContext('2d').drawImage(img, sx, sy, r.width, r.height, 0, 0, r.width, r.height);
+    return r;
+  }
+  // Corrige la iluminación despareja (sombras, texto térmico más claro arriba): cada punto se compara con el brillo del papel a su alrededor, así el texto tenue y el fuerte quedan igual de oscuros.
+  function canvasPlano(img, lado) {
+    const k = Math.min(2.5, lado / Math.max(img.width, img.height)), w = Math.round(img.width * k), h = Math.round(img.height * k);   // aquí sí se amplía: las letras chicas se leen mejor más grandes
+    const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(img, 0, 0, w, h);
+    const d = x.getImageData(0, 0, w, h), p = d.data;
+    for (let i = 0; i < p.length; i += 4) p[i] = p[i + 1] = p[i + 2] = 0.3 * p[i] + 0.59 * p[i + 1] + 0.11 * p[i + 2];
+    const s = document.createElement('canvas'); s.width = Math.max(8, Math.round(w / 24)); s.height = Math.max(8, Math.round(h / 24));
+    const sx = s.getContext('2d'); sx.imageSmoothingQuality = 'high'; sx.drawImage(c, 0, 0, s.width, s.height);
+    const b = document.createElement('canvas'); b.width = w; b.height = h; const bx = b.getContext('2d'); bx.imageSmoothingQuality = 'high'; bx.drawImage(s, 0, 0, w, h);
+    const bg = bx.getImageData(0, 0, w, h).data;
+    for (let i = 0; i < p.length; i += 4) { const r = p[i] / Math.max(30, bg[i]), v = Math.max(0, Math.min(255, (r - 0.45) / 0.5 * 255)); p[i] = p[i + 1] = p[i + 2] = v; }
+    x.putImageData(d, 0, 0); return c;
+  }
   function leerQR(img) {
     for (const lado of [Math.max(img.width, img.height), 1800, 1100]) {
       const c = canvasDe(img, lado, false), d = c.getContext('2d').getImageData(0, 0, c.width, c.height);
@@ -237,10 +279,14 @@ window.OCR = (() => {
     const qr = leerQR(img);
     const w = await obtenerWorker(progreso);
     let texto = '', R = null;
-    const pasadas = [{ lado: 2000, contraste: false, psm: '6' }, { lado: 2600, contraste: true, psm: '4' }];
+    const papel = recortarPapel(img), base = papel || img;
+    const pasadas = [{ src: base, lado: 2000, contraste: false, psm: '6' }, { src: base, lado: 2600, contraste: true, psm: '4' }, { src: base, lado: 2600, plano: true, psm: '6' }];
+    const mitad = (s, a, b) => { const r = document.createElement('canvas'); r.width = s.width; r.height = Math.round(s.height * (b - a)); r.getContext('2d').drawImage(s, 0, Math.round(s.height * a), s.width, r.height, 0, 0, r.width, r.height); return r; };
+    pasadas.push({ src: mitad(base, 0, 0.4), lado: 2400, plano: true, psm: '6' });   // encabezado ampliado: ahí están el N° y la fecha, con letra pequeña
+    if (papel) pasadas.push({ src: img, lado: 2000, contraste: false, psm: '6' });   // si el recorte no bastó, se prueba también con la foto completa
     for (const p of pasadas) {
       await w.setParameters({ tessedit_pageseg_mode: p.psm });
-      const { data } = await w.recognize(canvasDe(img, p.lado, true, p.contraste));
+      const { data } = await w.recognize(p.plano ? canvasPlano(p.src, p.lado) : canvasDe(p.src, p.lado, true, p.contraste));
       texto = texto ? texto + '\n' + data.text : data.text;
       R = parsear(texto, qr, ref, nodos);
       if (R.factura && R.importe != null) break;
@@ -295,5 +341,5 @@ window.OCR = (() => {
     return ultima;
   }
 
-  return { leer, parsear, rucValido, comprimir };
+  return { leer, parsear, rucValido, comprimir, recortarPapel };
 })();
