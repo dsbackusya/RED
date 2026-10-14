@@ -2491,21 +2491,18 @@ async function lqBuscar(opc) {
   else lqSel = new Set(lqLista.map(r => r.id));
   lqPintar();
 }
-// Reparte los registros en archivos: cada archivo es de UNA sola fecha de despacho y no supera el monto máximo ni las filas del formato.
-// Dentro de una fecha se llena cada archivo lo más posible (primero los montos grandes, en el primer archivo donde quepan).
+// Reparte los registros en archivos sin superar el monto máximo ni las filas del formato. Un archivo puede reunir varias fechas de despacho:
+// se recorren por fecha (y de mayor a menor monto dentro de cada fecha) y cada registro va al primer archivo donde quepa.
 function lqPartir(list) {
-  const lim = Math.round(lqLimite() * 100), cts = e => Math.round(Number(e.importe) * 100), porFecha = new Map(), grupos = [];
-  list.forEach(e => { const f = String(e.fecha).slice(0, 10); if (!porFecha.has(f)) porFecha.set(f, []); porFecha.get(f).push(e); });
-  [...porFecha.keys()].sort().forEach(f => {
-    const cajas = [];   // { filas, suma }
-    [...porFecha.get(f)].sort((a, b) => cts(b) - cts(a)).forEach(e => {
-      const imp = cts(e), c = cajas.find(x => x.suma + imp <= lim && x.filas.length < LQ_FILAS);
-      if (c) { c.filas.push(e); c.suma += imp; } else cajas.push({ filas: [e], suma: imp });
-    });
-    cajas.forEach(c => grupos.push(c.filas.sort((a, b) => list.indexOf(a) - list.indexOf(b))));
+  const lim = Math.round(lqLimite() * 100), cts = e => Math.round(Number(e.importe) * 100), cajas = [];   // { filas, suma }
+  [...list].sort((a, b) => String(a.fecha).slice(0, 10).localeCompare(String(b.fecha).slice(0, 10)) || cts(b) - cts(a)).forEach(e => {
+    const imp = cts(e), c = cajas.find(x => x.suma + imp <= lim && x.filas.length < LQ_FILAS);
+    if (c) { c.filas.push(e); c.suma += imp; } else cajas.push({ filas: [e], suma: imp });
   });
-  return grupos;
+  return cajas.map(c => c.filas.sort((a, b) => list.indexOf(a) - list.indexOf(b)));
 }
+// fechas de despacho que reúne un archivo: "1 oct" o "1 oct a 6 oct"
+const lqRango = g => { const fs = g.map(lqF).sort(); return fs[0] === fs.at(-1) ? diaC(fs[0]) : `${diaC(fs[0])} a ${diaC(fs.at(-1))}`; };
 const lqF = r => String(r.fecha).slice(0, 10);
 const lqEnVista = r => lqF(r).startsWith(lqMes) && (!lqPer || lqF(r) === lqPer);
 const lqBase = () => { const q = norm(lqTexto); return lqLista.filter(r => lqEnVista(r) && (!q || norm(r.nodo + ' ' + (r.factura || '')).includes(q))); };
@@ -2608,7 +2605,7 @@ function lqPintar() {
     const todos = mostrar.length > 0 && mostrar.every(r => lqSel.has(r.id)), nArch = `${grupos.length} ${grupos.length === 1 ? 'archivo' : 'archivos'}`;
     const barra = $('#lqBarra'); barra.hidden = !nListos;
     barra.innerHTML = `<div class="l"><input type="checkbox" id="lqTodos" ${todos ? 'checked' : ''} aria-label="Seleccionar todos"><span><b>${elegidos.length} de ${base.length}</b> seleccionados</span><span class="m">${fmt(total)} · ${nArch}</span></div>
-      <div class="lq-ach">${grupos.map((g, i) => { const s = g.reduce((x, r) => x + Number(r.importe), 0); return `<span class="lq-fl" style="--p:${Math.min(100, s / lim * 100)}%"><b>${i + 1}</b> ${diaC(lqF(g[0]))} <span>·</span> ${fmt(s)}</span>`; }).join('') || '<span class="lq-vacio">Seleccionar registros para generar la liquidación</span>'}</div>
+      <div class="lq-ach">${grupos.map((g, i) => { const s = g.reduce((x, r) => x + Number(r.importe), 0); return `<span class="lq-fl" style="--p:${Math.min(100, s / lim * 100)}%"><b>${i + 1}</b> ${lqRango(g)} <span>·</span> ${fmt(s)}</span>`; }).join('') || '<span class="lq-vacio">Seleccionar registros para generar la liquidación</span>'}</div>
       <button type="button" class="lq-go" id="lqDescargar" ${elegidos.length && !lqOcupado ? '' : 'disabled'}>${lqOcupado ? 'Preparando…' : 'Descargar liquidación'}</button>`;
     const tt = $('#lqTodos'); if (tt) tt.indeterminate = elegidos.length > 0 && !todos;
     const cuenta = {}; elegidos.forEach(r => { const k = norm(r.factura); cuenta[k] = (cuenta[k] || 0) + 1; });
@@ -2619,7 +2616,7 @@ function lqPintar() {
       (mostrar.map(r => { const a = idx.get(r.id), f = lqF(r), cab = f !== ult ? (ult = f, `<tr class="lqg"><td colspan="6">${fdmy(f)}<span>${fmt(sf.get(f) || 0)}</span></td></tr>`) : '';
         return cab + `<tr data-id="${r.id}" class="${lqSel.has(r.id) ? 'sel' : ''}"><td data-c="chk"><input type="checkbox" data-id="${r.id}" ${lqSel.has(r.id) ? 'checked' : ''} aria-label="Incluir ${esc(r.nodo)}"></td><td data-c="fecha">${fdmy(r.fecha)}</td><td data-c="nodo"><div class="nodo">${esc(r.nodo)}${r.motivo === 'RECOJO' ? '<span class="tb rec">Recojo</span>' : ''}</div><div class="meta">${esc(r.transporte || '')}</div></td><td data-c="factura">${esc(r.factura)}</td><td class="num" data-c="importe"><b>${fmt(r.importe)}</b></td><td data-c="arch">${a ? `<span class="lq-arch"><i>${a}</i>Archivo ${a}</span>` : '<span class="lq-arch nn"><i>—</i>No incluido</span>'}</td><td data-c="meta">${[diaC(lqF(r)), r.factura, a ? 'Archivo ' + a : ''].filter(Boolean).map(esc).join(' · ')}</td></tr>`; }).join('') ||
         `<tr><td colspan="6"><div class="empty"><b>No hay registros listos para liquidar</b><span>Un registro está listo cuando tiene importe, N° de factura y foto, y aún no fue enviado.</span></div></td></tr>`);
-    const pie = $('#lqPieL'); pie.hidden = !nListos; pie.innerHTML = `<span>Un archivo por fecha de despacho · máximo ${fmt(lim)} por archivo</span><button type="button" id="lqCambiar">Cambiar máximo</button>`;
+    const pie = $('#lqPieL'); pie.hidden = !nListos; pie.innerHTML = `<span>Cada archivo puede reunir varias fechas de despacho · máximo ${fmt(lim)} y ${LQ_FILAS} registros por archivo</span><button type="button" id="lqCambiar">Cambiar máximo</button>`;
     const bm = $('#lqBarM'); bm.hidden = !nListos;
     bm.innerHTML = `<div><b>${fmt(total)}</b><small>${elegidos.length} ${elegidos.length === 1 ? 'registro' : 'registros'} · ${nArch}</small></div><button type="button" class="lq-go" id="lqDescargarM" ${elegidos.length && !lqOcupado ? '' : 'disabled'}>${lqOcupado ? 'Preparando…' : 'Descargar'}</button>`;
   } else if (lqVista === 'inc') {
@@ -2702,8 +2699,9 @@ async function lqExcel(filas, L) {
 async function lqCarpeta(zip, filas, L) {
   const fotos = zip.folder('FACTURAS'); zip.__usados = zip.__usados || new Set();
   // nombre del Excel: FORMATO RENDICIÓN - AÑO MES - DÍA (fecha del despacho); si hay otro igual en el ZIP, se numera
-  const [fy, fm, fd] = String(filas[0].fecha).slice(0, 10).split('-'), mes = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'][Number(fm) - 1];
-  const base = `FORMATO RENDICIÓN - ${fy} ${mes} - ${fd}`, previos = Object.keys(zip.files).filter(n => !n.includes('/') && n.endsWith('.xlsx') && n.startsWith(base)).length;
+  const fechas = filas.map(lqF).sort(), [fy, fm, fd] = fechas[0].split('-'), [, lm, ld] = fechas.at(-1).split('-'), MESES = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'], mes = MESES[Number(fm) - 1];
+  const fin = fechas[0] === fechas.at(-1) ? '' : ` AL ${ld}${lm === fm ? '' : ' ' + MESES[Number(lm) - 1]}`;   // varias fechas: "01 AL 06"
+  const base = `FORMATO RENDICIÓN - ${fy} ${mes} - ${fd}${fin}`, previos = Object.keys(zip.files).filter(n => !n.includes('/') && n.endsWith('.xlsx') && n.startsWith(base)).length;
   zip.file(base + (previos ? ` (${previos + 1})` : '') + '.xlsx', await lqExcel(filas, L));
   const cola = [...filas], falla = [];   // registros cuya foto no se pudo descargar
   await Promise.all(Array.from({ length: 5 }, async () => {
