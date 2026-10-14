@@ -1718,21 +1718,30 @@ function kgEvoSvg(dias) {
   const mapa = new Map(con.map(x => [x.fecha, x])), d0 = new Date($('#kDesde').value + 'T00:00:00'), d1 = new Date($('#kHasta').value + 'T00:00:00');
   let d = con;
   if (!isNaN(d0) && !isNaN(d1) && d1 >= d0 && (d1 - d0) / 86400000 <= 92) { d = []; for (const t = new Date(d0); t <= d1; t.setDate(t.getDate() + 1)) { const f = isoLocal(t); d.push(mapa.get(f) || { fecha: f, costo: 0 }); } if (!con.every(x => d.includes(x))) d = con; }
-  const W = 360, H = 160, pad = 6, base = H - 20, n = d.length, mx = Math.max(...d.map(x => x.costo)) * 1.06, step = (W - pad * 2) / n, bw = Math.max(3, Math.min(22, step * .68));
-  const X = i => pad + i * step + (step - bw) / 2, Y = v => base - v / mx * (base - 14), imax = d.reduce((m, x, i) => x.costo > d[m].costo ? i : m, 0);
+  const W = 360, H = 176, L = 50, pad = 6, base = H - 22, n = d.length, cMax = Math.max(...d.map(x => x.costo)), total = d.reduce((s, x) => s + x.costo, 0) || 1;
+  const p10 = Math.pow(10, Math.floor(Math.log10(cMax))), T = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].map(k => k * p10).find(v => v >= cMax * 1.02) || cMax;   // tope redondo del eje
+  const step = (W - L - pad) / n, bw = Math.max(3, Math.min(22, step * .68)), todas = n <= 10;   // con pocos días el monto cabe sobre cada barra
+  const X = i => L + i * step + (step - bw) / 2, Y = v => base - v / T * (base - 18), imax = d.findIndex(x => x.costo === cMax);
+  const pts = d.map((x, i) => [i, x]).filter(([, x]) => x.costo > 0), ma = pts.map((_, k) => { const w = pts.slice(Math.max(0, k - 6), k + 1); return w.reduce((s, [, x]) => s + x.costo, 0) / w.length; }), maDia = {}; pts.forEach(([i], k) => { maDia[i] = ma[k]; });
+  const halo = 'paint-order="stroke" stroke="#fff" stroke-width="3.5" stroke-linejoin="round"';
   let g = '<defs><linearGradient id="kgb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a5db8"/><stop offset="1" stop-color="#0b3d82"/></linearGradient><linearGradient id="kgl" x1="0" x2="1"><stop offset="0" stop-color="#5aaa2a"/><stop offset="1" stop-color="#1a5db8"/></linearGradient></defs>';
-  [0, .5, 1].forEach(t => { const y = base - t * (base - 14); g += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="rgba(0,0,0,.06)"/>`; });
+  [0, .5, 1].forEach(t => { const y = base - t * (base - 18); g += `<line x1="${L - 4}" x2="${W}" y1="${y}" y2="${y}" stroke="rgba(0,0,0,.07)"/><text x="${L - 8}" y="${y + 3.5}" font-size="9.5" fill="#86868b" text-anchor="end">${t ? kaF0(T * t) : 'S/ 0'}</text>`; });
   g += d.map((x, i) => x.costo > 0
-    ? `<rect x="${X(i).toFixed(1)}" y="${Y(x.costo).toFixed(1)}" width="${bw.toFixed(1)}" height="${(base - Y(x.costo)).toFixed(1)}" rx="${Math.min(7, bw / 2).toFixed(1)}" fill="${i === imax ? 'url(#kgb)' : 'rgba(26,93,184,.16)'}"><title>${fdmy(x.fecha)}, ${fmt(x.costo)}</title></rect>`
-    : `<rect x="${X(i).toFixed(1)}" y="${base - 3}" width="${bw.toFixed(1)}" height="3" rx="1.5" fill="rgba(0,0,0,.08)"><title>${fdmy(x.fecha)}, sin costo</title></rect>`).join('');
-  const pts = d.map((x, i) => [i, x]).filter(([, x]) => x.costo > 0);
+    ? `<rect x="${X(i).toFixed(1)}" y="${Y(x.costo).toFixed(1)}" width="${bw.toFixed(1)}" height="${(base - Y(x.costo)).toFixed(1)}" rx="${Math.min(7, bw / 2).toFixed(1)}" fill="${i === imax ? 'url(#kgb)' : 'rgba(26,93,184,.16)'}"/>`
+    : `<rect x="${X(i).toFixed(1)}" y="${base - 3}" width="${bw.toFixed(1)}" height="3" rx="1.5" fill="rgba(0,0,0,.08)"/>`).join('');
+  if (pts.length > 1) g += `<path d="${ma.map((v, k) => (k ? 'L' : 'M') + (X(pts[k][0]) + bw / 2).toFixed(1) + ' ' + Y(v).toFixed(1)).join(' ')}" fill="none" stroke="url(#kgl)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (todas) d.forEach((x, i) => { if (x.costo > 0 && i !== imax) g += `<text x="${(X(i) + bw / 2).toFixed(1)}" y="${(Y(x.costo) - 5).toFixed(1)}" font-size="9.5" fill="#515154" text-anchor="middle" ${halo}>${kaF0(x.costo)}</text>`; });
+  g += `<text x="${Math.min(W - pad - 24, Math.max(L + 24, X(imax) + bw / 2)).toFixed(1)}" y="${(Y(cMax) - 7).toFixed(1)}" font-size="11" font-weight="700" fill="#0b3d82" text-anchor="middle" ${halo}>${kaF0(cMax)}</text>`;
   if (pts.length > 1) {
-    const ma = pts.map((_, k) => { const w = pts.slice(Math.max(0, k - 6), k + 1); return w.reduce((a, [, x]) => a + x.costo, 0) / w.length; });
-    g += `<path d="${ma.map((v, k) => (k ? 'L' : 'M') + (X(pts[k][0]) + bw / 2).toFixed(1) + ' ' + Y(v).toFixed(1)).join(' ')}" fill="none" stroke="url(#kgl)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
-    g += `<circle cx="${(X(pts[pts.length - 1][0]) + bw / 2).toFixed(1)}" cy="${Y(ma[ma.length - 1]).toFixed(1)}" r="5" fill="#fff" stroke="#0b3d82" stroke-width="3"/>`;
+    const k = pts.length - 1, cx = X(pts[k][0]) + bw / 2, cy = Y(ma[k]);
+    g += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5" fill="#fff" stroke="#0b3d82" stroke-width="3"/>`;
+    g += todas ? `<text x="${W - pad}" y="${(cy - 11).toFixed(1)}" font-size="10" font-weight="600" fill="#2e7d1f" text-anchor="end" ${halo}>${kaF0(ma[k])}</text>`
+      : `<text x="${(cx + 10).toFixed(1)}" y="${(cy + 3.5).toFixed(1)}" font-size="10" font-weight="600" fill="#2e7d1f" text-anchor="start" ${halo}>Prom. ${kaF0(ma[k])}</text>`;
   }
-  const corto = f => fdmy(f).slice(0, 5), et = n === 1 ? [[W / 2, 'middle', d[0].fecha]] : [[pad, 'start', d[0].fecha], ...(n > 2 ? [[W / 2, 'middle', d[Math.floor((n - 1) / 2)].fecha]] : []), [W - pad, 'end', d[n - 1].fecha]];
-  g += et.map(([x, a, f]) => `<text x="${x}" y="${H - 4}" font-size="10" fill="#6e6e73" text-anchor="${a}">${corto(f)}</text>`).join('');
+  const corto = f => fdmy(f).slice(0, 5), et = todas ? d.map((x, i) => [X(i) + bw / 2, 'middle', x.fecha]) : [[L, 'start', d[0].fecha], [(L + W) / 2, 'middle', d[Math.floor((n - 1) / 2)].fecha], [W - pad, 'end', d[n - 1].fecha]];
+  g += et.map(([x, a, f]) => `<text x="${x.toFixed(1)}" y="${H - 5}" font-size="10" fill="#6e6e73" text-anchor="${a}">${corto(f)}</text>`).join('');
+  // columna sensible por día: al pasar el cursor o tocar muestra el detalle (tarjeta #kaTip)
+  g += d.map((x, i) => `<rect class="kg-hit" x="${(L + i * step).toFixed(1)}" y="8" width="${step.toFixed(1)}" height="${base - 8}" rx="6" fill="transparent" ${kaTipA(`<b>${fdmy(x.fecha)}</b>` + (x.costo > 0 ? kaTf('Costo del día', fmt(x.costo)) + kaTf('Promedio móvil 7 días', fmt(maDia[i])) + kaTf('Del costo del período', (x.costo / total * 100).toFixed(1) + ' %') : kaTf('Sin costo registrado', '')))}/>`).join('');
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Costo por día">${g}</svg>`;
 }
 // costo por unidad según el tipo de pago elegido
