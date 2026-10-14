@@ -194,25 +194,50 @@ window.OCR = (() => {
     return R;
   }
 
-  // Comprime una imagen a <= maxBytes (escala de grises, WebP si el navegador lo permite, si no JPEG).
-  async function comprimir(file, maxBytes = 20 * 1024) {
+  // Versión para guardar: reduce por pasos, pasa a grises, quita el ruido de la cámara y lleva el papel a blanco y la tinta a negro (el ruido es lo que más pesa; sin él sobran bits para el texto).
+  function canvasNitido(img, lado) {
+    const k = Math.min(1, lado / Math.max(img.width, img.height)), w = Math.round(img.width * k), h = Math.round(img.height * k);
+    let c = document.createElement('canvas'); c.width = img.width; c.height = img.height; c.getContext('2d').drawImage(img, 0, 0);
+    while (c.width / 2 >= w && c.height / 2 >= h) {   // reducción a la mitad cuantas veces se pueda: conserva más detalle que un solo salto
+      const m = document.createElement('canvas'); m.width = Math.round(c.width / 2); m.height = Math.round(c.height / 2);
+      const mx = m.getContext('2d'); mx.imageSmoothingQuality = 'high'; mx.drawImage(c, 0, 0, m.width, m.height); c = m;
+    }
+    const f = document.createElement('canvas'); f.width = w; f.height = h;
+    const x = f.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(c, 0, 0, w, h);
+    const d = x.getImageData(0, 0, w, h), p = d.data, n = w * h, g0 = new Float32Array(n), g = new Uint8ClampedArray(n), hist = new Uint32Array(256);
+    for (let i = 0, q = 0; i < p.length; i += 4, q++) g0[q] = 0.3 * p[i] + 0.59 * p[i + 1] + 0.11 * p[i + 2];
+    for (let y = 0; y < h; y++) for (let xx = 0; xx < w; xx++) {   // suavizado muy leve (vecinos en cruz) para quitar el grano sin borrar las letras
+      const q = y * w + xx; let s = g0[q] * 4, c = 4;
+      if (xx > 0) { s += g0[q - 1] * 2; c += 2; } if (xx < w - 1) { s += g0[q + 1] * 2; c += 2; } if (y > 0) { s += g0[q - w] * 2; c += 2; } if (y < h - 1) { s += g0[q + w] * 2; c += 2; }
+      const v = Math.round(s / c); g[q] = v; hist[v]++;
+    }
+    const pct = f => { let a = 0; for (let v = 0; v < 256; v++) { a += hist[v]; if (a >= n * f) return v; } return 255; };
+    const negro = pct(0.02), blanco = Math.max(negro + 60, pct(0.92)), esc = 255 / (blanco - negro);   // niveles automáticos: papel a blanco, tinta a negro
+    for (let q = 0; q < n; q++) { const v = Math.max(0, Math.min(255, (g[q] - negro) * esc)); p[q * 4] = p[q * 4 + 1] = p[q * 4 + 2] = v; }
+    x.putImageData(d, 0, 0); return f;
+  }
+  // Comprime una imagen a <= maxBytes (grises, WebP si el navegador lo permite, si no JPEG). Prioriza la resolución: usa la mayor en la que todavía cabe con calidad aceptable, porque las letras se leen por tamaño más que por suavidad.
+  async function comprimir(file, maxBytes = 40 * 1024) {
     const img = await imagenDe(file);
     const aBlob = (c, tipo, q) => new Promise(ok => c.toBlob(ok, tipo, q));
     const prueba = await aBlob(canvasDe(img, 64, false), 'image/webp', 0.5);
     const tipo = prueba && prueba.type === 'image/webp' ? 'image/webp' : 'image/jpeg';
-    for (const lado of [1400, 1200, 1050, 900, 800, 700, 600, 520, 440, 380, 320]) {
-      const c = canvasDe(img, lado, true, false);
-      let lo = 0.3, hi = 0.85, mejor = null;
+    let ultima = null;
+    for (const lado of [1500, 1400, 1300, 1200, 1100, 1000, 900, 820, 740, 670, 600, 540, 480, 420, 360, 300]) {
+      const c = canvasNitido(img, lado);
+      let lo = 0.22, hi = 0.92;
       const min = await aBlob(c, tipo, lo);
       if (!min || min.size > maxBytes) continue;
-      mejor = { blob: min, calidad: lo };
+      let mejor = { blob: min, calidad: lo };
       for (let i = 0; i < 6; i++) {
         const q = (lo + hi) / 2, b = await aBlob(c, tipo, q);
         if (b && b.size <= maxBytes) { mejor = { blob: b, calidad: q }; lo = q; } else hi = q;
       }
-      return { blob: mejor.blob, tipo, ext: tipo === 'image/webp' ? 'webp' : 'jpg', ancho: c.width, alto: c.height, calidad: Math.round(mejor.calidad * 100) };
+      ultima = { blob: mejor.blob, tipo, ext: tipo === 'image/webp' ? 'webp' : 'jpg', ancho: c.width, alto: c.height, calidad: Math.round(mejor.calidad * 100) };
+      if (mejor.calidad >= .3) break;   // resolución máxima con calidad aceptable
     }
-    throw new Error('No se pudo comprimir la imagen a ' + Math.round(maxBytes / 1024) + ' KB');
+    if (!ultima) throw new Error('No se pudo comprimir la imagen a ' + Math.round(maxBytes / 1024) + ' KB');
+    return ultima;
   }
 
   return { leer, parsear, rucValido, comprimir };

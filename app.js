@@ -454,7 +454,7 @@ setPaso(1);
 
 // ---------- adjuntos de factura (bucket "Facturas") ----------
 const BUCKET = 'Facturas';
-const MAX_ADJUNTO = 20 * 1024;   // todo adjunto se guarda con 20 KB o menos
+const MAX_ADJUNTO = 40 * 1024;   // todo adjunto se guarda con 40 KB o menos
 // enlace temporal firmado: el bucket es privado y la foto solo se ve con sesión iniciada (se reutiliza durante 50 minutos)
 const urlsFirmadas = new Map();
 async function urlAdjunto(path) {
@@ -472,7 +472,7 @@ $('#adjFile').onchange = async e => {
   if (!/^(image\/|application\/pdf)/.test(f.type)) return flash($('#rMsg'), 'Solo se aceptan imágenes o PDF.', 'err');
   const esImg = f.type.startsWith('image/');
   if (f.size > 30 * 1024 * 1024) return flash($('#rMsg'), 'El archivo supera los 30 MB.', 'err');
-  if (!esImg && f.size > MAX_ADJUNTO) return flash($('#rMsg'), 'El PDF supera 20 KB. Cargar una foto o captura de la factura: las imágenes se comprimen automáticamente.', 'err');
+  if (!esImg && f.size > MAX_ADJUNTO) return flash($('#rMsg'), 'El PDF supera 40 KB. Cargar una foto o captura de la factura: las imágenes se comprimen automáticamente.', 'err');
   let subir = f, tipo = f.type, ext = 'pdf';
   if (esImg) {
     flash($('#rMsg'), 'Comprimiendo imagen…', 'ok');
@@ -841,7 +841,7 @@ function rmFoto(r) {
   const f = r.factura_archivo, bloq = regEnviado(r);
   $('#rmTh').innerHTML = f ? (esImagen(f) ? '<img alt="Factura" style="visibility:hidden">' : ICO.file) : ICO.img;
   $('#rmTt').textContent = f ? 'Factura adjunta' : 'Sin foto de la factura';
-  $('#rmTs').textContent = f ? 'Se guarda con 20 KB o menos' : (bloq ? '' : 'Tomar o seleccionar una foto: el N° y el importe se leen automáticamente');
+  $('#rmTs').textContent = f ? 'Se guarda con 40 KB o menos' : (bloq ? '' : 'Tomar o seleccionar una foto: el N° y el importe se leen automáticamente');
   $('#rmAc').innerHTML = (f ? '<a class="b sec hide" id="rmVer" href="#" target="_blank" rel="noopener">Ver</a>' : '') + (bloq ? '' : f ? '<button type="button" class="b sec" data-f="cambiar">Cambiar</button><button type="button" class="b sec" data-f="quitar">Quitar</button>' : '<button type="button" class="b" data-f="cambiar">Adjuntar foto</button>');
   if (f) urlAdjunto(f).then(u => {   // el enlace firmado llega un instante después; se ignora si ya se cambió de registro o de foto
     if (!u || r.factura_archivo !== f || !$('#rmVer')) return;
