@@ -117,7 +117,7 @@ window.OCR = (() => {
     [/G[E3]\s?[O0]?2\s*[-–—]\s*(\d{8})(?!\d)/, m => 'GE02-' + m[1]],                                   // Logística Antezana: guía de envío
     [/PEDIDO\s*[:;.]?\s*P\s?[O0]\s?5\s?2\s*[-–—]\s*(\d{8})(?!\d)/, m => 'P052-' + m[1]],               // Movil Bus: N° de pedido
     [/(?<![A-Z0-9])V\s?[O0]\s?1\s?5\s*[-–—]\s*(\d{5})(?!\d)/, m => 'V015-' + m[1]],                    // Logistics Empresarial: guía de remisión transportista
-    [/(?<![A-Z0-9])[O0]\s?[S5]\s*[:;.]?\s*(0\s?0\s?\d\s?\d)\s*[-–—]\s*(\d{8})(?!\d)/, m => jatsaSerie(m[1].replace(/\s/g, '')) + '-' + m[2]],   // Jatsa Cargo: OS 0029-xxxxxxxx
+    [/(?<![A-Z0-9])[O0]\s?[S58]\s*[:;.]?\s*(0\s?0\s?\d\s?\d)\s*[-–—]\s*(\d{8})(?!\d)/, m => jatsaSerie(m[1].replace(/\s/g, '')) + '-' + m[2]],   // Jatsa Cargo: OS 0029-xxxxxxxx
     [/(?<![A-Z0-9])[O0][S5]\s?(0\s?[12])\s*[-–—]\s*(\d{8})(?!\d)/, m => 'OS' + m[1].replace(/\s/g, '') + '-' + m[2]],   // Grupo / Express Hugamor: orden de servicio
     [/GUIA\s+DE\s+CONTROL[\s\S]{0,60}?(?<!\d)(\d{3})\s*[-–—]\s*(\d{6})(?!\d)/, m => m[1] + '-' + m[2]]   // Oltursa: guía de control
   ];
