@@ -2705,16 +2705,18 @@ async function lqCarpeta(zip, filas, L) {
   const [fy, fm, fd] = String(filas[0].fecha).slice(0, 10).split('-'), mes = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'][Number(fm) - 1];
   const base = `FORMATO RENDICIÓN - ${fy} ${mes} - ${fd}`, previos = Object.keys(zip.files).filter(n => !n.includes('/') && n.endsWith('.xlsx') && n.startsWith(base)).length;
   zip.file(base + (previos ? ` (${previos + 1})` : '') + '.xlsx', await lqExcel(filas, L));
-  const cola = [...filas]; let falla = 0;
+  const cola = [...filas], falla = [];   // registros cuya foto no se pudo descargar
   await Promise.all(Array.from({ length: 5 }, async () => {
     while (cola.length) {
       const r = cola.shift(), { data, error } = await sb.storage.from(BUCKET).download(r.factura_archivo);
-      if (error || !data) { falla++; continue; }
+      if (error || !data) { falla.push(r); continue; }
       fotos.file(lqNombreFoto(r, zip.__usados), data);
     }
   }));
   return falla;
 }
+// aviso de fotos que no se pudieron incluir, con el nodo y la fecha de cada registro
+const lqAvisoFotos = f => `${f.length} ${f.length === 1 ? 'foto no se pudo incluir' : 'fotos no se pudieron incluir'}: ${f.slice(0, 4).map(r => `${r.nodo} ${fdmy(r.fecha).slice(0, 5)}`).join(', ')}${f.length > 4 ? ` y ${f.length - 4} más` : ''}`;
 function lqBajar(blob, nombre) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
@@ -2726,19 +2728,19 @@ async function lqDescargar() {
   const creadas = [];
   try {
     await lqLibs();
-    const zip = new JSZip(); let fallas = 0;
+    const zip = new JSZip(), fallas = [];
     for (const g of grupos) {
       const modos = [...new Set(g.map(r => r.modo_pago))];
       const { data, error } = await sb.from('liquidaciones').insert({ fecha: today(), modo_pago: modos.length === 1 ? modos[0] : 'TODOS', total: Math.round(g.reduce((s, r) => s + Number(r.importe) * 100, 0)) / 100, items: g.length }).select().single();
       if (error) throw error; creadas.push(data);
-      fallas += await lqCarpeta(zip, g, data);
+      fallas.push(...await lqCarpeta(zip, g, data));
     }
     for (let i = 0; i < grupos.length; i++) {
       const ids = grupos[i].map(r => r.id), { data: marcados, error } = await sb.from('envios').update({ liquidacion_id: creadas[i].id }).in('id', ids).is('liquidacion_id', null).select('id'); if (error) throw error;
       if (marcados.length !== ids.length) throw new Error('Algunos registros ya pertenecen a otra liquidación. Volver a buscar.');
     }
     lqBajar(await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }), `Liquidaciones ${fdmy(today()).replace(/\//g, '-')}.zip`);
-    toast(`${grupos.length} ${grupos.length === 1 ? 'liquidación descargada' : 'liquidaciones descargadas'}` + (fallas ? `. ${fallas} ${fallas === 1 ? 'foto no se pudo incluir' : 'fotos no se pudieron incluir'}` : ''), fallas ? 'err' : undefined);
+    toast(`${grupos.length} ${grupos.length === 1 ? 'liquidación descargada' : 'liquidaciones descargadas'}` + (fallas.length ? `. ${lqAvisoFotos(fallas)}` : ''), fallas.length ? 'err' : undefined);
   } catch (e) {
     for (const L of creadas) { await sb.from('envios').update({ liquidacion_id: null }).eq('liquidacion_id', L.id); await sb.from('liquidaciones').delete().eq('id', L.id); }
     toast('No se pudo generar la liquidación: ' + (e.message || e), 'err');
@@ -2773,7 +2775,7 @@ $('#lqHist').addEventListener('click', async e => {
     const { data: filas, error } = await sb.from('envios').select('*').eq('liquidacion_id', id).order('fecha').order('transporte').order('nodo'); if (error) throw error;
     const zip = new JSZip(), fallas = await lqCarpeta(zip, filas, L);
     lqBajar(await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }), cod + '.zip');
-    if (fallas) toast(`${fallas} ${fallas === 1 ? 'foto no se pudo incluir' : 'fotos no se pudieron incluir'}`, 'err');
+    if (fallas.length) toast(lqAvisoFotos(fallas), 'err');
   } catch (err) { toast('No se pudo descargar: ' + (err.message || err), 'err'); }
   b.disabled = false; b.textContent = 'Descargar';
 });
