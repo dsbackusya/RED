@@ -1133,11 +1133,15 @@ async function traerTodo(crear) {
   }
 }
 
+// Nombres con que el detalle (HRN) reporta algunos nodos y que difieren del nombre usado en los registros de despacho.
+const NODO_HRN = { CHACHAPOYA: 'CHACHAPOYAS', CHANCHAMAYO: 'LA MERCED' };
+const nodoHrn = n => { const k = norm(n); return NODO_HRN[k] || k; };
+
 // Reparte el importe de cada nodo/día entre las cuentas del detalle en proporción a "base".
 function calcularKpi(envios, hrn, base) {
   const grupos = new Map();
   hrn.forEach(r => {
-    const k = r.fecha_reporte + '|' + norm(r.nodo);
+    const k = r.fecha_reporte + '|' + nodoHrn(r.nodo);
     const g = grupos.get(k) || new Map();
     const c = g.get(r.descripcion_cuenta || '(SIN CUENTA)') || { bultos: 0, peso: 0, volumen: 0, pedidos: 0, peds: new Set() };
     c.bultos += Number(r.bultos) || 0; c.peso += Number(r.peso) || 0; c.volumen += Number(r.volumen) || 0;
