@@ -66,6 +66,41 @@ window.OCR = (() => {
     return f;
   }
 
+  // Número del comprobante de las empresas de transporte (no son facturas SUNAT con serie F/B): cada una imprime el suyo.
+  // El OCR confunde O/0, S/5 y B/8, por eso los patrones aceptan ambas lecturas.
+  // la serie de Jatsa es siempre 0029; si el OCR la lee con un dígito distinto (por ejemplo 0079), se corrige
+  const SERIES_JATSA = ['0029'];
+  const jatsaSerie = s => { const d = o => [...s].filter((c, i) => c !== o[i]).length; return SERIES_JATSA.includes(s) ? s : (SERIES_JATSA.find(o => d(o) <= 1) || s); };
+  const DOC_TRANSPORTE = [
+    [/G[E3]\s?[O0]?2\s*[-–—]\s*(\d{8})(?!\d)/, m => 'GE02-' + m[1]],                                   // Logística Antezana: guía de envío
+    [/PEDIDO\s*[:;.]?\s*P\s?[O0]\s?5\s?2\s*[-–—]\s*(\d{8})(?!\d)/, m => 'P052-' + m[1]],               // Movil Bus: N° de pedido
+    [/(?<![A-Z0-9])V\s?[O0]\s?1\s?5\s*[-–—]\s*(\d{5})(?!\d)/, m => 'V015-' + m[1]],                    // Logistics Empresarial: guía de remisión transportista
+    [/(?<![A-Z0-9])[O0]\s?[S5]\s*[:;.]?\s*(0\s?0\s?\d\s?\d)\s*[-–—]\s*(\d{8})(?!\d)/, m => jatsaSerie(m[1].replace(/\s/g, '')) + '-' + m[2]],   // Jatsa Cargo: OS 0029-xxxxxxxx
+    [/(?<![A-Z0-9])[O0][S5]\s?(0\s?[12])\s*[-–—]\s*(\d{8})(?!\d)/, m => 'OS' + m[1].replace(/\s/g, '') + '-' + m[2]],   // Grupo / Express Hugamor: orden de servicio
+    [/GUIA\s+DE\s+CONTROL[\s\S]{0,60}?(?<!\d)(\d{3})\s*[-–—]\s*(\d{6})(?!\d)/, m => m[1] + '-' + m[2]]   // Oltursa: guía de control
+  ];
+  function docTransporte(T) {
+    const x = norm(T);
+    for (const [re, f] of DOC_TRANSPORTE) { const m = x.match(re); if (m) return f(m); }
+    return '';
+  }
+
+  // Importe escrito en letras ("SON: CUARENTA Y SEIS CON 50/100 SOLES"): sirve para comprobar el importe leído, porque el OCR confunde 0 y 1 en los números pero casi no falla en las palabras.
+  const PAL = { CERO: 0, UN: 1, UNO: 1, UNA: 1, DOS: 2, TRES: 3, CUATRO: 4, CINCO: 5, SEIS: 6, SIETE: 7, OCHO: 8, NUEVE: 9, DIEZ: 10, ONCE: 11, DOCE: 12, TRECE: 13, CATORCE: 14, QUINCE: 15, DIECISEIS: 16, DIECISIETE: 17, DIECIOCHO: 18, DIECINUEVE: 19, VEINTE: 20, VEINTIUN: 21, VEINTIUNO: 21, VEINTIDOS: 22, VEINTITRES: 23, VEINTICUATRO: 24, VEINTICINCO: 25, VEINTISEIS: 26, VEINTISIETE: 27, VEINTIOCHO: 28, VEINTINUEVE: 29, TREINTA: 30, CUARENTA: 40, CINCUENTA: 50, SESENTA: 60, SETENTA: 70, OCHENTA: 80, NOVENTA: 90, CIEN: 100, CIENTO: 100, DOSCIENTOS: 200, TRESCIENTOS: 300, CUATROCIENTOS: 400, QUINIENTOS: 500, SEISCIENTOS: 600, SETECIENTOS: 700, OCHOCIENTOS: 800, NOVECIENTOS: 900 };
+  function importeEnLetras(T) {
+    const x = norm(T).replace(/\n/g, ' ').replace(/\s+/g, ' ');
+    const m = x.match(/\bSON\s*[:;.\-–—]?\s*([A-Z ]{3,90}?)\s+CON\s+(\d{1,2})\s*\/\s*1\s*0\s*0?/);
+    if (!m) return null;
+    let total = 0, act = 0;
+    for (const w of m[1].split(' ')) {
+      if (!w || w === 'Y') continue;
+      if (w === 'MIL') { total += (act || 1) * 1000; act = 0; continue; }
+      if (!(w in PAL)) return null;
+      act += PAL[w];
+    }
+    return Math.round((total + act + Number(m[2]) / 100) * 100) / 100;
+  }
+
   function parsear(texto, qr, ref, nodos) {
     const R = { factura: '', importe: null, fecha: '', ruc: '', guia: '', destino: '', destinosVistos: [], bultos: null, peso: null, aviso: [], viaQR: false };
     const T = texto.replace(/\r/g, '');
@@ -90,7 +125,7 @@ window.OCR = (() => {
       R.importe = dinero(q[5]); R.ruc = q[0]; R.viaQR = true;
       const f = q[6].includes('/') ? q[6].split('/') : q[6].split('-').reverse();
       R.fecha = fechaValida(f[0], f[1], f[2], null); // la fecha del QR es exacta: no se compara con el registro
-    } else R.factura = impresa;
+    } else R.factura = impresa || docTransporte(T);
 
     // --- importe por texto (si no hubo QR)
     if (R.importe == null) {
@@ -120,11 +155,31 @@ window.OCR = (() => {
         R.aviso.push('El importe no apareció junto a la palabra TOTAL: verifícalo en la foto.');
     }
 
+    // --- el total de estas guías es casi siempre un monto redondo (tarifa por bulto): si el OCR lee 40.10 y el detalle dice 40.00, prevalece el detalle
+    if (!R.viaQR && R.importe != null && Math.round(R.importe * 100) % 100 !== 0) {
+      const redondo = montos(T).find(v => Number.isInteger(v) && v > 0 && Math.abs(v - R.importe) > 0 && Math.abs(v - R.importe) <= 0.15);
+      if (redondo != null && !/IGV|I\.G\.V/i.test(T)) { R.importe = redondo; R.aviso.push(`Importe ajustado a ${redondo.toFixed(2)} (monto del detalle): verifícalo en la foto.`); }
+    }
+
+    // --- el importe en letras confirma (o corrige) el importe leído
+    const enLetras = importeEnLetras(T);
+    if (enLetras != null && !R.viaQR && R.importe !== enLetras) {
+      const hayEnTexto = montos(T).some(v => cerca(v, enLetras));
+      if (R.importe == null || hayEnTexto) { R.importe = enLetras; R.aviso = R.aviso.filter(a => !/importe/i.test(a)); }
+      else R.aviso.push(`El importe en letras (${enLetras.toFixed(2)}) no coincide con el leído: verifícalo en la foto.`);
+    }
+
     // --- fecha (texto)
     if (!R.fecha) {
       for (const m of T.matchAll(/(\d{2})\s*[\/-]\s*(\d{2})\s*[\/-]\s*(20\d{2})|(20\d{2})\s*[\/-]\s*(\d{2})\s*[\/-]\s*(\d{2})/g)) {
         const f = m[1] ? fechaValida(m[1], m[2], m[3], ref) : fechaValida(m[6], m[5], m[4], ref);
         if (f) { R.fecha = f; break; }
+      }
+      if (!R.fecha && ref) {   // el OCR a veces lee mal el año (2026 como 2028 o 2076): si día y mes caen junto a la fecha del registro, se toma el año del registro
+        for (const m of T.matchAll(/(?<!\d)(\d{2})\s*[\/-]\s*(\d{2})\s*[\/-]\s*(\d{4})(?!\d)/g)) {
+          const f = fechaValida(m[1], m[2], Number(ref.slice(0, 4)), ref);
+          if (f) { R.fecha = f; break; }
+        }
       }
     }
 
